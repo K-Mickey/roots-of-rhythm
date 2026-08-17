@@ -1,0 +1,59 @@
+[project]
+name = "roots-of-rhythm-backend"
+version = "0.1.0"
+description = "Litestar backend for the Roots of Rhythm music history project"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "alembic>=1.16,<2",
+    "click>=8.3,<9",
+    "litestar>=2.18,<3",
+    "msgspec>=0.19,<1",
+    "psycopg[binary]>=3.2,<4",
+    "python-decouple>=3.8,<4",
+    "sqlalchemy[asyncio]>=2.0,<3",
+    "uvicorn>=0.35,<1",
+]
+
+[project.scripts]
+roots-of-rhythm = "roots_of_rhythm.entrypoints.cli:cli"
+
+[build-system]
+requires = ["uv_build>=0.11.25,<0.12"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "mypy>=1.17,<2",
+    "pytest>=8.4,<10",
+    "pytest-asyncio>=1.1,<2",
+    "ruff>=0.12,<1",
+]
+
+[tool.uv.build-backend]
+module-name = "roots_of_rhythm"
+
+[tool.mypy]
+python_version = "3.14"
+files = ["src", "tests"]
+strict = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+asyncio_mode = "auto"
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = ["integration: requires a running PostgreSQL database"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["A", "ASYNC", "B", "BLE", "C4", "DTZ", "E", "F", "FURB", "G", "I", "PIE", "Q", "S", "SIM", "T20", "TC", "W"]
+ignore = ["COM812", "ISC001"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]

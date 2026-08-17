@@ -27,6 +27,8 @@ STORY-001 и её UI/OpenAPI contracts утверждены. Для первой
 - msgspec для явных transport DTO, JSON serialization/deserialization и доменных entities/value objects;
 - domain `msgspec.Struct` и transport `msgspec.Struct` являются разными типами: HTTP DTO не передаётся в domain и domain entity не сериализуется в HTTP напрямую;
 - Uvicorn как ASGI server;
+- Click как единая runtime CLI backend: HTTP API и будущие MCP/worker processes являются отдельными командами одной CLI, прямой параллельный способ запуска не поддерживается;
+- `python-decouple` только для чтения application configuration с приоритетом CLI override, environment, `.env`, default; frozen `msgspec.Struct` создаёт единый неизменяемый snapshot настроек процесса; библиотека не используется для domain или transport models;
 - async HTTP/database adapters и async application use cases, когда они выполняют I/O; domain rules остаются обычным чистым Python.
 
 Python `async` здесь не противоречит «синхронным application-вызовам» ADR-0001: contexts вызывают друг друга in-process в рамках одного request/response flow, без event bus, message delivery и eventual consistency. `async/await` только не блокирует event loop во время I/O.
@@ -61,6 +63,7 @@ App Router использует Server Components, Suspense и layouts: [Next.js
 ### Dependency management и quality baseline
 
 - `uv` + committed `uv.lock` для Python;
+- устанавливаемый pure-Python `src` package собирается официальным `uv_build`; Hatchling добавляется только при появлении неподдерживаемой build-задачи;
 - `pnpm` + committed lockfile для frontend; JavaScript workspace не создаётся, пока frontend package один;
 - Ruff для Python lint/format, mypy для static typing;
 - ESLint + Prettier для TypeScript/React;
@@ -191,3 +194,4 @@ Django прямо описывает admin как model-centric internal tool и
 ## История изменений
 
 - 2026-08-17: Product Owner изменил первоначальное решение «msgspec только для transport DTO»: `msgspec.Struct` также используется для domain entities/value objects, но domain и transport types не объединяются.
+- 2026-08-17: backend зафиксирован как устанавливаемый `uv_build` package; Click принят единственной runtime CLI, `python-decouple` — изолированным механизмом configuration.

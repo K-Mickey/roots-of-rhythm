@@ -39,6 +39,27 @@ tests/
 
 `src` и конкретные названия адаптируются к выбранному стеку, но соответствие «модуль → отдельная подпапка → зеркальные тесты» сохраняется.
 
+## Текущая Python-проекция
+
+До появления первой предметной вертикали backend содержит только реально используемые общесистемные границы:
+
+```text
+backend/src/roots_of_rhythm/
+├── config.py
+├── entrypoints/
+│   ├── api.py
+│   └── cli.py
+├── infrastructure/
+│   └── database.py
+└── presentation/
+    └── health.py
+
+backend/tests/
+└── entrypoints/
+```
+
+`entrypoints` собирает процессы и lifecycle, `presentation` владеет HTTP mapping, `infrastructure` — техническими adapters, `config.py` — application settings. Будущие contexts и их четыре внутренних слоя не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+
 ## Внутренняя структура модуля
 
 Создавать подпапку только когда в ней появляется реальный код:

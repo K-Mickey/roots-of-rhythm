@@ -1,0 +1,6 @@
+extends:
+  - recommended
+
+rules:
+  no-empty-servers: off
+  no-server-example.com: off
