@@ -65,6 +65,7 @@ test-unit: ## Run backend and frontend unit tests
 	pnpm --dir frontend test
 
 test-integration: db-up ## Run PostgreSQL integration tests
+	$(MAKE) migrate
 	cd backend && TEST_DATABASE_URL=$(DATABASE_URL) uv run pytest -m integration
 
 test-e2e: ## Run Playwright smoke tests against a running stack

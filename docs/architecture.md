@@ -15,6 +15,8 @@
 
 Historical Knowledge владеет Claims и историческими связями и ссылается на стабильные IDs остальных contexts. Context изменяет только принадлежащие ему данные; межконтекстные операции оркестрируются application layer.
 
+Первая фактическая предметная проекция — Python package `music_catalog`. Его domain содержит immutable Genre/ClassificationConcept, application — команды и принадлежащие ему Repository/Unit of Work contracts, infrastructure — отдельную SQLAlchemy persistence model и PostgreSQL adapters. ORM models и sessions не выходят из infrastructure; transport DTO не переиспользуют domain entities.
+
 Editorial, Discovery и AI Research планируются как логические supporting capabilities, но не как bounded contexts или сервисы. Editorial оркестрирует редакционный lifecycle, Discovery является read side, AI Research владеет только техническими индексами, AI-запусками и proposals. Их физические code/module boundaries не фиксируются до использующей story.
 
 ## Принятый application stack
@@ -53,7 +55,7 @@ Next.js и Litestar запускаются как два process одного к
 
 - authentication и authorization;
 - deployment topology;
-- конкретные language-specific package names при сохранении принятой структуры модулей;
+- language-specific package names остальных bounded contexts;
 - инфраструктурная стратегия после выбора backend/database stack;
 - внешние интеграции.
 

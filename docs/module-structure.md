@@ -51,14 +51,33 @@ backend/src/roots_of_rhythm/
 │   └── cli.py
 ├── infrastructure/
 │   └── database.py
+├── music_catalog/
+│   ├── domain/
+│   │   ├── enums.py
+│   │   ├── errors.py
+│   │   ├── genre.py
+│   │   └── value_objects.py
+│   ├── application/
+│   │   ├── errors.py
+│   │   ├── ports.py
+│   │   └── service.py
+│   └── infrastructure/
+│       ├── mapping.py
+│       ├── models.py
+│       ├── repository.py
+│       └── unit_of_work.py
 └── presentation/
     └── health.py
 
 backend/tests/
-└── entrypoints/
+├── entrypoints/
+└── music_catalog/
+    ├── domain/
+    ├── application/
+    └── infrastructure/
 ```
 
-`entrypoints` собирает процессы и lifecycle, `presentation` владеет HTTP mapping, `infrastructure` — техническими adapters, `config.py` — application settings. Будущие contexts и их четыре внутренних слоя не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+`entrypoints` собирает процессы и lifecycle, `presentation` владеет HTTP mapping, корневой `infrastructure` — общими runtime adapters, `config.py` — application settings. `music_catalog` является первой предметной границей: domain не знает об ORM, application владеет Repository/UoW contracts, infrastructure содержит SQLAlchemy mapping и adapters. Будущие contexts и их четыре внутренних слоя не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
 
 ## Внутренняя структура модуля
 

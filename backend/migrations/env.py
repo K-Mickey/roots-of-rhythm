@@ -2,10 +2,11 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import Connection, MetaData, pool
+from sqlalchemy import Connection, pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from roots_of_rhythm.config import settings
+from roots_of_rhythm.music_catalog.infrastructure import MusicCatalogBase
 
 config = context.config
 
@@ -13,7 +14,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 config.set_main_option("sqlalchemy.url", settings.database_url)
-target_metadata = MetaData()
+target_metadata = MusicCatalogBase.metadata
 
 
 def run_migrations_offline() -> None:

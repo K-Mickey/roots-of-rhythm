@@ -34,7 +34,7 @@
 | `make lint` | `make setup` | Запускает Ruff и ESLint. |
 | `make typecheck` | `make setup` | Запускает mypy и TypeScript compiler. |
 | `make test-unit` | `make setup` | Запускает backend unit tests и Vitest. |
-| `make test-integration` | Docker, `make setup` | Поднимает PostgreSQL и проверяет backend readiness с реальной БД. |
+| `make test-integration` | Docker, `make setup` | Поднимает PostgreSQL, применяет Alembic migrations и проверяет readiness и persistence с реальной БД. |
 | `make test-e2e` | запущенный `make up`, Chromium | Проверяет страницу frontend и backend health через Playwright. |
 | `make contract-check` | `make setup` | Проверяет OpenAPI через Redocly и отсутствие drift в generated TypeScript contract. |
 | `make build` | Docker | Собирает production images backend и frontend. |
