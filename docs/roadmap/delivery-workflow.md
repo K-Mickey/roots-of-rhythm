@@ -26,7 +26,7 @@ Issue не становится копией specification. Он содержи�
 1. Убедиться, что project опубликован в GitHub repository и доступна авторизация для создания Issues/Project.
 2. Создать один GitHub Project `Swing Music Story`.
 3. Настроить status: `Backlog`, `Ready`, `In progress`, `Review`, `Done`; `Blocked` хранить отдельным flag/reason, чтобы не терять основной этап.
-4. Добавить поля: `Type`, `Epic/Story`, `Priority`, `Milestone`. Estimates и iterations не добавлять до реальной пользы.
+4. Добавить поля: `Work item type`, `Epic/Story`, `Priority`, `Milestone`. GitHub резервирует имя пользовательского поля `Type`, поэтому operational projection использует `Work item type`. Estimates и iterations не добавлять до реальной пользы.
 5. Создать milestone первой vertical slice.
 6. Создать issues для принятых epics/stories и утверждённых задач декомпозиции; draft/future scope переносить как явно помеченный backlog, не как ready work.
 7. Проверить двусторонние ссылки: document -> tracker item и issue -> source specification.
@@ -71,3 +71,9 @@ Story points, количество commits и объём кода не испо�
 ```
 
 При расхождении tracker и repository действует приоритет источников из `AGENTS.md`; GitHub Project показывает состояние работы, но не переопределяет принятую specification.
+
+## Актуальный tracker
+
+- Project: [Swing Music Story](https://github.com/users/K-Mickey/projects/1).
+- Первый milestone: [MVP 0.1 — Genre vertical slice](https://github.com/K-Mickey/roots-of-rhythm/milestone/1).
+- Bootstrap выполнен 2026-08-17: создано 12 epic issues, одна accepted story и девять утверждённых tasks; только `TASK-001` переведена в `Ready`.

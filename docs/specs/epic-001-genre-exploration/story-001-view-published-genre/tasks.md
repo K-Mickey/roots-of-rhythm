@@ -8,6 +8,20 @@ Story: [STORY-001](README.md).
 
 Цель декомпозиции — получить минимальные проверяемые work items первой vertical slice. Границы девяти tasks и создание новых перечисленных tests, fixtures и test configuration утверждены Product Owner 2026-08-17. До начала кода всё ещё требуется [tracker bootstrap](../../../roadmap/delivery-workflow.md).
 
+## Tracker
+
+| Task | GitHub issue |
+|---|---|
+| `TASK-001` | [#18](https://github.com/K-Mickey/roots-of-rhythm/issues/18) |
+| `TASK-002` | [#9](https://github.com/K-Mickey/roots-of-rhythm/issues/9) |
+| `TASK-003` | [#19](https://github.com/K-Mickey/roots-of-rhythm/issues/19) |
+| `TASK-004` | [#21](https://github.com/K-Mickey/roots-of-rhythm/issues/21) |
+| `TASK-005` | [#20](https://github.com/K-Mickey/roots-of-rhythm/issues/20) |
+| `TASK-006` | [#15](https://github.com/K-Mickey/roots-of-rhythm/issues/15) |
+| `TASK-007` | [#16](https://github.com/K-Mickey/roots-of-rhythm/issues/16) |
+| `TASK-008` | [#10](https://github.com/K-Mickey/roots-of-rhythm/issues/10) |
+| `TASK-009` | [#17](https://github.com/K-Mickey/roots-of-rhythm/issues/17) |
+
 ## TASK-001: создать исполняемый каркас приложения
 
 ### Результат

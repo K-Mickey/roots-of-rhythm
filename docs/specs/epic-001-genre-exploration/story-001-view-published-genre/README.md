@@ -2,6 +2,8 @@
 
 Статус: `accepted`
 
+Tracker: [GitHub issue #22](https://github.com/K-Mickey/roots-of-rhythm/issues/22).
+
 Epic: [EPIC-001](../README.md).
 
 ## User story

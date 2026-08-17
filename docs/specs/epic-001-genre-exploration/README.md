@@ -2,6 +2,8 @@
 
 Статус: `accepted`
 
+Tracker: [GitHub issue #1](https://github.com/K-Mickey/roots-of-rhythm/issues/1).
+
 Приоритет поставки: первый epic, подтверждено Product Owner 2026-08-16.
 
 ## Пользовательский результат

@@ -6,20 +6,20 @@
 
 ## Предлагаемые epics
 
-| ID | Пользовательский результат | Поддерживаемые вопросы | Зависимости |
-|---|---|---|---|
-| [`EPIC-001`](epic-001-genre-exploration/README.md) | Исследовать жанр и понять его место в истории | CQ-001, CQ-002, CQ-004 | опубликованный Genre, Claims и Evidence |
-| `EPIC-002` | Исследовать Performer, Group и Recording | CQ-003, CQ-004, CQ-005, CQ-007 | People/Music Catalog, credits, ListeningGuide |
-| `EPIC-003` | Проследить развитие музыки по интерактивной карте | CQ-001, CQ-002, CQ-006 | relations, Discovery projections, фильтры и текстовая альтернатива карты |
-| `EPIC-004` | Исследовать связь Dance и Genre | CQ-006 | Dance Catalog, DanceGenreRelation |
-| `EPIC-005` | Войти как Editor, создавать, проверять и публиковать знания | обеспечивает все CQ | authentication, Editorial lifecycle, `/studio`, sources и audit |
-| `EPIC-006` | Задавать вопросы опубликованному корпусу | CQ-001–CQ-005 | Sources, supported Claims, ingestion, evaluation |
-| `EPIC-007` | Читать опубликованные знания через MCP | поддерживает внешние AI-сценарии | стабильные read contracts; `ask_published_corpus` добавляется только после EPIC-006 |
-| `EPIC-008` | Получать AI-предложения для редактора | ускоряет наполнение всех CQ | ручной Editorial workflow, AIProposal и evaluation |
-| `EPIC-009` | Открывать доступные музыкальные примеры | дополняет CQ-001–CQ-006 | MediaReference и исследование providers |
-| `EPIC-010` | Найти точку входа и нужный материал через главную, каталоги и поиск | навигация ко всем CQ | опубликованные сущности, Discovery queries, списки, фильтры и статистика |
-| `EPIC-011` | Читать структурированные Stories, сравнения и маршруты | CQ-001, CQ-002, CQ-004, CQ-005 | Story, sections, Claims, entity references и музыкальные примеры |
-| [`EPIC-012`](epic-012-production-readiness/README.md) | Безопасно эксплуатировать публичный сервис и своевременно узнавать о проблемах | обеспечивает доступность всех публичных сценариев | стабильная vertical slice, deployment topology и измеримый production baseline |
+| ID | Tracker | Пользовательский результат | Поддерживаемые вопросы | Зависимости |
+|---|---|---|---|---|
+| [`EPIC-001`](epic-001-genre-exploration/README.md) | [#1](https://github.com/K-Mickey/roots-of-rhythm/issues/1) | Исследовать жанр и понять его место в истории | CQ-001, CQ-002, CQ-004 | опубликованный Genre, Claims и Evidence |
+| `EPIC-002` | [#6](https://github.com/K-Mickey/roots-of-rhythm/issues/6) | Исследовать Performer, Group и Recording | CQ-003, CQ-004, CQ-005, CQ-007 | People/Music Catalog, credits, ListeningGuide |
+| `EPIC-003` | [#11](https://github.com/K-Mickey/roots-of-rhythm/issues/11) | Проследить развитие музыки по интерактивной карте | CQ-001, CQ-002, CQ-006 | relations, Discovery projections, фильтры и текстовая альтернатива карты |
+| `EPIC-004` | [#3](https://github.com/K-Mickey/roots-of-rhythm/issues/3) | Исследовать связь Dance и Genre | CQ-006 | Dance Catalog, DanceGenreRelation |
+| `EPIC-005` | [#12](https://github.com/K-Mickey/roots-of-rhythm/issues/12) | Войти как Editor, создавать, проверять и публиковать знания | обеспечивает все CQ | authentication, Editorial lifecycle, `/studio`, sources и audit |
+| `EPIC-006` | [#2](https://github.com/K-Mickey/roots-of-rhythm/issues/2) | Задавать вопросы опубликованному корпусу | CQ-001–CQ-005 | Sources, supported Claims, ingestion, evaluation |
+| `EPIC-007` | [#5](https://github.com/K-Mickey/roots-of-rhythm/issues/5) | Читать опубликованные знания через MCP | поддерживает внешние AI-сценарии | стабильные read contracts; `ask_published_corpus` добавляется только после EPIC-006 |
+| `EPIC-008` | [#14](https://github.com/K-Mickey/roots-of-rhythm/issues/14) | Получать AI-предложения для редактора | ускоряет наполнение всех CQ | ручной Editorial workflow, AIProposal и evaluation |
+| `EPIC-009` | [#7](https://github.com/K-Mickey/roots-of-rhythm/issues/7) | Открывать доступные музыкальные примеры | дополняет CQ-001–CQ-006 | MediaReference и исследование providers |
+| `EPIC-010` | [#4](https://github.com/K-Mickey/roots-of-rhythm/issues/4) | Найти точку входа и нужный материал через главную, каталоги и поиск | навигация ко всем CQ | опубликованные сущности, Discovery queries, списки, фильтры и статистика |
+| `EPIC-011` | [#13](https://github.com/K-Mickey/roots-of-rhythm/issues/13) | Читать структурированные Stories, сравнения и маршруты | CQ-001, CQ-002, CQ-004, CQ-005 | Story, sections, Claims, entity references и музыкальные примеры |
+| [`EPIC-012`](epic-012-production-readiness/README.md) | [#8](https://github.com/K-Mickey/roots-of-rhythm/issues/8) | Безопасно эксплуатировать публичный сервис и своевременно узнавать о проблемах | обеспечивает доступность всех публичных сценариев | стабильная vertical slice, deployment topology и измеримый production baseline |
 
 ID отражает стабильную идентичность epic, а не обязательный порядок реализации.
 
