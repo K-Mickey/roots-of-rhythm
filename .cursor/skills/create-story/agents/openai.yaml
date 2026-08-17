@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Story"
+  short_description: "Создать проверяемую user story"
+  default_prompt: "Создай user story с требованиями и критериями приемки."

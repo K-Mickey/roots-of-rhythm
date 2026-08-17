@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create API Contract"
+  short_description: "Создать или обновить API-контракт"
+  default_prompt: "Создай или обнови API-контракт по утвержденной спецификации."

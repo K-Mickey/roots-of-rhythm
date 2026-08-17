@@ -1,0 +1,4 @@
+interface:
+  display_name: "Devil's Advocate"
+  short_description: "Критически проверить решение"
+  default_prompt: "Проведи критическую проверку предложенного решения, рисков и альтернатив."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Decompose Story"
+  short_description: "Разложить story на задачи"
+  default_prompt: "Декомпозируй утвержденную story на реализуемые задачи."

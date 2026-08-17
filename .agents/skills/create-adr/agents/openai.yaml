@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create ADR"
+  short_description: "Зафиксировать архитектурное решение"
+  default_prompt: "Создай ADR для значимого долгоживущего архитектурного решения."

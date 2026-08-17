@@ -1,0 +1,376 @@
+openapi: 3.1.0
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: Swing Music Story Public API
+  version: 0.2.0
+  description: Public read API defined by accepted project specifications.
+tags:
+  - name: Genres
+    description: Published Genre read models.
+paths:
+  /api/v1/genres/{genre_id}:
+    get:
+      tags: [Genres]
+      operationId: getPublishedGenreOverview
+      summary: Get a published Genre overview
+      description: >-
+        Returns the required identity and overview projection. Unknown, malformed,
+        draft, and archived Genre identifiers are intentionally indistinguishable.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/GenreId"
+      responses:
+        "200":
+          description: Public Genre overview.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenreOverviewResponse"
+              examples:
+                swing:
+                  value:
+                    id: 5d6f4f68-2f7f-4a70-a8f1-df935dcbdb5c
+                    name: Swing
+                    definition: >-
+                      Направление джаза, в котором ритмическая пульсация,
+                      оркестровые аранжировки и импровизирующие солисты стали
+                      основой массовой танцевальной музыки Swing Era.
+                    primary_image: null
+                    period:
+                      label: 1930-е — 1940-е
+                      start: {year: 1930, precision: decade}
+                      end: {year: 1940, precision: decade}
+                    geography_or_origin:
+                      summary: Соединённые Штаты Америки
+                    historical_context: >-
+                      В 1930-е годы большие джазовые оркестры и танцевальные площадки
+                      сделали Swing центральной частью американской популярной музыки.
+                    formation: >-
+                      Swing сформировался внутри джазовой традиции по мере развития
+                      больших составов, аранжировок и ритмического подхода.
+                    characteristic_features:
+                      - Устойчивая swing-пульсация
+                      - Риффовые и секционные оркестровые аранжировки
+        "404":
+          $ref: "#/components/responses/GenreNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/genres/{genre_id}/relations:
+    get:
+      tags: [Genres]
+      operationId: getPublishedGenreRelations
+      summary: Get published relations for a Genre
+      description: >-
+        Returns all currently visible relation cards as one bounded projection.
+        It does not create one request per Claim.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/GenreId"
+      responses:
+        "200":
+          description: Ordered public Genre relations; an empty array is a successful result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenreRelationsResponse"
+              examples:
+                swing:
+                  value:
+                    genre_id: 5d6f4f68-2f7f-4a70-a8f1-df935dcbdb5c
+                    relations:
+                      - id: f773ba22-1c50-4f53-9c46-e809cc3902d1
+                        related_genre:
+                          id: 5812ed94-b7c0-4790-b7f0-b6b09081ab52
+                          name: Jazz
+                        relation_type: developed_from
+                        perspective: subject
+                        explanation: >-
+                          Swing сформировался внутри американской джазовой традиции
+                          на основе развития оркестровых аранжировок и ритмической организации.
+                        temporal_context:
+                          label: конец 1920-х — 1930-е
+                          start: {year: 1920, precision: late_decade}
+                          end: {year: 1930, precision: decade}
+                        geographic_context:
+                          summary: Соединённые Штаты Америки
+                        evidence_status: supported
+                        evidence_references:
+                          - source_id: 43c0a5f3-e885-4f33-b9ae-d9ffec1f5f14
+                            role: supports
+                            locator_text: Jazz history overview; Jazz Age and Swing Era
+                            external_url: https://music.si.edu/story/jazz
+        "404":
+          $ref: "#/components/responses/GenreNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/genres/{genre_id}/sources:
+    get:
+      tags: [Genres]
+      operationId: getPublishedGenreSources
+      summary: Get the public bibliography for a Genre page
+      description: >-
+        Returns a deduplicated bibliography for all currently public Evidence
+        references used by the Genre page. It does not create one request per Source.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/GenreId"
+      responses:
+        "200":
+          description: Public Genre bibliography; an empty array is a successful result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenreSourcesResponse"
+              examples:
+                swing:
+                  value:
+                    genre_id: 5d6f4f68-2f7f-4a70-a8f1-df935dcbdb5c
+                    sources:
+                      - id: 43c0a5f3-e885-4f33-b9ae-d9ffec1f5f14
+                        title: "Jazz: An Introduction to the History and Legends Behind America's Music"
+                        author: null
+                        responsible_organization: Smithsonian Music
+                        publication: Smithsonian Music
+                        publication_date: null
+                        external_url: https://music.si.edu/story/jazz
+        "404":
+          $ref: "#/components/responses/GenreNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+components:
+  parameters:
+    GenreId:
+      name: genre_id
+      in: path
+      required: true
+      description: Stable opaque Genre identifier. Clients must not derive meaning from it.
+      schema:
+        $ref: "#/components/schemas/PublicId"
+  responses:
+    GenreNotFound:
+      description: Genre is absent or not publicly visible.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: GENRE_NOT_FOUND
+            message: Материал не найден.
+            details: null
+            request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
+    InternalError:
+      description: The requested projection could not be assembled safely.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: INTERNAL_ERROR
+            message: Не удалось загрузить материал.
+            details: null
+            request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
+  schemas:
+    PublicId:
+      type: string
+      minLength: 1
+      description: Stable opaque identifier whose internal format is not a client contract.
+    NullableText:
+      oneOf:
+        - type: string
+        - type: "null"
+    GenreOverviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - definition
+        - primary_image
+        - period
+        - geography_or_origin
+        - historical_context
+        - formation
+        - characteristic_features
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+        definition: {type: string, minLength: 1, contentMediaType: text/plain}
+        primary_image:
+          oneOf:
+            - $ref: "#/components/schemas/PublicImageView"
+            - type: "null"
+        period:
+          oneOf:
+            - $ref: "#/components/schemas/HistoricalPeriodView"
+            - type: "null"
+        geography_or_origin:
+          oneOf:
+            - $ref: "#/components/schemas/GeographicContextView"
+            - type: "null"
+        historical_context: {$ref: "#/components/schemas/NullableText"}
+        formation: {$ref: "#/components/schemas/NullableText"}
+        characteristic_features:
+          type: array
+          items: {type: string, minLength: 1}
+    GenreRelationsResponse:
+      type: object
+      additionalProperties: false
+      required: [genre_id, relations]
+      properties:
+        genre_id: {$ref: "#/components/schemas/PublicId"}
+        relations:
+          type: array
+          description: Public relations ordered by temporal start, relation type, and related Genre name.
+          items: {$ref: "#/components/schemas/GenreRelationView"}
+    GenreSourcesResponse:
+      type: object
+      additionalProperties: false
+      required: [genre_id, sources]
+      properties:
+        genre_id: {$ref: "#/components/schemas/PublicId"}
+        sources:
+          type: array
+          description: Deduplicated bibliography ordered by first public citation occurrence.
+          items: {$ref: "#/components/schemas/SourceView"}
+    GenreSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+    GenreRelationView:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - related_genre
+        - relation_type
+        - perspective
+        - explanation
+        - temporal_context
+        - geographic_context
+        - evidence_status
+        - evidence_references
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        related_genre: {$ref: "#/components/schemas/GenreSummary"}
+        relation_type: {$ref: "#/components/schemas/GenreRelationType"}
+        perspective: {$ref: "#/components/schemas/RelationPerspective"}
+        explanation:
+          type: string
+          minLength: 1
+          contentMediaType: text/plain
+          description: >-
+            Explains the relation. For disputed status it must also describe the
+            material disagreement; a generic statement that sources differ is insufficient.
+        temporal_context: {$ref: "#/components/schemas/HistoricalPeriodView"}
+        geographic_context: {$ref: "#/components/schemas/GeographicContextView"}
+        evidence_status: {$ref: "#/components/schemas/EvidenceStatus"}
+        evidence_references:
+          type: array
+          description: Reviewed public Evidence only; may be empty for unverified.
+          items: {$ref: "#/components/schemas/EvidenceReferenceView"}
+    GenreRelationType:
+      type: string
+      enum: [influenced, contributed_to_emergence_of, developed_from, overlaps_with, revival_of]
+    RelationPerspective:
+      type: string
+      description: Read-model perspective, not a domain relation type.
+      enum: [subject, target, symmetric]
+    HistoricalPeriodView:
+      type: object
+      additionalProperties: false
+      required: [label, start, end]
+      properties:
+        label: {type: string, minLength: 1, description: Editorial wording displayed verbatim by the client.}
+        start:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+        end:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+    TemporalBound:
+      type: object
+      additionalProperties: false
+      required: [year, precision]
+      properties:
+        year: {type: integer, description: Anchor year interpreted together with precision.}
+        precision: {$ref: "#/components/schemas/TemporalPrecision"}
+    TemporalPrecision:
+      type: string
+      enum: [exact_year, circa_year, decade, early_decade, mid_decade, late_decade]
+    GeographicContextView:
+      type: object
+      additionalProperties: false
+      required: [summary]
+      properties:
+        summary: {type: string, minLength: 1, contentMediaType: text/plain}
+    EvidenceStatus:
+      type: string
+      enum: [unverified, supported, disputed]
+    EvidenceRole:
+      type: string
+      enum: [supports, opposes, context]
+    EvidenceReferenceView:
+      type: object
+      additionalProperties: false
+      required: [source_id, role, locator_text, external_url]
+      properties:
+        source_id: {$ref: "#/components/schemas/PublicId"}
+        role: {$ref: "#/components/schemas/EvidenceRole"}
+        locator_text: {$ref: "#/components/schemas/NullableText"}
+        external_url:
+          oneOf:
+            - {type: string, format: uri}
+            - type: "null"
+    SourceView:
+      type: object
+      additionalProperties: false
+      required: [id, title, author, responsible_organization, publication, publication_date, external_url]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        title: {type: string, minLength: 1}
+        author: {$ref: "#/components/schemas/NullableText"}
+        responsible_organization: {$ref: "#/components/schemas/NullableText"}
+        publication: {$ref: "#/components/schemas/NullableText"}
+        publication_date: {$ref: "#/components/schemas/NullableText"}
+        external_url:
+          oneOf:
+            - {type: string, format: uri}
+            - type: "null"
+    PublicImageView:
+      type: object
+      additionalProperties: false
+      required: [id, url, alt_text, width, height, attribution_text, attribution_url]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        url: {type: string, format: uri}
+        alt_text: {type: string, minLength: 1}
+        width:
+          oneOf:
+            - {type: integer, minimum: 1}
+            - type: "null"
+        height:
+          oneOf:
+            - {type: integer, minimum: 1}
+            - type: "null"
+        attribution_text: {$ref: "#/components/schemas/NullableText"}
+        attribution_url:
+          oneOf:
+            - {type: string, format: uri}
+            - type: "null"
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, details, request_id]
+      properties:
+        code: {type: string, minLength: 1, description: Stable machine-readable error code.}
+        message: {type: string, minLength: 1, description: Safe user-facing message without internal details.}
+        details:
+          oneOf:
+            - {type: object, additionalProperties: true}
+            - type: "null"
+        request_id: {$ref: "#/components/schemas/NullableText"}
