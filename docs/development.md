@@ -24,7 +24,9 @@
 | `make migrate` | корень | PostgreSQL | Выполняет `alembic upgrade head`. |
 | `make seed` | корень | PostgreSQL, миграции | Идемпотентно загружает controlled Genre corpus (Jazz, Swing, Jump Blues и две published relations). |
 
-Локальные значения окружения перечислены в `.env.example`. Compose публикует порты только на `127.0.0.1`: PostgreSQL `5432`, backend `8000`, frontend `3000`.
+Локальные значения окружения перечислены в `.env.example`. Compose публикует порты только на `127.0.0.1`: PostgreSQL `5432`, backend `8000`, frontend `3000`. Frontend SSR читает `API_BASE_URL` (host default `http://127.0.0.1:8000`, в Compose — `http://backend:8000`).
+
+Публичная Genre page: `http://127.0.0.1:3000/genres/{genre_id}`. Seed Swing: `/genres/01a0147a-8508-74b7-9689-e7c133e4e7a5`.
 
 ## Проверки
 

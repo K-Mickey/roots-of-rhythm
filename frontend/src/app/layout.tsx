@@ -1,12 +1,17 @@
 import '@mantine/core/styles.css';
 
-import {
-  ColorSchemeScript,
-  MantineProvider,
-  mantineHtmlProps,
-} from '@mantine/core';
+import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import type { Metadata } from 'next';
+import { Source_Sans_3 } from 'next/font/google';
 import type { ReactNode } from 'react';
+
+import { AppShell } from '@/shared/shell/AppShell';
+import { AppProviders } from '@/shared/theme/AppProviders';
+
+const sourceSans = Source_Sans_3({
+  subsets: ['latin', 'cyrillic'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Roots of Rhythm',
@@ -17,12 +22,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="ru" {...mantineHtmlProps}>
+    <html lang="ru" {...mantineHtmlProps} className={sourceSans.className}>
       <head>
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider>{children}</MantineProvider>
+        <AppProviders fontFamily={sourceSans.style.fontFamily}>
+          <AppShell>{children}</AppShell>
+        </AppProviders>
       </body>
     </html>
   );

@@ -46,6 +46,7 @@
 - [EPIC-012: production readiness](specs/epic-012-production-readiness/README.md)
 - [STORY-001: открыть опубликованную страницу Genre](specs/epic-001-genre-exploration/story-001-view-published-genre/README.md)
 - [UI contract публичной страницы Genre](specs/epic-001-genre-exploration/story-001-view-published-genre/ui.md) — `accepted`
+- [UI/design specification shell и Genre page](specs/epic-001-genre-exploration/story-001-view-published-genre/design.md) — `accepted`
 - [Data/API workshop публичной Genre page](specs/epic-001-genre-exploration/story-001-view-published-genre/data-api-workshop.md) — `accepted`
 - [Декомпозиция STORY-001](specs/epic-001-genre-exploration/story-001-view-published-genre/tasks.md) — `accepted`
 - [OpenAPI contract](api/openapi.yaml) — `0.2.0`

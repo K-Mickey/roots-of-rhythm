@@ -18,6 +18,7 @@ RUN pnpm prune --prod
 FROM node:24-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
+ENV API_BASE_URL=http://backend:8000
 WORKDIR /app
 
 COPY --from=production-dependencies /app/node_modules ./node_modules
