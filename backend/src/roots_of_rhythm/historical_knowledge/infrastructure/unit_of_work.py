@@ -3,24 +3,25 @@ from typing import TYPE_CHECKING, Self
 from psycopg import errors as psycopg_errors
 from sqlalchemy.exc import IntegrityError
 
-from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintViolation
-from roots_of_rhythm.music_catalog.infrastructure.models import (
-    CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
+from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstraintViolation
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories import (
+    SqlAlchemyClaimRepository,
+    SqlAlchemySourceRepository,
 )
-from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
 
 if TYPE_CHECKING:
     from types import TracebackType
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from roots_of_rhythm.music_catalog.application.ports import GenreRepository
+    from roots_of_rhythm.historical_knowledge.application.ports import ClaimRepository, SourceRepository
 
 
-class SqlAlchemyMusicCatalogUnitOfWork:
+class SqlAlchemyHistoricalKnowledgeUnitOfWork:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session = session_factory()
-        self.genres: GenreRepository = SqlAlchemyGenreRepository(self._session)
+        self.claims: ClaimRepository = SqlAlchemyClaimRepository(self._session)
+        self.sources: SourceRepository = SqlAlchemySourceRepository(self._session)
 
     async def __aenter__(self) -> Self:
         return self
@@ -39,15 +40,9 @@ class SqlAlchemyMusicCatalogUnitOfWork:
             await self._session.commit()
         except IntegrityError as error:
             await self.rollback()
-            if _constraint_name(error) == CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT:
-                raise UniqueConstraintViolation(CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT) from error
+            if isinstance(error.orig, psycopg_errors.UniqueViolation):
+                raise UniqueConstraintViolation(error.orig.diag.constraint_name) from error
             raise
 
     async def rollback(self) -> None:
         await self._session.rollback()
-
-
-def _constraint_name(error: IntegrityError) -> str | None:
-    if isinstance(error.orig, psycopg_errors.UniqueViolation):
-        return error.orig.diag.constraint_name
-    return None

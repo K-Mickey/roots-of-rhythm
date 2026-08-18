@@ -7,6 +7,7 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import genre_from_reco
 from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from uuid import UUID
 
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,10 +32,30 @@ class SqlAlchemyGenreRepository:
             raise LookupError(str(genre.id))
         update_record(record, genre)
 
+    async def mark_deleted(self, genre_id: UUID) -> None:
+        record = await self._get_record(genre_id)
+        if record is None:
+            raise LookupError(str(genre_id))
+        record.deleted = True
+
+    async def published_among(self, genre_ids: Collection[UUID]) -> set[UUID]:
+        ids = set(genre_ids)
+        if not ids:
+            return set()
+        statement = select(ClassificationConceptRecord.id).where(
+            ClassificationConceptRecord.id.in_(ids),
+            ClassificationConceptRecord.kind == ClassificationKind.GENRE.value,
+            ClassificationConceptRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+            ClassificationConceptRecord.deleted.is_(False),
+        )
+        result = await self._session.execute(statement)
+        return set(result.scalars())
+
     async def canonical_name_exists(self, canonical_name: str, *, excluding: UUID | None = None) -> bool:
         statement = select(ClassificationConceptRecord.id).where(
             ClassificationConceptRecord.kind == ClassificationKind.GENRE.value,
             func.lower(ClassificationConceptRecord.canonical_name) == canonical_name.lower(),
+            ClassificationConceptRecord.deleted.is_(False),
         )
         if excluding is not None:
             statement = statement.where(ClassificationConceptRecord.id != excluding)
@@ -53,6 +74,7 @@ class SqlAlchemyGenreRepository:
         statement = select(ClassificationConceptRecord).where(
             ClassificationConceptRecord.id == genre_id,
             ClassificationConceptRecord.kind == ClassificationKind.GENRE.value,
+            ClassificationConceptRecord.deleted.is_(False),
         )
         if status is not None:
             statement = statement.where(ClassificationConceptRecord.editorial_status == status.value)

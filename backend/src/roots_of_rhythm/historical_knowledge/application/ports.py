@@ -1,0 +1,64 @@
+from typing import TYPE_CHECKING, Protocol, Self
+
+if TYPE_CHECKING:
+    from types import TracebackType
+    from uuid import UUID
+
+    from roots_of_rhythm.historical_knowledge.domain import (
+        GenreRelationClaim,
+        Source,
+        SourceFragment,
+        SourceVersion,
+    )
+
+
+class ClaimRepository(Protocol):
+    async def add(self, claim: GenreRelationClaim) -> None: ...
+
+    async def get(self, claim_id: UUID) -> GenreRelationClaim | None: ...
+
+    async def save(self, claim: GenreRelationClaim) -> None: ...
+
+    async def mark_deleted(self, claim_id: UUID) -> None: ...
+
+    async def list_by_genre(self, genre_id: UUID) -> list[GenreRelationClaim]: ...
+
+
+class SourceRepository(Protocol):
+    async def add_source(self, source: Source) -> None: ...
+
+    async def add_version(self, version: SourceVersion) -> None: ...
+
+    async def add_fragment(self, fragment: SourceFragment) -> None: ...
+
+    async def get_source(self, source_id: UUID) -> Source | None: ...
+
+    async def get_version(self, version_id: UUID) -> SourceVersion | None: ...
+
+    async def get_fragment(self, fragment_id: UUID) -> SourceFragment | None: ...
+
+    async def save_fragment(self, fragment: SourceFragment) -> None: ...
+
+    async def mark_source_deleted(self, source_id: UUID) -> None: ...
+
+    async def mark_version_deleted(self, version_id: UUID) -> None: ...
+
+    async def mark_fragment_deleted(self, fragment_id: UUID) -> None: ...
+
+
+class HistoricalKnowledgeUnitOfWork(Protocol):
+    claims: ClaimRepository
+    sources: SourceRepository
+
+    async def __aenter__(self) -> Self: ...
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None: ...
+
+    async def commit(self) -> None: ...
+
+    async def rollback(self) -> None: ...

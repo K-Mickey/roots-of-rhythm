@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import delete, inspect
 
 from roots_of_rhythm.infrastructure.database import create_database_engine, create_session_factory
-from roots_of_rhythm.music_catalog.application import GenreNameConflict, GenreService
+from roots_of_rhythm.music_catalog.application import GenreNameConflict, GenreService, UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationContent,
     EditorialStatus,
@@ -54,17 +54,17 @@ async def test_repository_round_trip_and_public_filter(engine: AsyncEngine) -> N
     session_factory = create_session_factory(engine)
     service = GenreService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
     image_id = uuid7()
-    content = ClassificationContent(
-        canonical_name="Swing",
+    content = ClassificationContent.create(
+        "Swing",
         aliases=("Big-band swing",),
         definition="A jazz genre.",
         boundaries="Not every jazz recording with syncopation is Swing.",
-        period=HistoricalPeriod(
+        period=HistoricalPeriod.create(
             "late 1920s–1940s",
             TemporalBound(1920, TemporalPrecision.LATE_DECADE),
             TemporalBound(1940, TemporalPrecision.DECADE),
         ),
-        geography=GeographicContext("United States"),
+        geography=GeographicContext.create("United States"),
         historical_context="Developed during the big-band era.",
         formation="Formed from earlier jazz practices.",
         characteristic_features=("Four-beat rhythm", "Riff-based arrangements"),
@@ -91,7 +91,7 @@ async def test_repository_round_trip_and_public_filter(engine: AsyncEngine) -> N
 async def test_unit_of_work_rolls_back_and_unique_name_is_case_insensitive(engine: AsyncEngine) -> None:
     session_factory = create_session_factory(engine)
     service = GenreService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
-    genre = await service.create(ClassificationContent("Swing"))
+    genre = await service.create(ClassificationContent.create("Swing"))
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         await uow.genres.save(genre.submit_for_review())
@@ -101,11 +101,19 @@ async def test_unit_of_work_rolls_back_and_unique_name_is_case_insensitive(engin
     assert loaded is not None and loaded.editorial_status is EditorialStatus.DRAFT
 
     with pytest.raises(GenreNameConflict):
-        await service.create(ClassificationContent("SWING"))
+        await service.create(ClassificationContent.create("SWING"))
 
-    duplicate = await service.create(ClassificationContent("Jump Blues"))
-    duplicate_case = duplicate.replace_content(ClassificationContent("swing"))
+    duplicate = await service.create(ClassificationContent.create("Jump Blues"))
+    duplicate_case = duplicate.replace_content(ClassificationContent.create("swing"))
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         await uow.genres.save(duplicate_case)
-        with pytest.raises(GenreNameConflict):
+        with pytest.raises(UniqueConstraintViolation):
             await uow.commit()
+
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        await uow.genres.mark_deleted(genre.id)
+        await uow.commit()
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        assert await uow.genres.get(genre.id) is None
+    recreated = await service.create(ClassificationContent.create("Swing"))
+    assert recreated.id != genre.id

@@ -17,12 +17,14 @@ Historical Knowledge владеет Claims и историческими свя�
 
 Первая фактическая предметная проекция — Python package `music_catalog`. Его domain содержит immutable Genre/ClassificationConcept, application — команды и принадлежащие ему Repository/Unit of Work contracts, infrastructure — отдельную SQLAlchemy persistence model и PostgreSQL adapters. ORM models и sessions не выходят из infrastructure; transport DTO не переиспользуют domain entities.
 
+Вторая проекция — `historical_knowledge`: GenreRelation Claim с Evidence references и минимальные Source/SourceVersion/SourceFragment aggregates. Публикация Claim проверяет published endpoint Genre через application port Music Catalog (`GenreStatusLookup`); публичная видимость relation пересчитывается на чтении. HTTP endpoints relations/sources относятся к последующим tasks.
+
 Editorial, Discovery и AI Research планируются как логические supporting capabilities, но не как bounded contexts или сервисы. Editorial оркестрирует редакционный lifecycle, Discovery является read side, AI Research владеет только техническими индексами, AI-запусками и proposals. Их физические code/module boundaries не фиксируются до использующей story.
 
 ## Принятый application stack
 
 - backend: Python, Litestar, msgspec и Uvicorn;
-- persistence: PostgreSQL, SQLAlchemy 2.x, Alembic и Psycopg 3 async;
+- persistence: PostgreSQL, SQLAlchemy 2.x, Alembic и Psycopg 3 async; таблицы несут сервисные колонки `created_at`/`updated_at`/`deleted`, soft-delete identity aggregates и hard rewrite owned links — [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md);
 - frontend: React, TypeScript, Next.js App Router и Mantine-first design system;
 - contract boundary: OpenAPI 3.1 и generated TypeScript types;
 - dependency/tooling baseline: uv, pnpm, Ruff, mypy, ESLint, Prettier, pytest, Vitest, React Testing Library и небольшой critical Playwright suite.

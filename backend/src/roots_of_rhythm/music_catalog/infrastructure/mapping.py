@@ -58,10 +58,26 @@ def genre_from_record(record: ClassificationConceptRecord) -> Genre:
 
 
 def update_record(record: ClassificationConceptRecord, genre: Genre) -> None:
-    replacement = record_from_genre(genre)
-    for column in ClassificationConceptRecord.__table__.columns:
-        if column.name != "id":
-            setattr(record, column.name, getattr(replacement, column.name))
+    # Leave created_at / updated_at / deleted alone (DB trigger + soft-delete path).
+    period = genre.content.period
+    start = period.start if period is not None else None
+    end = period.end if period is not None else None
+    record.kind = genre.kind.value
+    record.editorial_status = genre.editorial_status.value
+    record.canonical_name = genre.content.canonical_name
+    record.aliases = list(genre.content.aliases)
+    record.definition = genre.content.definition
+    record.boundaries = genre.content.boundaries
+    record.period_label = period.label if period is not None else None
+    record.period_start_year = start.year if start is not None else None
+    record.period_start_precision = start.precision.value if start is not None else None
+    record.period_end_year = end.year if end is not None else None
+    record.period_end_precision = end.precision.value if end is not None else None
+    record.geography_summary = genre.content.geography.summary if genre.content.geography is not None else None
+    record.historical_context = genre.content.historical_context
+    record.formation = genre.content.formation
+    record.characteristic_features = list(genre.content.characteristic_features)
+    record.primary_image_id = genre.content.primary_image_id
 
 
 def _temporal_bound(year: int | None, precision: str | None) -> TemporalBound | None:

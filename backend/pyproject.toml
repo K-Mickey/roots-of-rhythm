@@ -59,6 +59,7 @@ ignore = ["COM812", "ISC001"]
 runtime-evaluated-base-classes = [
     "msgspec.Struct",
     "sqlalchemy.orm.DeclarativeBase",
+    "roots_of_rhythm.infrastructure.service_columns.ServiceColumnsMixin",
 ]
 
 [tool.ruff.lint.per-file-ignores]

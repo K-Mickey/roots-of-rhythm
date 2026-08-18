@@ -32,6 +32,16 @@ class FakeGenreRepository:
     async def save(self, genre: Genre) -> None:
         self._genres[genre.id] = genre
 
+    async def mark_deleted(self, genre_id: UUID) -> None:
+        self._genres.pop(genre_id, None)
+
+    async def published_among(self, genre_ids: set[UUID]) -> set[UUID]:
+        return {
+            genre_id
+            for genre_id in genre_ids
+            if (genre := self._genres.get(genre_id)) is not None and genre.editorial_status is EditorialStatus.PUBLISHED
+        }
+
     async def canonical_name_exists(self, canonical_name: str, *, excluding: UUID | None = None) -> bool:
         return any(
             genre.id != excluding and genre.content.canonical_name.lower() == canonical_name.lower()
@@ -74,8 +84,11 @@ async def test_service_creates_updates_and_publishes_in_transactions() -> None:
         return unit
 
     service = GenreService(uow_factory)
-    genre = await service.create(ClassificationContent("Swing"))
-    updated = await service.replace_content(genre.id, ClassificationContent("Swing", definition="Jazz genre"))
+    genre = await service.create(ClassificationContent.create("Swing"))
+    updated = await service.replace_content(
+        genre.id,
+        ClassificationContent.create("Swing", definition="Jazz genre"),
+    )
     reviewed = await service.submit_for_review(genre.id)
     published = await service.publish(genre.id)
     archived = await service.archive(genre.id)
@@ -97,10 +110,10 @@ async def test_service_reports_domain_and_application_failures_without_commit() 
         return unit
 
     service = GenreService(uow_factory)
-    genre = await service.create(ClassificationContent("Swing"))
+    genre = await service.create(ClassificationContent.create("Swing"))
 
     with pytest.raises(GenreNameConflict):
-        await service.create(ClassificationContent("swing"))
+        await service.create(ClassificationContent.create("swing"))
     with pytest.raises(GenrePublicationError):
         await service.publish(genre.id)
     with pytest.raises(GenreNotFound):

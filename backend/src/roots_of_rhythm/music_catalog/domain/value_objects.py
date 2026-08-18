@@ -40,25 +40,28 @@ class HistoricalPeriod(msgspec.Struct, frozen=True):
     start: TemporalBound | None = None
     end: TemporalBound | None = None
 
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "label",
-            _required_text(self.label, "period label", max_length=SHORT_TEXT_MAX_LENGTH),
-        )
-        if self.start is not None and self.end is not None and self.start.year > self.end.year:
+    @classmethod
+    def create(
+        cls,
+        label: str,
+        start: TemporalBound | None = None,
+        end: TemporalBound | None = None,
+    ) -> "HistoricalPeriod":
+        if start is not None and end is not None and start.year > end.year:
             raise MusicCatalogDomainError("period start must not be later than period end")
+        return cls(
+            label=_required_text(label, "period label", max_length=SHORT_TEXT_MAX_LENGTH),
+            start=start,
+            end=end,
+        )
 
 
 class GeographicContext(msgspec.Struct, frozen=True):
     summary: str
 
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "summary",
-            _required_text(self.summary, "geographic summary", max_length=SHORT_TEXT_MAX_LENGTH),
-        )
+    @classmethod
+    def create(cls, summary: str) -> "GeographicContext":
+        return cls(summary=_required_text(summary, "geographic summary", max_length=SHORT_TEXT_MAX_LENGTH))
 
 
 class ClassificationContent(msgspec.Struct, frozen=True):
@@ -73,44 +76,46 @@ class ClassificationContent(msgspec.Struct, frozen=True):
     characteristic_features: tuple[str, ...] = ()
     primary_image_id: UUID | None = None
 
-    def __post_init__(self) -> None:
-        canonical_name = _required_text(
-            self.canonical_name,
+    @classmethod
+    def create(
+        cls,
+        canonical_name: str,
+        *,
+        aliases: tuple[str, ...] = (),
+        definition: str | None = None,
+        boundaries: str | None = None,
+        period: HistoricalPeriod | None = None,
+        geography: GeographicContext | None = None,
+        historical_context: str | None = None,
+        formation: str | None = None,
+        characteristic_features: tuple[str, ...] = (),
+        primary_image_id: UUID | None = None,
+    ) -> "ClassificationContent":
+        normalized_name = _required_text(
+            canonical_name,
             "canonical name",
             max_length=SHORT_TEXT_MAX_LENGTH,
         )
-        aliases = _unique_texts(self.aliases, "aliases", max_length=SHORT_TEXT_MAX_LENGTH)
-        if canonical_name.casefold() in {alias.casefold() for alias in aliases}:
+        normalized_aliases = _unique_texts(aliases, "aliases", max_length=SHORT_TEXT_MAX_LENGTH)
+        if normalized_name.casefold() in {alias.casefold() for alias in normalized_aliases}:
             raise MusicCatalogDomainError("aliases must not duplicate the canonical name")
-
-        object.__setattr__(self, "canonical_name", canonical_name)
-        object.__setattr__(self, "aliases", aliases)
-        object.__setattr__(
-            self,
-            "definition",
-            _optional_text(self.definition, "definition", max_length=LONG_TEXT_MAX_LENGTH),
-        )
-        object.__setattr__(
-            self,
-            "boundaries",
-            _optional_text(self.boundaries, "boundaries", max_length=LONG_TEXT_MAX_LENGTH),
-        )
-        object.__setattr__(
-            self,
-            "historical_context",
-            _optional_text(self.historical_context, "historical context", max_length=LONG_TEXT_MAX_LENGTH),
-        )
-        object.__setattr__(
-            self,
-            "formation",
-            _optional_text(self.formation, "formation", max_length=LONG_TEXT_MAX_LENGTH),
-        )
-        object.__setattr__(
-            self,
-            "characteristic_features",
-            _unique_texts(
-                self.characteristic_features,
+        return cls(
+            canonical_name=normalized_name,
+            aliases=normalized_aliases,
+            definition=_optional_text(definition, "definition", max_length=LONG_TEXT_MAX_LENGTH),
+            boundaries=_optional_text(boundaries, "boundaries", max_length=LONG_TEXT_MAX_LENGTH),
+            period=period,
+            geography=geography,
+            historical_context=_optional_text(
+                historical_context,
+                "historical context",
+                max_length=LONG_TEXT_MAX_LENGTH,
+            ),
+            formation=_optional_text(formation, "formation", max_length=LONG_TEXT_MAX_LENGTH),
+            characteristic_features=_unique_texts(
+                characteristic_features,
                 "characteristic features",
                 max_length=SHORT_TEXT_MAX_LENGTH,
             ),
+            primary_image_id=primary_image_id,
         )

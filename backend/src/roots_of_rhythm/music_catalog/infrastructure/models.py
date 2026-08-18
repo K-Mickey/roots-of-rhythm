@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
 from roots_of_rhythm.music_catalog.domain.enums import ClassificationKind, EditorialStatus
 from roots_of_rhythm.music_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
 
@@ -18,7 +19,7 @@ class MusicCatalogBase(DeclarativeBase):
     pass
 
 
-class ClassificationConceptRecord(MusicCatalogBase):
+class ClassificationConceptRecord(ServiceColumnsMixin, MusicCatalogBase):
     __tablename__ = "classification_concepts"
     __table_args__ = (
         CheckConstraint(KIND_CHECK, name="ck_classification_concepts_kind"),
@@ -52,6 +53,7 @@ Index(
     ClassificationConceptRecord.kind,
     func.lower(ClassificationConceptRecord.canonical_name),
     unique=True,
+    postgresql_where=ClassificationConceptRecord.deleted.is_(False),
 )
 Index(
     "ix_classification_concepts_kind_editorial_status",

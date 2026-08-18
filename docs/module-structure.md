@@ -41,7 +41,7 @@ tests/
 
 ## Текущая Python-проекция
 
-До появления первой предметной вертикали backend содержит только реально используемые общесистемные границы:
+Backend содержит реально используемые общесистемные и предметные границы:
 
 ```text
 backend/src/roots_of_rhythm/
@@ -50,7 +50,8 @@ backend/src/roots_of_rhythm/
 │   ├── api.py
 │   └── cli.py
 ├── infrastructure/
-│   └── database.py
+│   ├── database.py
+│   └── service_columns.py
 ├── music_catalog/
 │   ├── domain/
 │   │   ├── enums.py
@@ -59,6 +60,7 @@ backend/src/roots_of_rhythm/
 │   │   └── value_objects.py
 │   ├── application/
 │   │   ├── errors.py
+│   │   ├── genre_status_lookup.py
 │   │   ├── ports.py
 │   │   └── service.py
 │   └── infrastructure/
@@ -66,18 +68,39 @@ backend/src/roots_of_rhythm/
 │       ├── models.py
 │       ├── repository.py
 │       └── unit_of_work.py
+├── historical_knowledge/
+│   ├── domain/
+│   │   ├── claim.py
+│   │   ├── enums.py
+│   │   ├── errors.py
+│   │   ├── source.py
+│   │   └── value_objects.py
+│   ├── application/
+│   │   ├── claim_service.py
+│   │   ├── errors.py
+│   │   ├── ports.py
+│   │   └── source_service.py
+│   └── infrastructure/
+│       ├── mapping.py
+│       ├── models.py
+│       ├── repositories.py
+│       └── unit_of_work.py
 └── presentation/
     └── health.py
 
 backend/tests/
 ├── entrypoints/
-└── music_catalog/
+├── music_catalog/
+│   ├── domain/
+│   ├── application/
+│   └── infrastructure/
+└── historical_knowledge/
     ├── domain/
     ├── application/
     └── infrastructure/
 ```
 
-`entrypoints` собирает процессы и lifecycle, `presentation` владеет HTTP mapping, корневой `infrastructure` — общими runtime adapters, `config.py` — application settings. `music_catalog` является первой предметной границей: domain не знает об ORM, application владеет Repository/UoW contracts, infrastructure содержит SQLAlchemy mapping и adapters. Будущие contexts и их четыре внутренних слоя не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+`entrypoints` собирает процессы и lifecycle, `presentation` владеет HTTP mapping, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `config.py` — application settings. `music_catalog` владеет Genre/ClassificationConcept. `historical_knowledge` владеет GenreRelation Claim, Evidence references и минимальным Source/SourceVersion/SourceFragment stack; статус endpoint Genre читает через application port `GenreStatusLookup`, без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
 
 ## Внутренняя структура модуля
 

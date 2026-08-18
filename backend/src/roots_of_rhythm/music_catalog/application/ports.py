@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Protocol, Self
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from types import TracebackType
     from uuid import UUID
 
@@ -16,7 +17,19 @@ class GenreRepository(Protocol):
 
     async def save(self, genre: Genre) -> None: ...
 
+    async def mark_deleted(self, genre_id: UUID) -> None: ...
+
+    async def published_among(self, genre_ids: Collection[UUID]) -> set[UUID]: ...
+
     async def canonical_name_exists(self, canonical_name: str, *, excluding: UUID | None = None) -> bool: ...
+
+
+class GenreStatusLookup(Protocol):
+    async def is_published(self, genre_id: UUID) -> bool: ...
+
+    async def exists(self, genre_id: UUID) -> bool: ...
+
+    async def published_among(self, genre_ids: Collection[UUID]) -> set[UUID]: ...
 
 
 class MusicCatalogUnitOfWork(Protocol):

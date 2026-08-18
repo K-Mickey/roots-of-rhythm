@@ -52,6 +52,7 @@
 - [API-контракты](api/README.md)
 - [ADR](decisions/README.md)
 - [ADR-0004: application stack первой вертикали](decisions/0004-application-stack.md) — `accepted`
+- [ADR-0005: сервисные колонки persistence и soft-delete](decisions/0005-persistence-service-columns-and-soft-delete.md) — `proposed`
 
 ## SDD-последовательность
 

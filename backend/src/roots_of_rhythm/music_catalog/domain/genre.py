@@ -1,4 +1,4 @@
-from typing import ClassVar, Self
+from typing import ClassVar
 from uuid import UUID
 
 import msgspec
@@ -19,22 +19,22 @@ class ClassificationConcept(msgspec.Struct, frozen=True):
 class Genre(ClassificationConcept, frozen=True):
     kind: ClassVar[ClassificationKind] = ClassificationKind.GENRE
 
-    def replace_content(self, content: ClassificationContent) -> Self:
+    def replace_content(self, content: ClassificationContent) -> "Genre":
         if self.editorial_status is EditorialStatus.PUBLISHED and content.definition is None:
             raise GenrePublicationError(("definition",))
         return Genre(id=self.id, content=content, editorial_status=self.editorial_status)
 
-    def submit_for_review(self) -> Self:
+    def submit_for_review(self) -> "Genre":
         return self._with_status(EditorialStatus.IN_REVIEW)
 
-    def publish(self) -> Self:
+    def publish(self) -> "Genre":
         missing_fields = ("definition",) if self.content.definition is None else ()
         if missing_fields:
             raise GenrePublicationError(missing_fields)
         return self._with_status(EditorialStatus.PUBLISHED)
 
-    def archive(self) -> Self:
+    def archive(self) -> "Genre":
         return self._with_status(EditorialStatus.ARCHIVED)
 
-    def _with_status(self, status: EditorialStatus) -> Self:
+    def _with_status(self, status: EditorialStatus) -> "Genre":
         return Genre(id=self.id, content=self.content, editorial_status=status)

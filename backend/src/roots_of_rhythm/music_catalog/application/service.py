@@ -1,7 +1,11 @@
 from collections.abc import Callable
 from uuid import UUID, uuid7
 
-from roots_of_rhythm.music_catalog.application.errors import GenreNameConflict, GenreNotFound
+from roots_of_rhythm.music_catalog.application.errors import (
+    GenreNameConflict,
+    GenreNotFound,
+    UniqueConstraintViolation,
+)
 from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
 from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre
 
@@ -17,7 +21,7 @@ class GenreService:
             await self._ensure_name_available(uow, content.canonical_name)
             genre = Genre(id=uuid7(), content=content)
             await uow.genres.add(genre)
-            await uow.commit()
+            await self._commit(uow)
             return genre
 
     async def replace_content(self, genre_id: UUID, content: ClassificationContent) -> Genre:
@@ -29,7 +33,7 @@ class GenreService:
                 await uow.genres.save(updated)
             except LookupError as error:
                 raise GenreNotFound(str(genre_id)) from error
-            await uow.commit()
+            await self._commit(uow)
             return updated
 
     async def submit_for_review(self, genre_id: UUID) -> Genre:
@@ -49,8 +53,15 @@ class GenreService:
                 await uow.genres.save(updated)
             except LookupError as error:
                 raise GenreNotFound(str(genre_id)) from error
-            await uow.commit()
+            await self._commit(uow)
             return updated
+
+    @staticmethod
+    async def _commit(uow: MusicCatalogUnitOfWork) -> None:
+        try:
+            await uow.commit()
+        except UniqueConstraintViolation as error:
+            raise GenreNameConflict from error
 
     @staticmethod
     async def _get(uow: MusicCatalogUnitOfWork, genre_id: UUID) -> Genre:
