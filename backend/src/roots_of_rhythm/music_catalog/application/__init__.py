@@ -1,5 +1,5 @@
 from roots_of_rhythm.music_catalog.application.errors import GenreNameConflict, GenreNotFound, UniqueConstraintViolation
-from roots_of_rhythm.music_catalog.application.genre_status_lookup import GenreRepositoryStatusLookup
+from roots_of_rhythm.music_catalog.application.genre_status_lookup import GenreUnitOfWorkStatusLookup
 from roots_of_rhythm.music_catalog.application.ports import (
     GenreRepository,
     GenreStatusLookup,
@@ -11,9 +11,9 @@ __all__ = [
     "GenreNameConflict",
     "GenreNotFound",
     "GenreRepository",
-    "GenreRepositoryStatusLookup",
     "GenreService",
     "GenreStatusLookup",
+    "GenreUnitOfWorkStatusLookup",
     "MusicCatalogUnitOfWork",
     "UniqueConstraintViolation",
     "UnitOfWorkFactory",

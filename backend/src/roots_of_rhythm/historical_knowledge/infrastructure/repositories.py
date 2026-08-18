@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import delete, or_, select, update
 
+from roots_of_rhythm.historical_knowledge.domain import FragmentReviewStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.mapping import (
     claim_from_records,
     evidence_records_from_claim,
@@ -24,6 +25,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from uuid import UUID
 
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -153,6 +155,26 @@ class SqlAlchemySourceRepository:
         if record is None:
             raise LookupError(str(fragment.id))
         update_fragment_record(record, fragment)
+
+    async def reviewed_source_ids_for_fragments(self, fragment_ids: Collection[UUID]) -> dict[UUID, UUID]:
+        ids = set(fragment_ids)
+        if not ids:
+            return {}
+        statement = (
+            select(SourceFragmentRecord.id, SourceVersionRecord.source_id)
+            .join(
+                SourceVersionRecord,
+                SourceVersionRecord.id == SourceFragmentRecord.source_version_id,
+            )
+            .where(
+                SourceFragmentRecord.id.in_(ids),
+                SourceFragmentRecord.deleted.is_(False),
+                SourceFragmentRecord.review_status == FragmentReviewStatus.REVIEWED.value,
+                SourceVersionRecord.deleted.is_(False),
+            )
+        )
+        result = await self._session.execute(statement)
+        return dict(result.tuples().all())
 
     async def mark_source_deleted(self, source_id: UUID) -> None:
         statement = select(SourceRecord).where(

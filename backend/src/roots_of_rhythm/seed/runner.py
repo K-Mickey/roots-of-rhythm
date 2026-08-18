@@ -16,7 +16,7 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
-from roots_of_rhythm.music_catalog.application import GenreRepositoryStatusLookup, GenreService
+from roots_of_rhythm.music_catalog.application import GenreService, GenreUnitOfWorkStatusLookup
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
@@ -45,14 +45,13 @@ class CorpusSeedRunner:
         self._claims: ClaimService | None = None
 
     async def run(self) -> None:
-        async with self._music_uow() as music_uow:
-            self._claims = ClaimService(
-                self._hk_uow,
-                GenreRepositoryStatusLookup(music_uow.genres),
-            )
-            await self._ensure_sources()
-            await self._ensure_genres()
-            await self._ensure_claims()
+        self._claims = ClaimService(
+            self._hk_uow,
+            GenreUnitOfWorkStatusLookup(self._music_uow),
+        )
+        await self._ensure_sources()
+        await self._ensure_genres()
+        await self._ensure_claims()
 
     async def _ensure_sources(self) -> None:
         await self._ensure_source(

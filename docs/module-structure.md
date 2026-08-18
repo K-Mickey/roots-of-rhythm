@@ -94,7 +94,8 @@ backend/src/roots_of_rhythm/
 │   ├── application/
 │   │   ├── dto.py
 │   │   ├── errors.py
-│   │   └── genre_overview.py
+│   │   ├── genre_overview.py
+│   │   └── genre_relations.py
 │   └── presentation/
 │       ├── schemas.py
 │       └── genres.py
@@ -119,7 +120,7 @@ backend/tests/
     └── fakes.py
 ```
 
-`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), корневой `presentation` — health probes, `discovery` — public Genre overview read-side (query + genres HTTP router; relations/sources later), корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre corpus (Jazz–Swing–Jump Blues) через domain services, `config.py` — application settings. `music_catalog` владеет Genre/ClassificationConcept. `historical_knowledge` владеет GenreRelation Claim, Evidence references и минимальным Source/SourceVersion/SourceFragment stack; статус endpoint Genre читает через application port `GenreStatusLookup`, без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), корневой `presentation` — health probes, `discovery` — public Genre overview и relations read-side (queries + genres HTTP router; sources later), корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre corpus (Jazz–Swing–Jump Blues) через domain services, `config.py` — application settings. `music_catalog` владеет Genre/ClassificationConcept. `historical_knowledge` владеет GenreRelation Claim, Evidence references и минимальным Source/SourceVersion/SourceFragment stack; статус endpoint Genre читает через application port `GenreStatusLookup`, без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
 
 ## Внутренняя структура модуля
 

@@ -25,6 +25,13 @@ class FakeGenreRepository:
         genre = self._genres.get(genre_id)
         return genre if genre is not None and genre.editorial_status is EditorialStatus.PUBLISHED else None
 
+    async def get_published_by_ids(self, genre_ids: Collection[UUID]) -> dict[UUID, Genre]:
+        return {
+            genre_id: genre
+            for genre_id in genre_ids
+            if (genre := self._genres.get(genre_id)) is not None and genre.editorial_status is EditorialStatus.PUBLISHED
+        }
+
     async def save(self, genre: Genre) -> None:
         self._genres[genre.id] = genre
 

@@ -96,6 +96,20 @@ class FakeSourceRepository:
     async def mark_fragment_deleted(self, fragment_id: UUID) -> None:
         self.fragments.pop(fragment_id, None)
 
+    async def reviewed_source_ids_for_fragments(self, fragment_ids: Collection[UUID]) -> dict[UUID, UUID]:
+        from roots_of_rhythm.historical_knowledge.domain import FragmentReviewStatus
+
+        result: dict[UUID, UUID] = {}
+        for fragment_id in fragment_ids:
+            fragment = self.fragments.get(fragment_id)
+            if fragment is None or fragment.review_status is not FragmentReviewStatus.REVIEWED:
+                continue
+            version = self.versions.get(fragment.source_version_id)
+            if version is None:
+                continue
+            result[fragment_id] = version.source_id
+        return result
+
 
 class FakeHistoricalKnowledgeUnitOfWork:
     def __init__(self, claims: dict[UUID, GenreRelationClaim], sources: FakeSourceRepository) -> None:

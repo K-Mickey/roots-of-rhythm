@@ -1,4 +1,5 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from roots_of_rhythm.historical_knowledge.application.errors import (
@@ -28,6 +29,14 @@ if TYPE_CHECKING:
     from roots_of_rhythm.music_catalog.application.ports import GenreStatusLookup
 
 type UnitOfWorkFactory = Callable[[], HistoricalKnowledgeUnitOfWork]
+
+
+@dataclass(frozen=True, slots=True)
+class PublicEvidenceReference:
+    source_id: UUID
+    role: EvidenceRole
+    locator_text: str | None
+    external_url: str | None
 
 
 class ClaimService:
@@ -146,6 +155,31 @@ class ClaimService:
                 if fragment is not None and fragment.review_status is FragmentReviewStatus.REVIEWED:
                     public_refs.append(reference)
             return tuple(public_refs)
+
+    async def public_evidence_references_for_claims(
+        self,
+        claims: Sequence[GenreRelationClaim],
+    ) -> dict[UUID, tuple[PublicEvidenceReference, ...]]:
+        fragment_ids = {reference.source_fragment_id for claim in claims for reference in claim.evidence_references}
+        async with self._uow_factory() as uow:
+            source_ids = await uow.sources.reviewed_source_ids_for_fragments(fragment_ids)
+        result: dict[UUID, tuple[PublicEvidenceReference, ...]] = {}
+        for claim in claims:
+            references: list[PublicEvidenceReference] = []
+            for reference in claim.evidence_references:
+                source_id = source_ids.get(reference.source_fragment_id)
+                if source_id is None:
+                    continue
+                references.append(
+                    PublicEvidenceReference(
+                        source_id=source_id,
+                        role=reference.role,
+                        locator_text=reference.locator_text,
+                        external_url=reference.external_url,
+                    )
+                )
+            result[claim.id] = tuple(references)
+        return result
 
     async def _is_visible(self, claim: GenreRelationClaim) -> bool:
         published = await self._genre_status.published_among({claim.subject_genre_id, claim.target_genre_id})

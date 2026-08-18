@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Protocol, Self
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from types import TracebackType
     from uuid import UUID
 
@@ -38,6 +39,8 @@ class SourceRepository(Protocol):
     async def get_fragment(self, fragment_id: UUID) -> SourceFragment | None: ...
 
     async def save_fragment(self, fragment: SourceFragment) -> None: ...
+
+    async def reviewed_source_ids_for_fragments(self, fragment_ids: Collection[UUID]) -> dict[UUID, UUID]: ...
 
     async def mark_source_deleted(self, source_id: UUID) -> None: ...
 

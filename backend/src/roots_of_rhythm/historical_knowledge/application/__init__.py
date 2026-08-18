@@ -1,4 +1,7 @@
-from roots_of_rhythm.historical_knowledge.application.claim_service import ClaimService
+from roots_of_rhythm.historical_knowledge.application.claim_service import (
+    ClaimService,
+    PublicEvidenceReference,
+)
 from roots_of_rhythm.historical_knowledge.application.errors import (
     ClaimNotFound,
     EndpointGenreMissing,
@@ -22,6 +25,7 @@ __all__ = [
     "EndpointGenreNotPublished",
     "EvidenceFragmentNotReviewed",
     "HistoricalKnowledgeUnitOfWork",
+    "PublicEvidenceReference",
     "SourceNotFound",
     "SourceRepository",
     "SourceService",

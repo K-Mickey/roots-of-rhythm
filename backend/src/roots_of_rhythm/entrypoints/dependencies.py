@@ -4,12 +4,19 @@ from typing import TYPE_CHECKING
 from litestar.di import Provide
 
 from roots_of_rhythm.discovery.application.genre_overview import GenreOverviewQuery
+from roots_of_rhythm.discovery.application.genre_relations import GenreRelationsQuery
+from roots_of_rhythm.historical_knowledge.application import ClaimService
+from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
+    SqlAlchemyHistoricalKnowledgeUnitOfWork,
+)
+from roots_of_rhythm.music_catalog.application import GenreUnitOfWorkStatusLookup
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 GENRE_OVERVIEW_READER_DEPENDENCY = "genre_overview_reader"
+GENRE_RELATIONS_READER_DEPENDENCY = "genre_relations_reader"
 
 type DependencyProviders = Mapping[str, Provide]
 
@@ -18,9 +25,19 @@ def create_api_dependencies(
     session_factory: async_sessionmaker[AsyncSession],
     overrides: DependencyProviders | None = None,
 ) -> dict[str, Provide]:
-    query = GenreOverviewQuery(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
+    def music_uow_factory() -> SqlAlchemyMusicCatalogUnitOfWork:
+        return SqlAlchemyMusicCatalogUnitOfWork(session_factory)
+
+    def hk_uow_factory() -> SqlAlchemyHistoricalKnowledgeUnitOfWork:
+        return SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory)
+
+    overview_query = GenreOverviewQuery(music_uow_factory)
+    claim_service = ClaimService(hk_uow_factory, GenreUnitOfWorkStatusLookup(music_uow_factory))
+    relations_query = GenreRelationsQuery(music_uow_factory, claim_service)
+
     dependencies = {
-        GENRE_OVERVIEW_READER_DEPENDENCY: Provide(lambda: query, sync_to_thread=False),
+        GENRE_OVERVIEW_READER_DEPENDENCY: Provide(lambda: overview_query, sync_to_thread=False),
+        GENRE_RELATIONS_READER_DEPENDENCY: Provide(lambda: relations_query, sync_to_thread=False),
     }
     if overrides is not None:
         dependencies.update(overrides)

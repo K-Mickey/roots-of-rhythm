@@ -1,26 +1,46 @@
-from typing import Literal
+from enum import StrEnum
 
 import msgspec
 
-type TemporalPrecisionValue = Literal[
-    "exact_year",
-    "circa_year",
-    "decade",
-    "early_decade",
-    "mid_decade",
-    "late_decade",
-]
+from roots_of_rhythm.historical_knowledge.domain import (
+    EvidenceRole,
+    EvidenceStatus,
+    RelationType,
+)
+from roots_of_rhythm.historical_knowledge.domain import (
+    TemporalPrecision as HkTemporalPrecision,
+)
+from roots_of_rhythm.music_catalog.domain import (
+    TemporalPrecision as McTemporalPrecision,
+)
+
+
+class RelationPerspective(StrEnum):
+    SUBJECT = "subject"
+    TARGET = "target"
+    SYMMETRIC = "symmetric"
 
 
 class TemporalBoundView(msgspec.Struct, frozen=True):
     year: int
-    precision: TemporalPrecisionValue
+    precision: McTemporalPrecision
 
 
 class HistoricalPeriodView(msgspec.Struct, frozen=True):
     label: str
     start: TemporalBoundView | None
     end: TemporalBoundView | None
+
+
+class RelationTemporalBoundView(msgspec.Struct, frozen=True):
+    year: int
+    precision: HkTemporalPrecision
+
+
+class RelationHistoricalPeriodView(msgspec.Struct, frozen=True):
+    label: str
+    start: RelationTemporalBoundView | None
+    end: RelationTemporalBoundView | None
 
 
 class GeographicContextView(msgspec.Struct, frozen=True):
@@ -47,3 +67,32 @@ class GenreOverviewResponse(msgspec.Struct, frozen=True):
     historical_context: str | None
     formation: str | None
     characteristic_features: list[str]
+
+
+class GenreSummary(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+
+
+class EvidenceReferenceView(msgspec.Struct, frozen=True):
+    source_id: str
+    role: EvidenceRole
+    locator_text: str | None
+    external_url: str | None
+
+
+class GenreRelationView(msgspec.Struct, frozen=True):
+    id: str
+    related_genre: GenreSummary
+    relation_type: RelationType
+    perspective: RelationPerspective
+    explanation: str
+    temporal_context: RelationHistoricalPeriodView | None
+    geographic_context: GeographicContextView | None
+    evidence_status: EvidenceStatus
+    evidence_references: list[EvidenceReferenceView]
+
+
+class GenreRelationsResponse(msgspec.Struct, frozen=True):
+    genre_id: str
+    relations: list[GenreRelationView]
