@@ -127,6 +127,17 @@ class SqlAlchemySourceRepository:
         record = result.scalar_one_or_none()
         return None if record is None else source_from_record(record)
 
+    async def get_sources_by_ids(self, source_ids: Collection[UUID]) -> dict[UUID, Source]:
+        ids = set(source_ids)
+        if not ids:
+            return {}
+        statement = select(SourceRecord).where(
+            SourceRecord.id.in_(ids),
+            SourceRecord.deleted.is_(False),
+        )
+        result = await self._session.execute(statement)
+        return {record.id: source_from_record(record) for record in result.scalars()}
+
     async def get_version(self, version_id: UUID) -> SourceVersion | None:
         statement = select(SourceVersionRecord).where(
             SourceVersionRecord.id == version_id,

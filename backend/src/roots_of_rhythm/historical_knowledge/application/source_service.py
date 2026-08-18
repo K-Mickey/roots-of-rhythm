@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from typing import TYPE_CHECKING
 
 from roots_of_rhythm.historical_knowledge.application.errors import SourceNotFound
@@ -85,3 +85,7 @@ class SourceService:
             await uow.sources.save_fragment(reviewed)
             await uow.commit()
             return reviewed
+
+    async def get_sources_by_ids(self, source_ids: Collection[UUID]) -> dict[UUID, Source]:
+        async with self._uow_factory() as uow:
+            return await uow.sources.get_sources_by_ids(source_ids)

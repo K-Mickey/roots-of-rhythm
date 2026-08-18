@@ -12,3 +12,11 @@ class GenreRelationsNotFound(Exception):
 
 class GenreRelationsAssemblyError(Exception):
     """Published Genre exists but relations cannot be safely projected."""
+
+
+class GenreSourcesNotFound(Exception):
+    """Published Genre sources are absent because the Genre is not publicly visible."""
+
+
+class GenreSourcesAssemblyError(Exception):
+    """Published Genre exists but sources cannot be safely projected."""

@@ -3,7 +3,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from roots_of_rhythm.discovery.application.dto import GenreOverviewResponse, GenreRelationsResponse
+    from roots_of_rhythm.discovery.application.dto import (
+        GenreOverviewResponse,
+        GenreRelationsResponse,
+        GenreSourcesResponse,
+    )
 
 
 class StubGenreOverviewReader:
@@ -22,6 +26,17 @@ class StubGenreRelationsReader:
         self._result = result
 
     async def get(self, genre_id: UUID) -> GenreRelationsResponse:
+        del genre_id
+        if isinstance(self._result, Exception):
+            raise self._result
+        return self._result
+
+
+class StubGenreSourcesReader:
+    def __init__(self, result: GenreSourcesResponse | Exception) -> None:
+        self._result = result
+
+    async def get(self, genre_id: UUID) -> GenreSourcesResponse:
         del genre_id
         if isinstance(self._result, Exception):
             raise self._result

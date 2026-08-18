@@ -5,7 +5,8 @@ from litestar.di import Provide
 
 from roots_of_rhythm.discovery.application.genre_overview import GenreOverviewQuery
 from roots_of_rhythm.discovery.application.genre_relations import GenreRelationsQuery
-from roots_of_rhythm.historical_knowledge.application import ClaimService
+from roots_of_rhythm.discovery.application.genre_sources import GenreSourcesQuery
+from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
 
 GENRE_OVERVIEW_READER_DEPENDENCY = "genre_overview_reader"
 GENRE_RELATIONS_READER_DEPENDENCY = "genre_relations_reader"
+GENRE_SOURCES_READER_DEPENDENCY = "genre_sources_reader"
 
 type DependencyProviders = Mapping[str, Provide]
 
@@ -33,11 +35,14 @@ def create_api_dependencies(
 
     overview_query = GenreOverviewQuery(music_uow_factory)
     claim_service = ClaimService(hk_uow_factory, GenreUnitOfWorkStatusLookup(music_uow_factory))
+    source_service = SourceService(hk_uow_factory)
     relations_query = GenreRelationsQuery(music_uow_factory, claim_service)
+    sources_query = GenreSourcesQuery(music_uow_factory, claim_service, source_service)
 
     dependencies = {
         GENRE_OVERVIEW_READER_DEPENDENCY: Provide(lambda: overview_query, sync_to_thread=False),
         GENRE_RELATIONS_READER_DEPENDENCY: Provide(lambda: relations_query, sync_to_thread=False),
+        GENRE_SOURCES_READER_DEPENDENCY: Provide(lambda: sources_query, sync_to_thread=False),
     }
     if overrides is not None:
         dependencies.update(overrides)

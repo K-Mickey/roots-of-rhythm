@@ -96,3 +96,18 @@ class GenreRelationView(msgspec.Struct, frozen=True):
 class GenreRelationsResponse(msgspec.Struct, frozen=True):
     genre_id: str
     relations: list[GenreRelationView]
+
+
+class SourceView(msgspec.Struct, frozen=True):
+    id: str
+    title: str
+    author: str | None
+    responsible_organization: str | None
+    publication: str | None
+    publication_date: str | None
+    external_url: str | None
+
+
+class GenreSourcesResponse(msgspec.Struct, frozen=True):
+    genre_id: str
+    sources: list[SourceView]

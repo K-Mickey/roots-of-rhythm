@@ -69,6 +69,9 @@ class FakeSourceRepository:
     async def get_source(self, source_id: UUID) -> Source | None:
         return self.sources.get(source_id)
 
+    async def get_sources_by_ids(self, source_ids: Collection[UUID]) -> dict[UUID, Source]:
+        return {source_id: source for source_id in source_ids if (source := self.sources.get(source_id)) is not None}
+
     async def get_version(self, version_id: UUID) -> SourceVersion | None:
         return self.versions.get(version_id)
 
