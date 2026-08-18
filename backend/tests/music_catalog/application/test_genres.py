@@ -1,85 +1,23 @@
-from typing import TYPE_CHECKING, Self
 from uuid import UUID
 
 import pytest
+from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
 
 from roots_of_rhythm.music_catalog.application import (
     GenreNameConflict,
     GenreNotFound,
-    GenreRepository,
     GenreService,
 )
 from roots_of_rhythm.music_catalog.domain import ClassificationContent, EditorialStatus, Genre, GenrePublicationError
-
-if TYPE_CHECKING:
-    from types import TracebackType
-
-
-class FakeGenreRepository:
-    def __init__(self, genres: dict[UUID, Genre]) -> None:
-        self._genres = genres
-
-    async def add(self, genre: Genre) -> None:
-        self._genres[genre.id] = genre
-
-    async def get(self, genre_id: UUID) -> Genre | None:
-        return self._genres.get(genre_id)
-
-    async def get_published(self, genre_id: UUID) -> Genre | None:
-        genre = self._genres.get(genre_id)
-        return genre if genre is not None and genre.editorial_status is EditorialStatus.PUBLISHED else None
-
-    async def save(self, genre: Genre) -> None:
-        self._genres[genre.id] = genre
-
-    async def mark_deleted(self, genre_id: UUID) -> None:
-        self._genres.pop(genre_id, None)
-
-    async def published_among(self, genre_ids: set[UUID]) -> set[UUID]:
-        return {
-            genre_id
-            for genre_id in genre_ids
-            if (genre := self._genres.get(genre_id)) is not None and genre.editorial_status is EditorialStatus.PUBLISHED
-        }
-
-    async def canonical_name_exists(self, canonical_name: str, *, excluding: UUID | None = None) -> bool:
-        return any(
-            genre.id != excluding and genre.content.canonical_name.lower() == canonical_name.lower()
-            for genre in self._genres.values()
-        )
-
-
-class FakeUnitOfWork:
-    def __init__(self, genres: dict[UUID, Genre]) -> None:
-        self.genres: GenreRepository = FakeGenreRepository(genres)
-        self.commits = 0
-        self.rollbacks = 0
-
-    async def __aenter__(self) -> Self:
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
-        self.rollbacks += 1
-
-    async def commit(self) -> None:
-        self.commits += 1
-
-    async def rollback(self) -> None:
-        self.rollbacks += 1
 
 
 @pytest.mark.asyncio
 async def test_service_creates_updates_and_publishes_in_transactions() -> None:
     genres: dict[UUID, Genre] = {}
-    units: list[FakeUnitOfWork] = []
+    units: list[FakeMusicCatalogUnitOfWork] = []
 
-    def uow_factory() -> FakeUnitOfWork:
-        unit = FakeUnitOfWork(genres)
+    def uow_factory() -> FakeMusicCatalogUnitOfWork:
+        unit = FakeMusicCatalogUnitOfWork(genres)
         units.append(unit)
         return unit
 
@@ -102,10 +40,10 @@ async def test_service_creates_updates_and_publishes_in_transactions() -> None:
 @pytest.mark.asyncio
 async def test_service_reports_domain_and_application_failures_without_commit() -> None:
     genres: dict[UUID, Genre] = {}
-    units: list[FakeUnitOfWork] = []
+    units: list[FakeMusicCatalogUnitOfWork] = []
 
-    def uow_factory() -> FakeUnitOfWork:
-        unit = FakeUnitOfWork(genres)
+    def uow_factory() -> FakeMusicCatalogUnitOfWork:
+        unit = FakeMusicCatalogUnitOfWork(genres)
         units.append(unit)
         return unit
 

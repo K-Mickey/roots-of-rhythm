@@ -48,7 +48,8 @@ backend/src/roots_of_rhythm/
 ├── config.py
 ├── entrypoints/
 │   ├── api.py
-│   └── cli.py
+│   ├── cli.py
+│   └── dependencies.py
 ├── infrastructure/
 │   ├── database.py
 │   └── service_columns.py
@@ -89,23 +90,36 @@ backend/src/roots_of_rhythm/
 │       ├── models.py
 │       ├── repositories.py
 │       └── unit_of_work.py
+├── discovery/
+│   ├── application/
+│   │   ├── dto.py
+│   │   ├── errors.py
+│   │   └── genre_overview.py
+│   └── presentation/
+│       ├── schemas.py
+│       └── genres.py
 └── presentation/
     └── health.py
 
 backend/tests/
 ├── entrypoints/
 ├── seed/
+├── discovery/
+│   ├── application/
+│   └── fakes.py
 ├── music_catalog/
 │   ├── domain/
 │   ├── application/
-│   └── infrastructure/
+│   ├── infrastructure/
+│   └── fakes.py
 └── historical_knowledge/
     ├── domain/
     ├── application/
-    └── infrastructure/
+    ├── infrastructure/
+    └── fakes.py
 ```
 
-`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), `presentation` владеет HTTP mapping, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre corpus (Jazz–Swing–Jump Blues) через domain services, `config.py` — application settings. `music_catalog` владеет Genre/ClassificationConcept. `historical_knowledge` владеет GenreRelation Claim, Evidence references и минимальным Source/SourceVersion/SourceFragment stack; статус endpoint Genre читает через application port `GenreStatusLookup`, без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), корневой `presentation` — health probes, `discovery` — public Genre overview read-side (query + genres HTTP router; relations/sources later), корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre corpus (Jazz–Swing–Jump Blues) через domain services, `config.py` — application settings. `music_catalog` владеет Genre/ClassificationConcept. `historical_knowledge` владеет GenreRelation Claim, Evidence references и минимальным Source/SourceVersion/SourceFragment stack; статус endpoint Genre читает через application port `GenreStatusLookup`, без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
 
 ## Внутренняя структура модуля
 

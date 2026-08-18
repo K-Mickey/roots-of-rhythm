@@ -33,7 +33,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationCo
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Collection
     from uuid import UUID
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
@@ -53,7 +53,7 @@ class SessionGenreStatusLookup:
         async with SqlAlchemyMusicCatalogUnitOfWork(self._session_factory) as uow:
             return await uow.genres.get(genre_id) is not None
 
-    async def published_among(self, genre_ids: set[UUID]) -> set[UUID]:
+    async def published_among(self, genre_ids: Collection[UUID]) -> set[UUID]:
         async with SqlAlchemyMusicCatalogUnitOfWork(self._session_factory) as uow:
             return await uow.genres.published_among(genre_ids)
 

@@ -6,13 +6,24 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from roots_of_rhythm.config import Settings
 from roots_of_rhythm.config import settings as default_settings
-from roots_of_rhythm.infrastructure.database import check_database_readiness, create_database_engine
+from roots_of_rhythm.discovery.presentation.genres import create_genres_router
+from roots_of_rhythm.entrypoints.dependencies import DependencyProviders, create_api_dependencies
+from roots_of_rhythm.infrastructure.database import (
+    check_database_readiness,
+    create_database_engine,
+    create_session_factory,
+)
 from roots_of_rhythm.presentation.health import create_health_router
 
 
-def create_app(settings: Settings | None = None) -> Litestar:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    dependency_overrides: DependencyProviders | None = None,
+) -> Litestar:
     resolved_settings = settings or default_settings
     engine = create_database_engine(resolved_settings.database_url)
+    session_factory = create_session_factory(engine)
 
     async def readiness_probe() -> bool:
         try:
@@ -29,6 +40,10 @@ def create_app(settings: Settings | None = None) -> Litestar:
             await engine.dispose()
 
     return Litestar(
-        route_handlers=[create_health_router(readiness_probe)],
+        route_handlers=[
+            create_health_router(readiness_probe),
+            create_genres_router(),
+        ],
+        dependencies=create_api_dependencies(session_factory, dependency_overrides),
         lifespan=[database_lifespan],
     )
