@@ -19,10 +19,22 @@ class SourceService:
         self,
         title: str,
         *,
-        institution_name: str | None = None,
+        author: str | None = None,
+        responsible_organization: str | None = None,
+        publication: str | None = None,
+        publication_date: str | None = None,
+        external_url: str | None = None,
         source_id: UUID | None = None,
     ) -> Source:
-        source = Source.create(title, institution_name=institution_name, source_id=source_id)
+        source = Source.create(
+            title,
+            author=author,
+            responsible_organization=responsible_organization,
+            publication=publication,
+            publication_date=publication_date,
+            external_url=external_url,
+            source_id=source_id,
+        )
         async with self._uow_factory() as uow:
             await uow.sources.add_source(source)
             await uow.commit()

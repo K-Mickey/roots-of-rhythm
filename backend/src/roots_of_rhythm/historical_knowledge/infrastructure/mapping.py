@@ -27,11 +27,27 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
 
 
 def source_from_record(record: SourceRecord) -> Source:
-    return Source(id=record.id, title=record.title, institution_name=record.institution_name)
+    return Source(
+        id=record.id,
+        title=record.title,
+        author=record.author,
+        responsible_organization=record.responsible_organization,
+        publication=record.publication,
+        publication_date=record.publication_date,
+        external_url=record.external_url,
+    )
 
 
 def record_from_source(source: Source) -> SourceRecord:
-    return SourceRecord(id=source.id, title=source.title, institution_name=source.institution_name)
+    return SourceRecord(
+        id=source.id,
+        title=source.title,
+        author=source.author,
+        responsible_organization=source.responsible_organization,
+        publication=source.publication,
+        publication_date=source.publication_date,
+        external_url=source.external_url,
+    )
 
 
 def version_from_record(record: SourceVersionRecord) -> SourceVersion:

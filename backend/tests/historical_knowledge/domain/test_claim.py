@@ -113,7 +113,7 @@ def test_public_visibility_requires_published_claim_and_endpoints() -> None:
 
 
 def test_source_fragment_review_lifecycle() -> None:
-    source = Source.create("Smithsonian Music", institution_name="Smithsonian")
+    source = Source.create("Jazz", responsible_organization="Smithsonian Music")
     version = SourceVersion.create(source.id, "2024 catalog")
     fragment = SourceFragment.create(version.id, locator_text="Swing entry")
     reviewed = fragment.mark_reviewed()

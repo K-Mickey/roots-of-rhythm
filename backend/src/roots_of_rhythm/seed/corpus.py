@@ -51,10 +51,15 @@ SMITHSONIAN_VERSION_ID = UUID("01a0147a-8508-74b7-9689-e7c4d86d78f9")
 LOC_SOURCE_ID = UUID("01a0147a-8508-74b7-9689-e7c58c0b7736")
 LOC_VERSION_ID = UUID("01a0147a-8508-74b7-9689-e7c6043bca04")
 
-SMITHSONIAN_TITLE = "Smithsonian Music"
-SMITHSONIAN_INSTITUTION = "Smithsonian"
-LOC_TITLE = "Library of Congress"
-LOC_INSTITUTION = "Library of Congress"
+SMITHSONIAN_TITLE = "Jazz"
+SMITHSONIAN_RESPONSIBLE_ORGANIZATION = "Smithsonian Music"
+SMITHSONIAN_EXTERNAL_URL = "https://music.si.edu/story/jazz"
+LOC_TITLE = "Rhythm and Blues"
+LOC_RESPONSIBLE_ORGANIZATION = "Library of Congress"
+LOC_EXTERNAL_URL = (
+    "https://www.loc.gov/collections/songs-of-america/articles-and-essays/"
+    "musical-styles/popular-songs-of-the-day/rhythm-and-blues/"
+)
 SOURCE_VERSION_LABEL = "web 2026-08"
 
 # --- Fragments --------------------------------------------------------------

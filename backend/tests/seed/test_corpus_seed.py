@@ -133,7 +133,17 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     assert len(contributed.evidence_references) == 2
 
     assert smithsonian is not None and smithsonian.title == data.SMITHSONIAN_TITLE
+    assert smithsonian.responsible_organization == data.SMITHSONIAN_RESPONSIBLE_ORGANIZATION
+    assert smithsonian.external_url == data.SMITHSONIAN_EXTERNAL_URL
+    assert smithsonian.author is None
+    assert smithsonian.publication is None
+    assert smithsonian.publication_date is None
     assert loc is not None and loc.title == data.LOC_TITLE
+    assert loc.responsible_organization == data.LOC_RESPONSIBLE_ORGANIZATION
+    assert loc.external_url == data.LOC_EXTERNAL_URL
+    assert loc.author is None
+    assert loc.publication is None
+    assert loc.publication_date is None
     assert all(
         fragment is not None and fragment.review_status is FragmentReviewStatus.REVIEWED for fragment in fragments
     )

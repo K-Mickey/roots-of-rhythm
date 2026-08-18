@@ -98,7 +98,20 @@ async def test_claim_visibility_follows_endpoint_genre_publication(engine: Async
     claim_service = ClaimService(hk_uow, SessionGenreStatusLookup(session_factory))
     source_service = SourceService(hk_uow)
 
-    source = await source_service.create_source("Smithsonian Music", institution_name="Smithsonian")
+    source = await source_service.create_source(
+        "Jazz",
+        responsible_organization="Smithsonian Music",
+        external_url="https://music.si.edu/story/jazz",
+    )
+    async with hk_uow() as uow:
+        loaded = await uow.sources.get_source(source.id)
+    assert loaded is not None
+    assert loaded.title == "Jazz"
+    assert loaded.responsible_organization == "Smithsonian Music"
+    assert loaded.external_url == "https://music.si.edu/story/jazz"
+    assert loaded.author is None
+    assert loaded.publication is None
+    assert loaded.publication_date is None
     version = await source_service.create_version(source.id, "catalog")
     fragment = await source_service.create_fragment(version.id, locator_text="Swing page")
     await source_service.mark_fragment_reviewed(fragment.id)

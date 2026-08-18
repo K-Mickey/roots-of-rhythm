@@ -57,7 +57,8 @@ class CorpusSeedRunner:
         await self._ensure_source(
             data.SMITHSONIAN_SOURCE_ID,
             data.SMITHSONIAN_TITLE,
-            institution_name=data.SMITHSONIAN_INSTITUTION,
+            responsible_organization=data.SMITHSONIAN_RESPONSIBLE_ORGANIZATION,
+            external_url=data.SMITHSONIAN_EXTERNAL_URL,
         )
         await self._ensure_version(
             data.SMITHSONIAN_SOURCE_ID,
@@ -67,7 +68,8 @@ class CorpusSeedRunner:
         await self._ensure_source(
             data.LOC_SOURCE_ID,
             data.LOC_TITLE,
-            institution_name=data.LOC_INSTITUTION,
+            responsible_organization=data.LOC_RESPONSIBLE_ORGANIZATION,
+            external_url=data.LOC_EXTERNAL_URL,
         )
         await self._ensure_version(
             data.LOC_SOURCE_ID,
@@ -140,7 +142,11 @@ class CorpusSeedRunner:
         source_id: UUID,
         title: str,
         *,
-        institution_name: str | None,
+        author: str | None = None,
+        responsible_organization: str | None = None,
+        publication: str | None = None,
+        publication_date: str | None = None,
+        external_url: str | None = None,
     ) -> None:
         async with self._hk_uow() as uow:
             existing = await uow.sources.get_source(source_id)
@@ -148,7 +154,11 @@ class CorpusSeedRunner:
             return
         await self._sources.create_source(
             title,
-            institution_name=institution_name,
+            author=author,
+            responsible_organization=responsible_organization,
+            publication=publication,
+            publication_date=publication_date,
+            external_url=external_url,
             source_id=source_id,
         )
 

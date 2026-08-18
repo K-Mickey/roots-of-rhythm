@@ -35,7 +35,11 @@ class SourceRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):
 
     id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
     title: Mapped[str] = mapped_column(String(SHORT_TEXT_MAX_LENGTH), nullable=False)
-    institution_name: Mapped[str | None] = mapped_column(String(SHORT_TEXT_MAX_LENGTH))
+    author: Mapped[str | None] = mapped_column(String(SHORT_TEXT_MAX_LENGTH))
+    responsible_organization: Mapped[str | None] = mapped_column(String(SHORT_TEXT_MAX_LENGTH))
+    publication: Mapped[str | None] = mapped_column(String(SHORT_TEXT_MAX_LENGTH))
+    publication_date: Mapped[str | None] = mapped_column(String(SHORT_TEXT_MAX_LENGTH))
+    external_url: Mapped[str | None] = mapped_column(String(URL_MAX_LENGTH))
 
 
 class SourceVersionRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):

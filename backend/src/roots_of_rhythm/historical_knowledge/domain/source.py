@@ -16,18 +16,40 @@ from roots_of_rhythm.historical_knowledge.domain.value_objects import (
 class Source(msgspec.Struct, frozen=True):
     id: UUID
     title: str
-    institution_name: str | None = None
+    author: str | None = None
+    responsible_organization: str | None = None
+    publication: str | None = None
+    publication_date: str | None = None
+    external_url: str | None = None
 
     @classmethod
-    def create(cls, title: str, *, institution_name: str | None = None, source_id: UUID | None = None) -> Self:
+    def create(
+        cls,
+        title: str,
+        *,
+        author: str | None = None,
+        responsible_organization: str | None = None,
+        publication: str | None = None,
+        publication_date: str | None = None,
+        external_url: str | None = None,
+        source_id: UUID | None = None,
+    ) -> Self:
         return cls(
             id=source_id or uuid7(),
             title=_required_text(title, "source title", max_length=SHORT_TEXT_MAX_LENGTH),
-            institution_name=_optional_text(
-                institution_name,
-                "institution name",
+            author=_optional_text(author, "author", max_length=SHORT_TEXT_MAX_LENGTH),
+            responsible_organization=_optional_text(
+                responsible_organization,
+                "responsible organization",
                 max_length=SHORT_TEXT_MAX_LENGTH,
             ),
+            publication=_optional_text(publication, "publication", max_length=SHORT_TEXT_MAX_LENGTH),
+            publication_date=_optional_text(
+                publication_date,
+                "publication date",
+                max_length=SHORT_TEXT_MAX_LENGTH,
+            ),
+            external_url=_optional_text(external_url, "external url", max_length=URL_MAX_LENGTH),
         )
 
 
