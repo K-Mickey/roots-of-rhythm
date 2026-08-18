@@ -22,6 +22,7 @@
 | `make backend-dev` | корень | PostgreSQL, `make setup` | Запускает Litestar на `127.0.0.1:8000` с hot reload. |
 | `make frontend-dev` | корень | `make setup` | Запускает Next.js на `127.0.0.1:3000`. |
 | `make migrate` | корень | PostgreSQL | Выполняет `alembic upgrade head`. |
+| `make seed` | корень | PostgreSQL, миграции | Идемпотентно загружает controlled Genre corpus (Jazz, Swing, Jump Blues и две published relations). |
 
 Локальные значения окружения перечислены в `.env.example`. Compose публикует порты только на `127.0.0.1`: PostgreSQL `5432`, backend `8000`, frontend `3000`.
 
@@ -40,9 +41,7 @@
 | `make build` | Docker | Собирает production images backend и frontend. |
 | `make check` | Docker, `make setup` | Выполняет format-check, lint, typecheck, unit tests, contract-check и Docker build. |
 
-`make seed` намеренно завершается ошибкой: загрузка начальных предметных данных относится к `TASK-004`.
-
-Backend запускается только через Click CLI. Из `backend/` доступны `uv run roots-of-rhythm --help` и `uv run roots-of-rhythm api --help`; Makefile и Docker используют ту же команду. Для host, port и reload значения Click options имеют приоритет над `API_HOST`, `API_PORT`, `API_RELOAD` из environment или `.env`; `DATABASE_URL` читается из тех же configuration sources без CLI override. Затем применяются локальные defaults. Конфигурация загружается при импорте `roots_of_rhythm.config` и остаётся неизменяемым snapshot на время жизни процесса.
+Backend запускается только через Click CLI. Из `backend/` доступны `uv run roots-of-rhythm --help`, `uv run roots-of-rhythm api --help` и `uv run roots-of-rhythm seed`; Makefile и Docker используют ту же команду. Для host, port и reload значения Click options имеют приоритет над `API_HOST`, `API_PORT`, `API_RELOAD` из environment или `.env`; `DATABASE_URL` читается из тех же configuration sources без CLI override. Затем применяются локальные defaults. Конфигурация загружается при импорте `roots_of_rhythm.config` и остаётся неизменяемым snapshot на время жизни процесса.
 
 ## Health endpoints
 

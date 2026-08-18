@@ -32,7 +32,7 @@ logs: ## Follow Compose logs
 	docker compose logs -f
 
 backend-dev: ## Run Litestar with reload on the host
-	cd backend && DATABASE_URL=$(DATABASE_URL) uv run roots-of-rhythm api --host 127.0.0.1 --port 8000 --reload
+	cd backend && DATABASE_URL=$(DATABASE_URL) PYTHONPATH=src uv run roots-of-rhythm api --host 127.0.0.1 --port 8000 --reload
 
 frontend-dev: ## Run Next.js development server on the host
 	pnpm --dir frontend dev
@@ -40,9 +40,8 @@ frontend-dev: ## Run Next.js development server on the host
 migrate: ## Apply backend migrations to the local database
 	cd backend && DATABASE_URL=$(DATABASE_URL) uv run alembic upgrade head
 
-seed: ## Seed data (implemented in TASK-004)
-	@echo "Seed is not implemented until TASK-004" >&2
-	@exit 1
+seed: ## Load controlled Jazz–Swing–Jump Blues Genre corpus (idempotent)
+	cd backend && DATABASE_URL=$(DATABASE_URL) PYTHONPATH=src uv run roots-of-rhythm seed
 
 format: ## Format backend and frontend sources
 	cd backend && uv run ruff format . && uv run ruff check . --fix

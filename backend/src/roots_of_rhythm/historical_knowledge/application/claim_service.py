@@ -40,9 +40,16 @@ class ClaimService:
         subject_genre_id: UUID,
         target_genre_id: UUID,
         relation_type: RelationType,
+        *,
+        claim_id: UUID | None = None,
     ) -> GenreRelationClaim:
         await self._ensure_genres_exist(subject_genre_id, target_genre_id)
-        claim = GenreRelationClaim.create_draft(subject_genre_id, target_genre_id, relation_type)
+        claim = GenreRelationClaim.create_draft(
+            subject_genre_id,
+            target_genre_id,
+            relation_type,
+            claim_id=claim_id,
+        )
         async with self._uow_factory() as uow:
             await uow.claims.add(claim)
             await uow.commit()

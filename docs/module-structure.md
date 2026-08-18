@@ -52,6 +52,10 @@ backend/src/roots_of_rhythm/
 ├── infrastructure/
 │   ├── database.py
 │   └── service_columns.py
+├── seed/
+│   ├── __init__.py
+│   ├── corpus.py
+│   └── runner.py
 ├── music_catalog/
 │   ├── domain/
 │   │   ├── enums.py
@@ -90,6 +94,7 @@ backend/src/roots_of_rhythm/
 
 backend/tests/
 ├── entrypoints/
+├── seed/
 ├── music_catalog/
 │   ├── domain/
 │   ├── application/
@@ -100,7 +105,7 @@ backend/tests/
     └── infrastructure/
 ```
 
-`entrypoints` собирает процессы и lifecycle, `presentation` владеет HTTP mapping, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `config.py` — application settings. `music_catalog` владеет Genre/ClassificationConcept. `historical_knowledge` владеет GenreRelation Claim, Evidence references и минимальным Source/SourceVersion/SourceFragment stack; статус endpoint Genre читает через application port `GenreStatusLookup`, без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), `presentation` владеет HTTP mapping, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre corpus (Jazz–Swing–Jump Blues) через domain services, `config.py` — application settings. `music_catalog` владеет Genre/ClassificationConcept. `historical_knowledge` владеет GenreRelation Claim, Evidence references и минимальным Source/SourceVersion/SourceFragment stack; статус endpoint Genre читает через application port `GenreStatusLookup`, без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
 
 ## Внутренняя структура модуля
 

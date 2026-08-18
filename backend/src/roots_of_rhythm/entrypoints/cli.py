@@ -1,7 +1,11 @@
+import asyncio
+
 import click
 import uvicorn
 
 from roots_of_rhythm.config import settings
+from roots_of_rhythm.infrastructure.database import create_database_engine, create_session_factory
+from roots_of_rhythm.seed import CorpusSeedRunner
 
 
 @click.group()
@@ -22,3 +26,19 @@ def run_api(host: str | None, port: int | None, reload: bool | None) -> None:
         port=port if port is not None else settings.api_port,
         reload=reload if reload is not None else settings.api_reload,
     )
+
+
+@cli.command("seed")
+def run_seed() -> None:
+    """Load the controlled Genre corpus seed into PostgreSQL (idempotent)."""
+    asyncio.run(_seed())
+
+
+async def _seed() -> None:
+    engine = create_database_engine(settings.database_url)
+    try:
+        session_factory = create_session_factory(engine)
+        await CorpusSeedRunner(session_factory).run()
+        click.echo("Seed completed: Jazz–Swing–Jump Blues corpus.")
+    finally:
+        await engine.dispose()

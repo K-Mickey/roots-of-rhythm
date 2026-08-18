@@ -16,10 +16,10 @@ class GenreService:
     def __init__(self, uow_factory: UnitOfWorkFactory) -> None:
         self._uow_factory = uow_factory
 
-    async def create(self, content: ClassificationContent) -> Genre:
+    async def create(self, content: ClassificationContent, *, genre_id: UUID | None = None) -> Genre:
         async with self._uow_factory() as uow:
             await self._ensure_name_available(uow, content.canonical_name)
-            genre = Genre(id=uuid7(), content=content)
+            genre = Genre(id=genre_id or uuid7(), content=content)
             await uow.genres.add(genre)
             await self._commit(uow)
             return genre
