@@ -1,11 +1,11 @@
 import { Container } from '@mantine/core';
 
-import { GenreCatalogContent } from '@/features/genre-catalog/GenreCatalogContent';
+import { PerformerCatalogContent } from '@/features/performer-catalog/PerformerCatalogContent';
 import { PageError } from '@/shared/ui/PageError';
-import { fetchPublishedGenres } from '@/shared/api/genre';
+import { fetchPublishedPerformers } from '@/shared/api/performer';
 
-export default async function GenreCatalogPage() {
-  const result = await fetchPublishedGenres();
+export default async function PerformerCatalogPage() {
+  const result = await fetchPublishedPerformers();
 
   if (result.status !== 'ok') {
     return (
@@ -16,7 +16,7 @@ export default async function GenreCatalogPage() {
               ? result.message
               : 'Не удалось загрузить материал.'
           }
-          retryHref="/genres"
+          retryHref="/performers"
         />
       </Container>
     );
@@ -24,7 +24,7 @@ export default async function GenreCatalogPage() {
 
   return (
     <Container size="52rem" py="xl">
-      <GenreCatalogContent items={result.data.items} />
+      <PerformerCatalogContent items={result.data.items} />
     </Container>
   );
 }

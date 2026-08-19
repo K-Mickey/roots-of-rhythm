@@ -6,7 +6,7 @@ import { PRODUCT_NAME } from './product';
 import { SiteHeader } from './SiteHeader';
 
 describe('SiteHeader', () => {
-  it('links identity home and genres catalog', () => {
+  it('links identity home, genres catalog, and performers catalog', () => {
     render(
       <MantineProvider>
         <SiteHeader />
@@ -20,6 +20,10 @@ describe('SiteHeader', () => {
     expect(screen.getByRole('link', { name: 'Жанры' })).toHaveAttribute(
       'href',
       '/genres',
+    );
+    expect(screen.getByRole('link', { name: 'Исполнители' })).toHaveAttribute(
+      'href',
+      '/performers',
     );
   });
 });

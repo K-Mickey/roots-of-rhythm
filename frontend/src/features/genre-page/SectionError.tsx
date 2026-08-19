@@ -1,6 +1,6 @@
 import { Alert, Stack, Text, Title } from '@mantine/core';
 
-import { RetryButton } from './RetryButton';
+import { RetryButton } from '@/shared/ui/RetryButton';
 
 export function SectionError({
   title,

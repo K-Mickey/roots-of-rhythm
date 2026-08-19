@@ -84,6 +84,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/performers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published Performers
+         * @description Returns identity summaries of all currently published Performers, ordered by canonical name. Draft, archived, and deleted Persons are omitted. An empty list is a successful result.
+         */
+        get: operations["listPublishedPerformers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/performers/{performer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a published Performer overview
+         * @description Returns every public Person content field plus primary image and assigned Genres. Editorial status, deleted flags, and timestamps are omitted. Unknown, malformed, draft, and archived identifiers are intentionally indistinguishable.
+         */
+        get: operations["getPublishedPerformerOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -94,6 +134,29 @@ export interface components {
         GenreListResponse: {
             /** @description Published Genre summaries ordered by canonical name. */
             items: components["schemas"]["GenreSummary"][];
+        };
+        PerformerListResponse: {
+            /** @description Published Performer summaries ordered by canonical name. */
+            items: components["schemas"]["PerformerSummary"][];
+        };
+        PerformerOverviewResponse: {
+            id: components["schemas"]["PublicId"];
+            name: string;
+            /** @description Alternate names; may be empty. Does not include the canonical name. */
+            aliases: string[];
+            biography: components["schemas"]["NullableText"];
+            birth_date: components["schemas"]["TemporalBound"] | null;
+            death_date: components["schemas"]["TemporalBound"] | null;
+            /** @description External identity records; may be empty. */
+            external_identities: components["schemas"]["ExternalIdentityView"][];
+            primary_image: components["schemas"]["PublicImageView"] | null;
+            /** @description Published Genre summaries assigned to the Performer, ordered by canonical name. */
+            genres: components["schemas"]["GenreSummary"][];
+        };
+        ExternalIdentityView: {
+            provider: string;
+            identifier: string;
+            url: string | null;
         };
         GenreOverviewResponse: {
             id: components["schemas"]["PublicId"];
@@ -117,6 +180,10 @@ export interface components {
             sources: components["schemas"]["SourceView"][];
         };
         GenreSummary: {
+            id: components["schemas"]["PublicId"];
+            name: string;
+        };
+        PerformerSummary: {
             id: components["schemas"]["PublicId"];
             name: string;
         };
@@ -214,6 +281,23 @@ export interface components {
                 "application/json": components["schemas"]["ErrorResponse"];
             };
         };
+        /** @description Performer is absent or not publicly visible. */
+        PerformerNotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "code": "PERFORMER_NOT_FOUND",
+                 *       "message": "Материал не найден.",
+                 *       "details": null,
+                 *       "request_id": "01K2V3A5J2P9M3EVWQ3E7G4C6X"
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description The requested projection could not be assembled safely. */
         InternalError: {
             headers: {
@@ -235,6 +319,8 @@ export interface components {
     parameters: {
         /** @description Stable opaque Genre identifier. Clients must not derive meaning from it. */
         GenreId: components["schemas"]["PublicId"];
+        /** @description Stable opaque Performer identifier (Person). Clients must not derive meaning from it. */
+        PerformerId: components["schemas"]["PublicId"];
     };
     requestBodies: never;
     headers: never;
@@ -335,6 +421,52 @@ export interface operations {
                 };
             };
             404: components["responses"]["GenreNotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listPublishedPerformers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ordered published Performer summaries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformerListResponse"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getPublishedPerformerOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Stable opaque Performer identifier (Person). Clients must not derive meaning from it. */
+                performer_id: components["parameters"]["PerformerId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public Performer overview. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformerOverviewResponse"];
+                };
+            };
+            404: components["responses"]["PerformerNotFound"];
             500: components["responses"]["InternalError"];
         };
     };

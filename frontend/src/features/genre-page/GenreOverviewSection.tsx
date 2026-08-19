@@ -2,7 +2,7 @@ import { Grid, GridCol, Stack, Text, Title } from '@mantine/core';
 
 import type { GenreOverview } from '@/shared/api/genre';
 
-import { GenreImage } from './GenreImage';
+import { PublicImage } from '@/shared/ui/PublicImage';
 
 export function GenreOverviewSection({
   overview,
@@ -38,7 +38,7 @@ export function GenreOverviewSection({
         </GridCol>
         {image !== null ? (
           <GridCol span={{ base: 12, md: 5 }}>
-            <GenreImage image={image} />
+            <PublicImage image={image} />
           </GridCol>
         ) : null}
       </Grid>

@@ -2,7 +2,7 @@ import { Container } from '@mantine/core';
 import { notFound } from 'next/navigation';
 
 import { GenrePageContent } from '@/features/genre-page/GenrePageContent';
-import { PageError } from '@/features/genre-page/PageError';
+import { PageError } from '@/shared/ui/PageError';
 import { fetchGenrePage } from '@/shared/api/genre';
 
 type PageProps = {

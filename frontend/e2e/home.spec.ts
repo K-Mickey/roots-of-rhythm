@@ -12,9 +12,14 @@ test('home shows product identity and not-found returns to it', async ({
     page.getByText('История музыки для тех кто танцует и слушает'),
   ).toBeVisible();
   await expect(page.locator('a[href*="/genres/"]')).toHaveCount(0);
+  await expect(page.locator('a[href*="/performers/"]')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Жанры' })).toHaveAttribute(
     'href',
     '/genres',
+  );
+  await expect(page.getByRole('link', { name: 'Исполнители' })).toHaveAttribute(
+    'href',
+    '/performers',
   );
 
   await expect(

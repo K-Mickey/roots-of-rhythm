@@ -5,11 +5,11 @@ import { useEffect, useState } from 'react';
 
 import type { components } from '@/api/schema';
 
-type PublicImage = components['schemas']['PublicImageView'];
+type PublicImageView = components['schemas']['PublicImageView'];
 
 type ImageStatus = 'pending' | 'ready' | 'broken';
 
-export function GenreImage({ image }: { image: PublicImage }) {
+export function PublicImage({ image }: { image: PublicImageView }) {
   const [status, setStatus] = useState<ImageStatus>('pending');
 
   useEffect(() => {

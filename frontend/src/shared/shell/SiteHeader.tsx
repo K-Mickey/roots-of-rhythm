@@ -18,6 +18,9 @@ export function SiteHeader() {
             <Anchor href="/genres" c="pastel.9" underline="hover">
               Жанры
             </Anchor>
+            <Anchor href="/performers" c="pastel.9" underline="hover">
+              Исполнители
+            </Anchor>
           </Group>
         </Group>
       </Container>

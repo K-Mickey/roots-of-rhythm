@@ -7,9 +7,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { GenreOverview } from '@/shared/api/genre';
 import { createAppTheme } from '@/shared/theme/theme';
 
-import { GenreImage } from './GenreImage';
+import { PublicImage } from '@/shared/ui/PublicImage';
+import { PageError } from '@/shared/ui/PageError';
 import { GenrePageContent } from './GenrePageContent';
-import { PageError } from './PageError';
 
 afterEach(() => {
   cleanup();
@@ -216,7 +216,7 @@ describe('PageError', () => {
   });
 });
 
-describe('GenreImage', () => {
+describe('PublicImage', () => {
   it('does not render an img when the source fails to load', async () => {
     const OriginalImage = window.Image;
     class FailingImage {
@@ -229,7 +229,7 @@ describe('GenreImage', () => {
     window.Image = FailingImage as unknown as typeof Image;
 
     renderWithProviders(
-      <GenreImage
+      <PublicImage
         image={{
           id: 'img-1',
           url: 'https://example.com/missing.jpg',
