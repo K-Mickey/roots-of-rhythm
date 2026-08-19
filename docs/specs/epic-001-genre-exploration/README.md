@@ -40,7 +40,7 @@ Visitor изучает Genre как самостоятельную истори�
 
 ## Stories
 
-1. [STORY-001: открыть опубликованную страницу Genre](story-001-view-published-genre/README.md) — `accepted`, реализуется первой.
+1. [STORY-001: открыть опубликованную страницу Genre](story-001-view-published-genre/README.md) — `done`.
 2. Добавить навигацию между опубликованными Genre — draft-кандидат после появления нескольких detail pages.
 3. Показать связанные Performer, Group и Recording — относится к интеграции с EPIC-002.
 4. Редактировать и публиковать Genre — относится к EPIC-005.

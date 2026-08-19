@@ -98,7 +98,7 @@ Performer, Group и Recording не входят в первую story. Связ�
 
 ## Вопросы текущего этапа
 
-Блокирующих продуктовых вопросов для STORY-001 нет. EPIC-001, STORY-001, UI contract и public API/data contract приняты. Перед написанием кода обязателен bootstrap GitHub Issues/Projects по [delivery workflow](../roadmap/delivery-workflow.md). EPIC-012 не блокирует локальный старт реализации, но его обязательные work items блокируют первый публичный трафик.
+STORY-001 выполнена и принята 2026-08-19. EPIC-001 остаётся открытым: следующие stories — навигация между Genre, интеграция с EPIC-002 и editorial UI. EPIC-012 не блокировал локальную реализацию, но его обязательные work items по-прежнему блокируют первый публичный трафик.
 
 Подтверждено 2026-08-16: EPIC-001 идёт первым; Performer/Group/Recording и локализация исключены из STORY-001; controlled seed/import допустим; для публикации Genre достаточно `name + definition`; пустые секции скрываются; seed содержит Swing, Jazz и Jump Blues; draft GenreRelation допускает частичное заполнение, publish требует полноты; relation публикуется независимо и имеет вычисляемую visibility; `confidence` исключён.
 
@@ -115,3 +115,4 @@ Performer, Group и Recording не входят в первую story. Связ�
 - 2026-08-16: подтверждены минимальная публикация Genre, скрытие пустых секций и три Genre seed; lifecycle relation вынесен в DDD Workshop 005.
 - 2026-08-16: подтверждены два seed Claims и институциональные Evidence; EPIC-001/STORY-001 переведены в `accepted`.
 - 2026-08-16: UI и OpenAPI `0.1.0` STORY-001 утверждены; текущий этап переведён к архитектурным решениям.
+- 2026-08-19: STORY-001 принята Product Owner; статус story `done`.

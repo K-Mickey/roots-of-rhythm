@@ -1,6 +1,6 @@
 # STORY-001 приёмка TASK-009
 
-Статус: `draft`
+Статус: `accepted`
 
 Владелец: Product Owner.
 
@@ -65,8 +65,10 @@ Host `make setup` в этой среде не нашёл `pnpm` в PATH; fronten
 
 ## Tracker
 
-Issue TASK-009: [#17](https://github.com/K-Mickey/roots-of-rhythm/issues/17) — закрывать только после явной команды. Commit/PR не создавались этим прогоном.
+Issue TASK-009: [#17](https://github.com/K-Mickey/roots-of-rhythm/issues/17) — закрыт.  
+Story: [#22](https://github.com/K-Mickey/roots-of-rhythm/issues/22).
 
 ## История
 
 - 2026-08-19: первый прогон приёмки STORY-001.
+- 2026-08-19: Product Owner принял прогон с зафиксированными ограничениями; статус `accepted`.
