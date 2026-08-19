@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import delete, or_, select, update
 
 from roots_of_rhythm.historical_knowledge.domain import FragmentReviewStatus
+from roots_of_rhythm.infrastructure.database import apply_write_lock
 from roots_of_rhythm.historical_knowledge.infrastructure.mapping import (
     claim_from_records,
     evidence_records_from_claim,
@@ -46,15 +47,15 @@ class SqlAlchemyClaimRepository:
         self._session.add(record_from_claim(claim))
         self._session.add_all(evidence_records_from_claim(claim))
 
-    async def get(self, claim_id: UUID) -> GenreRelationClaim | None:
-        record = await self._get_claim_record(claim_id)
+    async def get(self, claim_id: UUID, *, for_update: bool = False) -> GenreRelationClaim | None:
+        record = await self._get_claim_record(claim_id, for_update=for_update)
         if record is None:
             return None
         evidence = await self._evidence_for([claim_id])
         return claim_from_records(record, evidence.get(claim_id, []))
 
     async def save(self, claim: GenreRelationClaim) -> None:
-        record = await self._get_claim_record(claim.id)
+        record = await self._get_claim_record(claim.id, for_update=True)
         if record is None:
             raise LookupError(str(claim.id))
         update_claim_record(record, claim)
@@ -64,7 +65,7 @@ class SqlAlchemyClaimRepository:
         self._session.add_all(evidence_records_from_claim(claim))
 
     async def mark_deleted(self, claim_id: UUID) -> None:
-        record = await self._get_claim_record(claim_id)
+        record = await self._get_claim_record(claim_id, for_update=True)
         if record is None:
             raise LookupError(str(claim_id))
         record.deleted = True
@@ -85,11 +86,12 @@ class SqlAlchemyClaimRepository:
         evidence_by_claim = await self._evidence_for([record.id for record in records])
         return [claim_from_records(record, evidence_by_claim.get(record.id, [])) for record in records]
 
-    async def _get_claim_record(self, claim_id: UUID) -> GenreRelationClaimRecord | None:
+    async def _get_claim_record(self, claim_id: UUID, *, for_update: bool = False) -> GenreRelationClaimRecord | None:
         statement = select(GenreRelationClaimRecord).where(
             GenreRelationClaimRecord.id == claim_id,
             GenreRelationClaimRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
 
@@ -118,11 +120,12 @@ class SqlAlchemySourceRepository:
     async def add_fragment(self, fragment: SourceFragment) -> None:
         self._session.add(record_from_fragment(fragment))
 
-    async def get_source(self, source_id: UUID) -> Source | None:
+    async def get_source(self, source_id: UUID, *, for_update: bool = False) -> Source | None:
         statement = select(SourceRecord).where(
             SourceRecord.id == source_id,
             SourceRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         record = result.scalar_one_or_none()
         return None if record is None else source_from_record(record)
@@ -138,20 +141,22 @@ class SqlAlchemySourceRepository:
         result = await self._session.execute(statement)
         return {record.id: source_from_record(record) for record in result.scalars()}
 
-    async def get_version(self, version_id: UUID) -> SourceVersion | None:
+    async def get_version(self, version_id: UUID, *, for_update: bool = False) -> SourceVersion | None:
         statement = select(SourceVersionRecord).where(
             SourceVersionRecord.id == version_id,
             SourceVersionRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         record = result.scalar_one_or_none()
         return None if record is None else version_from_record(record)
 
-    async def get_fragment(self, fragment_id: UUID) -> SourceFragment | None:
+    async def get_fragment(self, fragment_id: UUID, *, for_update: bool = False) -> SourceFragment | None:
         statement = select(SourceFragmentRecord).where(
             SourceFragmentRecord.id == fragment_id,
             SourceFragmentRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         record = result.scalar_one_or_none()
         return None if record is None else fragment_from_record(record)
@@ -161,6 +166,7 @@ class SqlAlchemySourceRepository:
             SourceFragmentRecord.id == fragment.id,
             SourceFragmentRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=True)
         result = await self._session.execute(statement)
         record = result.scalar_one_or_none()
         if record is None:
@@ -192,6 +198,7 @@ class SqlAlchemySourceRepository:
             SourceRecord.id == source_id,
             SourceRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=True)
         result = await self._session.execute(statement)
         record = result.scalar_one_or_none()
         if record is None:
@@ -225,6 +232,7 @@ class SqlAlchemySourceRepository:
             SourceVersionRecord.id == version_id,
             SourceVersionRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=True)
         result = await self._session.execute(statement)
         record = result.scalar_one_or_none()
         if record is None:
@@ -244,6 +252,7 @@ class SqlAlchemySourceRepository:
             SourceFragmentRecord.id == fragment_id,
             SourceFragmentRecord.deleted.is_(False),
         )
+        statement = apply_write_lock(statement, for_update=True)
         result = await self._session.execute(statement)
         record = result.scalar_one_or_none()
         if record is None:

@@ -26,7 +26,7 @@ class GenreService:
 
     async def replace_content(self, genre_id: UUID, content: ClassificationContent) -> Genre:
         async with self._uow_factory() as uow:
-            genre = await self._get(uow, genre_id)
+            genre = await self._get(uow, genre_id, for_update=True)
             await self._ensure_name_available(uow, content.canonical_name, excluding=genre_id)
             updated = genre.replace_content(content)
             try:
@@ -47,7 +47,7 @@ class GenreService:
 
     async def _change_status(self, genre_id: UUID, transition: Callable[[Genre], Genre]) -> Genre:
         async with self._uow_factory() as uow:
-            genre = await self._get(uow, genre_id)
+            genre = await self._get(uow, genre_id, for_update=True)
             updated = transition(genre)
             try:
                 await uow.genres.save(updated)
@@ -64,8 +64,8 @@ class GenreService:
             raise GenreNameConflict from error
 
     @staticmethod
-    async def _get(uow: MusicCatalogUnitOfWork, genre_id: UUID) -> Genre:
-        genre = await uow.genres.get(genre_id)
+    async def _get(uow: MusicCatalogUnitOfWork, genre_id: UUID, *, for_update: bool = False) -> Genre:
+        genre = await uow.genres.get(genre_id, for_update=for_update)
         if genre is None:
             raise GenreNotFound(str(genre_id))
         return genre

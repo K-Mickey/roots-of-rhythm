@@ -17,7 +17,7 @@ Historical Knowledge владеет Claims и историческими свя�
 
 Первая фактическая предметная проекция — Python package `music_catalog`. Его domain содержит immutable Genre/ClassificationConcept и ClassificationAssignment, application — команды и принадлежащие ему Repository/Unit of Work contracts, infrastructure — отдельную SQLAlchemy persistence model и PostgreSQL adapters. ORM models и sessions не выходят из infrastructure; transport DTO не переиспользуют domain entities.
 
-Вторая проекция — `historical_knowledge`: GenreRelation Claim с Evidence references и Source/SourceVersion/SourceFragment aggregates. Source хранит bibliographic metadata (title, author, responsible organization, publication, publication date, canonical external URL); SourceFragment хранит citation locator. Публикация Claim проверяет published endpoint Genre через application port Music Catalog (`GenreStatusLookup`); публичная видимость relation пересчитывается на чтении.
+Вторая проекция — `historical_knowledge`: GenreRelation Claim с Evidence references и Source/SourceVersion/SourceFragment aggregates. Source хранит bibliographic metadata (title, author, responsible organization, publication, publication date, canonical external URL); SourceFragment хранит citation locator. Публикация Claim проверяет published endpoint Genre через тот же command scope, что и Historical Knowledge (`knowledge_music_scope`: два UoW, одна PostgreSQL session); публичная видимость relation пересчитывается на чтении.
 
 Третья проекция — `people_catalog`: Person (публичная страница исполнителя — Discovery-представление Person). Discovery отдаёт public Genre и Performer projections.
 
@@ -26,7 +26,7 @@ Editorial, Discovery и AI Research планируются как логичес
 ## Принятый application stack
 
 - backend: Python, Litestar, msgspec и Uvicorn;
-- persistence: PostgreSQL, SQLAlchemy 2.x, Alembic и Psycopg 3 async; таблицы несут сервисные колонки `created_at`/`updated_at`/`deleted`, soft-delete identity aggregates и hard rewrite owned links — [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md);
+- persistence: PostgreSQL, SQLAlchemy 2.x, Alembic и Psycopg 3 async; таблицы несут сервисные колонки `created_at`/`updated_at`/`deleted`, soft-delete identity aggregates и hard rewrite owned links — [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md); write-path identity aggregates использует `SELECT … FOR UPDATE` — [ADR-0006](decisions/0006-pessimistic-write-locks.md);
 - frontend: React, TypeScript, Next.js App Router и Mantine-first design system;
 - contract boundary: OpenAPI 3.1 и generated TypeScript types;
 - dependency/tooling baseline: uv, pnpm, Ruff, mypy, ESLint, Prettier, pytest, Vitest, React Testing Library и небольшой critical Playwright suite.

@@ -48,7 +48,7 @@ class SourceService:
         version_id: UUID | None = None,
     ) -> SourceVersion:
         async with self._uow_factory() as uow:
-            if await uow.sources.get_source(source_id) is None:
+            if await uow.sources.get_source(source_id, for_update=True) is None:
                 raise SourceNotFound(str(source_id))
             version = SourceVersion.create(source_id, label, version_id=version_id)
             await uow.sources.add_version(version)
@@ -64,7 +64,7 @@ class SourceService:
         fragment_id: UUID | None = None,
     ) -> SourceFragment:
         async with self._uow_factory() as uow:
-            if await uow.sources.get_version(source_version_id) is None:
+            if await uow.sources.get_version(source_version_id, for_update=True) is None:
                 raise SourceNotFound(str(source_version_id))
             fragment = SourceFragment.create(
                 source_version_id,
@@ -78,7 +78,7 @@ class SourceService:
 
     async def mark_fragment_reviewed(self, fragment_id: UUID) -> SourceFragment:
         async with self._uow_factory() as uow:
-            fragment = await uow.sources.get_fragment(fragment_id)
+            fragment = await uow.sources.get_fragment(fragment_id, for_update=True)
             if fragment is None:
                 raise SourceNotFound(str(fragment_id))
             reviewed = fragment.mark_reviewed()

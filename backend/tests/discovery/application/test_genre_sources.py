@@ -25,12 +25,9 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from tests.discovery.builders import published_genre, published_relation_claim
-from tests.historical_knowledge.fakes import (
-    FakeGenreStatus,
-    FakeHistoricalKnowledgeUnitOfWork,
-    FakeSourceRepository,
-)
+from tests.historical_knowledge.fakes import FakeHistoricalKnowledgeUnitOfWork, FakeSourceRepository
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.support.scopes import pair_scope
 
 
 def _reviewed_source(
@@ -72,7 +69,20 @@ def _query(
 
     return GenreSourcesQuery(
         lambda: FakeMusicCatalogUnitOfWork(music),
-        ClaimService(uow_factory, FakeGenreStatus(published=published or set(music))),  # type: ignore[arg-type]
+        ClaimService(
+            pair_scope(
+                uow_factory,  # type: ignore[arg-type]
+                lambda: FakeMusicCatalogUnitOfWork(
+                    music
+                    if published is None
+                    else {
+                        genre_id: genre
+                        for genre_id, genre in music.items()
+                        if genre_id in published
+                    }
+                ),
+            )
+        ),
         SourceService(uow_factory),  # type: ignore[arg-type]
     )
 

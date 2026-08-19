@@ -26,12 +26,22 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from tests.discovery.builders import published_genre, published_relation_claim
-from tests.historical_knowledge.fakes import (
-    FakeGenreStatus,
-    FakeHistoricalKnowledgeUnitOfWork,
-    FakeSourceRepository,
-)
+from tests.historical_knowledge.fakes import FakeHistoricalKnowledgeUnitOfWork, FakeSourceRepository
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.support.scopes import pair_scope
+
+
+def _claim_service(
+    claims: dict[UUID, GenreRelationClaim],
+    sources: FakeSourceRepository,
+    music: dict[UUID, Genre],
+) -> ClaimService:
+    return ClaimService(
+        pair_scope(
+            lambda: FakeHistoricalKnowledgeUnitOfWork(claims, sources),  # type: ignore[arg-type, return-value]
+            lambda: FakeMusicCatalogUnitOfWork(music),
+        )
+    )
 
 
 @pytest.mark.asyncio
@@ -92,10 +102,7 @@ async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
     )
     claims = {earlier.id: earlier, later.id: later}
     music = {swing.id: swing, jazz.id: jazz, jump.id: jump}
-    claim_service = ClaimService(
-        lambda: FakeHistoricalKnowledgeUnitOfWork(claims, sources),  # type: ignore[arg-type, return-value]
-        FakeGenreStatus(published={swing.id, jazz.id, jump.id}),
-    )
+    claim_service = _claim_service(claims, sources, music)
     query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork(music), claim_service)
 
     response = await query.get(swing.id)
@@ -113,10 +120,7 @@ async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
 @pytest.mark.asyncio
 async def test_relations_query_returns_empty_for_published_genre_without_relations() -> None:
     swing = published_genre("Swing")
-    claim_service = ClaimService(
-        lambda: FakeHistoricalKnowledgeUnitOfWork({}, FakeSourceRepository()),  # type: ignore[arg-type, return-value]
-        FakeGenreStatus(published={swing.id}),
-    )
+    claim_service = _claim_service({}, FakeSourceRepository(), {swing.id: swing})
     query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork({swing.id: swing}), claim_service)
 
     response = await query.get(swing.id)
@@ -139,10 +143,7 @@ async def test_relations_query_hides_missing_and_non_public_genres(status: Genre
             )
         }
     )
-    claim_service = ClaimService(
-        lambda: FakeHistoricalKnowledgeUnitOfWork({}, FakeSourceRepository()),  # type: ignore[arg-type, return-value]
-        FakeGenreStatus(),
-    )
+    claim_service = _claim_service({}, FakeSourceRepository(), genres)
     query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork(genres), claim_service)
 
     with pytest.raises(GenreRelationsNotFound):
@@ -161,10 +162,7 @@ async def test_relations_query_unverified_keeps_empty_evidence_references() -> N
         temporal=HistoricalPeriod.create("1930s", TemporalBound(1930, TemporalPrecision.DECADE)),
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    claim_service = ClaimService(
-        lambda: FakeHistoricalKnowledgeUnitOfWork({claim.id: claim}, FakeSourceRepository()),  # type: ignore[arg-type, return-value]
-        FakeGenreStatus(published={swing.id, jazz.id}),
-    )
+    claim_service = _claim_service({claim.id: claim}, FakeSourceRepository(), {swing.id: swing, jazz.id: jazz})
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork({swing.id: swing, jazz.id: jazz}),
         claim_service,
@@ -202,10 +200,7 @@ async def test_relations_query_maps_target_and_symmetric_perspectives() -> None:
     genres = {swing.id: swing, jazz.id: jazz, jump.id: jump}
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork(genres),
-        ClaimService(
-            lambda: FakeHistoricalKnowledgeUnitOfWork(claims, FakeSourceRepository()),  # type: ignore[arg-type, return-value]
-            FakeGenreStatus(published=set(genres)),
-        ),
+        _claim_service(claims, FakeSourceRepository(), genres),
     )
 
     response = await query.get(swing.id)
@@ -280,10 +275,7 @@ async def test_relations_query_sorts_by_period_precision_type_name_and_null_last
     genres = {genre.id: genre for genre in (swing, *related)}
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork(genres),
-        ClaimService(
-            lambda: FakeHistoricalKnowledgeUnitOfWork(claims, FakeSourceRepository()),  # type: ignore[arg-type, return-value]
-            FakeGenreStatus(published=set(genres)),
-        ),
+        _claim_service(claims, FakeSourceRepository(), genres),
     )
 
     response = await query.get(swing.id)
@@ -320,10 +312,7 @@ async def test_relations_query_maps_disputed_reviewed_evidence() -> None:
     genres = {swing.id: swing, jazz.id: jazz}
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork(genres),
-        ClaimService(
-            lambda: FakeHistoricalKnowledgeUnitOfWork({claim.id: claim}, sources),  # type: ignore[arg-type, return-value]
-            FakeGenreStatus(published=set(genres)),
-        ),
+        _claim_service({claim.id: claim}, sources, genres),
     )
 
     response = await query.get(swing.id)

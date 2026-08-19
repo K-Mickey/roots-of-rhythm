@@ -18,34 +18,15 @@ from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.database import create_session_factory
+from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import GenreService
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
-    from uuid import UUID
-
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+    from sqlalchemy.ext.asyncio import AsyncEngine
 
 pytestmark = pytest.mark.integration
-
-
-class SessionGenreStatusLookup:
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
-        self._session_factory = session_factory
-
-    async def is_published(self, genre_id: UUID) -> bool:
-        async with SqlAlchemyMusicCatalogUnitOfWork(self._session_factory) as uow:
-            return await uow.genres.get_published(genre_id) is not None
-
-    async def exists(self, genre_id: UUID) -> bool:
-        async with SqlAlchemyMusicCatalogUnitOfWork(self._session_factory) as uow:
-            return await uow.genres.get(genre_id) is not None
-
-    async def published_among(self, genre_ids: Collection[UUID]) -> set[UUID]:
-        async with SqlAlchemyMusicCatalogUnitOfWork(self._session_factory) as uow:
-            return await uow.genres.published_among(genre_ids)
 
 
 @pytest.mark.asyncio
@@ -60,7 +41,7 @@ async def test_claim_visibility_follows_endpoint_genre_publication(engine: Async
     def hk_uow() -> SqlAlchemyHistoricalKnowledgeUnitOfWork:
         return SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory)
 
-    claim_service = ClaimService(hk_uow, SessionGenreStatusLookup(session_factory))
+    claim_service = ClaimService(lambda: knowledge_music_scope(session_factory))
     source_service = SourceService(hk_uow)
 
     source = await source_service.create_source(

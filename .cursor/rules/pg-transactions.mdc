@@ -11,3 +11,8 @@ alwaysApply: false
 - При ошибке выполнять rollback и не продолжать работу с повреждённой session.
 - Внешние сетевые вызовы не удерживают DB-транзакцию без явного обоснования.
 - Блокировки, retry и уровень изоляции выбирать по подтверждённому сценарию конкуренции.
+- Write-path identity aggregates: `SELECT … FOR UPDATE` с ожиданием (`with_for_update()`, не `NOWAIT`); keyword-only `for_update` на repository `get` / `get_published`, default `False`.
+- Discovery, list queries и pre-check unique name — без lock; гонку на INSERT/rename закрывает unique index.
+- Межконтекстный write: одна PostgreSQL session и два UoW через явный scope (`music_people_scope`, `knowledge_music_scope`); UoW из `using(session)` не rollback/close на выходе.
+- Cross-context `get_published(..., for_update=True)` вызывать внутри этого scope, до commit.
+- Одноконтекстные команды открывают свой UoW на `session_factory`. Discovery — без lock.

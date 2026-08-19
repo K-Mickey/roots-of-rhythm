@@ -1,4 +1,5 @@
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from uuid import UUID, uuid7
 
 from roots_of_rhythm.music_catalog.application.errors import (
@@ -15,15 +16,17 @@ from roots_of_rhythm.music_catalog.domain import (
     ClassificationTargetKind,
     EvidenceStatus,
 )
+from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
 
-type UnitOfWorkFactory = Callable[[], MusicCatalogUnitOfWork]
-type PersonPublishedLookup = Callable[[UUID], Awaitable[bool]]
+type MusicPeopleScopeFactory = Callable[
+    [],
+    AbstractAsyncContextManager[tuple[MusicCatalogUnitOfWork, PeopleCatalogUnitOfWork]],
+]
 
 
 class ClassificationAssignmentService:
-    def __init__(self, uow_factory: UnitOfWorkFactory, person_published: PersonPublishedLookup) -> None:
-        self._uow_factory = uow_factory
-        self._person_published = person_published
+    def __init__(self, catalogs: MusicPeopleScopeFactory) -> None:
+        self._catalogs = catalogs
 
     async def create_for_person(
         self,
@@ -36,7 +39,7 @@ class ClassificationAssignmentService:
         evidence_status: EvidenceStatus = EvidenceStatus.UNVERIFIED,
         assignment_id: UUID | None = None,
     ) -> ClassificationAssignment:
-        async with self._uow_factory() as uow:
+        async with self._catalogs() as (music, _people):
             assignment = ClassificationAssignment.create_for_person(
                 assignment_id or uuid7(),
                 person_id,
@@ -46,8 +49,8 @@ class ClassificationAssignmentService:
                 provenance=provenance,
                 evidence_status=evidence_status,
             )
-            await uow.assignments.add(assignment)
-            await self._commit(uow)
+            await music.assignments.add(assignment)
+            await self._commit(music)
             return assignment
 
     async def replace_content(
@@ -59,8 +62,8 @@ class ClassificationAssignmentService:
         provenance: str | None,
         evidence_status: EvidenceStatus,
     ) -> ClassificationAssignment:
-        async with self._uow_factory() as uow:
-            assignment = await uow.assignments.get(assignment_id)
+        async with self._catalogs() as (music, _people):
+            assignment = await music.assignments.get(assignment_id, for_update=True)
             if assignment is None:
                 raise ClassificationAssignmentNotFound(str(assignment_id))
             updated = assignment.replace_content(
@@ -70,32 +73,36 @@ class ClassificationAssignmentService:
                 evidence_status=evidence_status,
             )
             try:
-                await uow.assignments.save(updated)
+                await music.assignments.save(updated)
             except LookupError as error:
                 raise ClassificationAssignmentNotFound(str(assignment_id)) from error
-            await self._commit(uow)
+            await self._commit(music)
             return updated
 
     async def publish(self, assignment_id: UUID) -> ClassificationAssignment:
-        async with self._uow_factory() as uow:
-            assignment = await uow.assignments.get(assignment_id)
+        async with self._catalogs() as (music, people):
+            assignment = await music.assignments.get(assignment_id, for_update=True)
             if assignment is None:
                 raise ClassificationAssignmentNotFound(str(assignment_id))
             updated = assignment.publish()
-            await self._ensure_target_published(assignment)
-            if await uow.genres.get_published(assignment.concept_id) is None:
+            await self._ensure_target_published(assignment, people)
+            if await music.genres.get_published(assignment.concept_id, for_update=True) is None:
                 raise ClassificationAssignmentGenreNotPublished(str(assignment.concept_id))
             try:
-                await uow.assignments.save(updated)
+                await music.assignments.save(updated)
             except LookupError as error:
                 raise ClassificationAssignmentNotFound(str(assignment_id)) from error
-            await self._commit(uow)
+            await self._commit(music)
             return updated
 
-    async def _ensure_target_published(self, assignment: ClassificationAssignment) -> None:
+    @staticmethod
+    async def _ensure_target_published(
+        assignment: ClassificationAssignment,
+        people: PeopleCatalogUnitOfWork,
+    ) -> None:
         match assignment.target_kind:
             case ClassificationTargetKind.PERSON:
-                if not await self._person_published(assignment.target_id):
+                if await people.persons.get_published(assignment.target_id, for_update=True) is None:
                     raise ClassificationAssignmentPersonNotPublished(str(assignment.target_id))
             case (
                 ClassificationTargetKind.GROUP
@@ -106,8 +113,8 @@ class ClassificationAssignmentService:
                 raise ClassificationAssignmentTargetUnsupported(assignment.target_kind.value)
 
     @staticmethod
-    async def _commit(uow: MusicCatalogUnitOfWork) -> None:
+    async def _commit(music: MusicCatalogUnitOfWork) -> None:
         try:
-            await uow.commit()
+            await music.commit()
         except UniqueConstraintViolation as error:
             raise ClassificationAssignmentConflict from error

@@ -16,10 +16,10 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
+from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope, music_people_scope
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentService,
     GenreService,
-    GenreUnitOfWorkStatusLookup,
 )
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
@@ -53,15 +53,13 @@ class CorpusSeedRunner:
         )
         self._genres = GenreService(self._music_uow)
         self._persons = PersonService(self._people_uow)
-        self._assignments = ClassificationAssignmentService(self._music_uow, self._person_is_published)
+        self._assignments = ClassificationAssignmentService(lambda: music_people_scope(session_factory))
         self._sources = SourceService(self._hk_uow)
         self._claims: ClaimService | None = None
+        self._session_factory = session_factory
 
     async def run(self) -> None:
-        self._claims = ClaimService(
-            self._hk_uow,
-            GenreUnitOfWorkStatusLookup(self._music_uow),
-        )
+        self._claims = ClaimService(lambda: knowledge_music_scope(self._session_factory))
         await self._ensure_sources()
         await self._ensure_genres()
         await self._ensure_persons()
@@ -271,10 +269,6 @@ class CorpusSeedRunner:
             )
         if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
             await self._assignments.publish(assignment_id)
-
-    async def _person_is_published(self, person_id: UUID) -> bool:
-        async with self._people_uow() as uow:
-            return await uow.persons.get_published(person_id) is not None
 
     async def _ensure_published_claim(
         self,

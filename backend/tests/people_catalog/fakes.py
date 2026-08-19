@@ -17,10 +17,10 @@ class FakePersonRepository:
     async def add(self, person: Person) -> None:
         self._persons[person.id] = person
 
-    async def get(self, person_id: UUID) -> Person | None:
+    async def get(self, person_id: UUID, *, for_update: bool = False) -> Person | None:
         return self._persons.get(person_id)
 
-    async def get_published(self, person_id: UUID) -> Person | None:
+    async def get_published(self, person_id: UUID, *, for_update: bool = False) -> Person | None:
         person = self._persons.get(person_id)
         return person if person is not None and person.editorial_status is EditorialStatus.PUBLISHED else None
 

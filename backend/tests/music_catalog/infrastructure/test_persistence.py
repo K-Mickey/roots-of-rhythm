@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import inspect
 
 from roots_of_rhythm.infrastructure.database import create_session_factory
+from roots_of_rhythm.infrastructure.write_scopes import music_people_scope
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentService,
     GenreNameConflict,
@@ -21,6 +22,9 @@ from roots_of_rhythm.music_catalog.domain import (
     TemporalPrecision,
 )
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
+from roots_of_rhythm.people_catalog.application import PersonService
+from roots_of_rhythm.people_catalog.domain import PersonContent
+from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -86,13 +90,13 @@ async def test_repository_round_trip_and_public_filter(engine: AsyncEngine) -> N
 async def test_assignment_repository_round_trips_publication_content(engine: AsyncEngine) -> None:
     session_factory = create_session_factory(engine)
     genres = GenreService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
-    assignments = ClassificationAssignmentService(
-        lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory),
-        lambda _: _published(True),
-    )
+    persons = PersonService(lambda: SqlAlchemyPeopleCatalogUnitOfWork(session_factory))
+    assignments = ClassificationAssignmentService(lambda: music_people_scope(session_factory))
     jazz = await genres.create(ClassificationContent.create("Jazz", definition="A genre."))
     await genres.publish(jazz.id)
     person_id = uuid7()
+    await persons.create(PersonContent.create("Test Performer"), person_id=person_id)
+    await persons.publish(person_id)
     claim_id = uuid7()
     assignment = await assignments.create_for_person(
         person_id,
@@ -146,7 +150,3 @@ async def test_unit_of_work_rolls_back_and_unique_name_is_case_insensitive(engin
         assert await uow.genres.get(genre.id) is None
     recreated = await service.create(ClassificationContent.create("Swing"))
     assert recreated.id != genre.id
-
-
-async def _published(value: bool) -> bool:
-    return value

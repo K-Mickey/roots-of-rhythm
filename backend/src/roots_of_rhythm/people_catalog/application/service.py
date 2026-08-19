@@ -21,7 +21,7 @@ class PersonService:
 
     async def replace_content(self, person_id: UUID, content: PersonContent) -> Person:
         async with self._uow_factory() as uow:
-            person = await self._get(uow, person_id)
+            person = await self._get(uow, person_id, for_update=True)
             updated = person.replace_content(content)
             try:
                 await uow.persons.save(updated)
@@ -38,7 +38,7 @@ class PersonService:
 
     async def _change_status(self, person_id: UUID, transition: Callable[[Person], Person]) -> Person:
         async with self._uow_factory() as uow:
-            person = await self._get(uow, person_id)
+            person = await self._get(uow, person_id, for_update=True)
             updated = transition(person)
             try:
                 await uow.persons.save(updated)
@@ -48,8 +48,8 @@ class PersonService:
             return updated
 
     @staticmethod
-    async def _get(uow: PeopleCatalogUnitOfWork, person_id: UUID) -> Person:
-        person = await uow.persons.get(person_id)
+    async def _get(uow: PeopleCatalogUnitOfWork, person_id: UUID, *, for_update: bool = False) -> Person:
+        person = await uow.persons.get(person_id, for_update=for_update)
         if person is None:
             raise PersonNotFound(str(person_id))
         return person

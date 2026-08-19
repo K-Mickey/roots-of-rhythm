@@ -18,7 +18,7 @@ class FakeClassificationAssignmentRepository:
     async def add(self, assignment: ClassificationAssignment) -> None:
         self._assignments[assignment.id] = assignment
 
-    async def get(self, assignment_id: UUID) -> ClassificationAssignment | None:
+    async def get(self, assignment_id: UUID, *, for_update: bool = False) -> ClassificationAssignment | None:
         return self._assignments.get(assignment_id)
 
     async def list_published_for_person(self, person_id: UUID) -> list[ClassificationAssignment]:
@@ -41,10 +41,10 @@ class FakeGenreRepository:
     async def add(self, genre: Genre) -> None:
         self._genres[genre.id] = genre
 
-    async def get(self, genre_id: UUID) -> Genre | None:
+    async def get(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         return self._genres.get(genre_id)
 
-    async def get_published(self, genre_id: UUID) -> Genre | None:
+    async def get_published(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         genre = self._genres.get(genre_id)
         return genre if genre is not None and genre.editorial_status is EditorialStatus.PUBLISHED else None
 

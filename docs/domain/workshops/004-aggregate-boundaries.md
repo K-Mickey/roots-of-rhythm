@@ -169,7 +169,7 @@ Event bus для этого не нужен. Если операция треб�
 
 ### Конкурентные изменения
 
-На старте достаточно DB transactions, unique constraints и обнаружения конфликтующего обновления. Политика optimistic locking вводится только если реальный редакторский сценарий показывает риск потери параллельных правок.
+Write-команды identity aggregates блокируют корневую строку `SELECT … FOR UPDATE` (ожидание) на время транзакции use case, включая ссылки того же контекста. Межконтекстный write (publish assignment/claim) держит одну PostgreSQL session и два UoW через явный command scope. Discovery lock не берёт. Детали: [ADR-0006](../../decisions/0006-pessimistic-write-locks.md). Optimistic `version` не вводится, пока отдельное решение не потребует иной политики конфликтов.
 
 ### Примеры транзакционных границ
 

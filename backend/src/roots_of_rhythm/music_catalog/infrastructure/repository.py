@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import func, select
 
+from roots_of_rhythm.infrastructure.database import apply_write_lock
 from roots_of_rhythm.music_catalog.domain import ClassificationKind, EditorialStatus, Genre
 from roots_of_rhythm.music_catalog.infrastructure.mapping import genre_from_record, record_from_genre, update_record
 from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
@@ -20,11 +21,11 @@ class SqlAlchemyGenreRepository:
     async def add(self, genre: Genre) -> None:
         self._session.add(record_from_genre(genre))
 
-    async def get(self, genre_id: UUID) -> Genre | None:
-        return await self._get(genre_id)
+    async def get(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
+        return await self._get(genre_id, for_update=for_update)
 
-    async def get_published(self, genre_id: UUID) -> Genre | None:
-        return await self._get(genre_id, status=EditorialStatus.PUBLISHED)
+    async def get_published(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
+        return await self._get(genre_id, status=EditorialStatus.PUBLISHED, for_update=for_update)
 
     async def get_published_by_ids(self, genre_ids: Collection[UUID]) -> dict[UUID, Genre]:
         ids = set(genre_ids)
@@ -53,13 +54,13 @@ class SqlAlchemyGenreRepository:
         return [genre_from_record(record) for record in result.scalars()]
 
     async def save(self, genre: Genre) -> None:
-        record = await self._get_record(genre.id)
+        record = await self._get_record(genre.id, for_update=True)
         if record is None:
             raise LookupError(str(genre.id))
         update_record(record, genre)
 
     async def mark_deleted(self, genre_id: UUID) -> None:
-        record = await self._get_record(genre_id)
+        record = await self._get_record(genre_id, for_update=True)
         if record is None:
             raise LookupError(str(genre_id))
         record.deleted = True
@@ -87,8 +88,14 @@ class SqlAlchemyGenreRepository:
             statement = statement.where(ClassificationConceptRecord.id != excluding)
         return await self._session.scalar(statement.limit(1)) is not None
 
-    async def _get(self, genre_id: UUID, status: EditorialStatus | None = None) -> Genre | None:
-        record = await self._get_record(genre_id, status=status)
+    async def _get(
+        self,
+        genre_id: UUID,
+        status: EditorialStatus | None = None,
+        *,
+        for_update: bool = False,
+    ) -> Genre | None:
+        record = await self._get_record(genre_id, status=status, for_update=for_update)
         return None if record is None else genre_from_record(record)
 
     async def _get_record(
@@ -96,6 +103,7 @@ class SqlAlchemyGenreRepository:
         genre_id: UUID,
         *,
         status: EditorialStatus | None = None,
+        for_update: bool = False,
     ) -> ClassificationConceptRecord | None:
         statement = select(ClassificationConceptRecord).where(
             ClassificationConceptRecord.id == genre_id,
@@ -104,5 +112,6 @@ class SqlAlchemyGenreRepository:
         )
         if status is not None:
             statement = statement.where(ClassificationConceptRecord.editorial_status == status.value)
+        statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()

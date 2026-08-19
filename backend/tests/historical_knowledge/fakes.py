@@ -12,21 +12,6 @@ if TYPE_CHECKING:
     )
 
 
-class FakeGenreStatus:
-    def __init__(self, published: set[UUID] | None = None, existing: set[UUID] | None = None) -> None:
-        self.published = published or set()
-        self.existing = existing if existing is not None else set(self.published)
-
-    async def is_published(self, genre_id: UUID) -> bool:
-        return genre_id in self.published
-
-    async def exists(self, genre_id: UUID) -> bool:
-        return genre_id in self.existing
-
-    async def published_among(self, genre_ids: Collection[UUID]) -> set[UUID]:
-        return {genre_id for genre_id in genre_ids if genre_id in self.published}
-
-
 class FakeClaimRepository:
     def __init__(self, claims: dict[UUID, GenreRelationClaim]) -> None:
         self._claims = claims
@@ -34,7 +19,7 @@ class FakeClaimRepository:
     async def add(self, claim: GenreRelationClaim) -> None:
         self._claims[claim.id] = claim
 
-    async def get(self, claim_id: UUID) -> GenreRelationClaim | None:
+    async def get(self, claim_id: UUID, *, for_update: bool = False) -> GenreRelationClaim | None:
         return self._claims.get(claim_id)
 
     async def save(self, claim: GenreRelationClaim) -> None:
@@ -66,16 +51,16 @@ class FakeSourceRepository:
     async def add_fragment(self, fragment: SourceFragment) -> None:
         self.fragments[fragment.id] = fragment
 
-    async def get_source(self, source_id: UUID) -> Source | None:
+    async def get_source(self, source_id: UUID, *, for_update: bool = False) -> Source | None:
         return self.sources.get(source_id)
 
     async def get_sources_by_ids(self, source_ids: Collection[UUID]) -> dict[UUID, Source]:
         return {source_id: source for source_id in source_ids if (source := self.sources.get(source_id)) is not None}
 
-    async def get_version(self, version_id: UUID) -> SourceVersion | None:
+    async def get_version(self, version_id: UUID, *, for_update: bool = False) -> SourceVersion | None:
         return self.versions.get(version_id)
 
-    async def get_fragment(self, fragment_id: UUID) -> SourceFragment | None:
+    async def get_fragment(self, fragment_id: UUID, *, for_update: bool = False) -> SourceFragment | None:
         return self.fragments.get(fragment_id)
 
     async def save_fragment(self, fragment: SourceFragment) -> None:

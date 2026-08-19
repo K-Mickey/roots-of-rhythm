@@ -13,7 +13,7 @@ from roots_of_rhythm.historical_knowledge.application import ClaimService, Sourc
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
-from roots_of_rhythm.music_catalog.application import GenreUnitOfWorkStatusLookup
+from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
@@ -47,7 +47,7 @@ def create_api_dependencies(
     overview_query = GenreOverviewQuery(music_uow_factory)
     performer_list_query = PerformerListQuery(people_uow_factory)
     performer_overview_query = PerformerOverviewQuery(people_uow_factory, music_uow_factory)
-    claim_service = ClaimService(hk_uow_factory, GenreUnitOfWorkStatusLookup(music_uow_factory))
+    claim_service = ClaimService(lambda: knowledge_music_scope(session_factory))
     source_service = SourceService(hk_uow_factory)
     relations_query = GenreRelationsQuery(music_uow_factory, claim_service)
     sources_query = GenreSourcesQuery(music_uow_factory, claim_service, source_service)
