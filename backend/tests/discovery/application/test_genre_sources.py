@@ -11,13 +11,9 @@ from roots_of_rhythm.discovery.application.genre_sources import GenreSourcesQuer
 from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
-    ClaimProvenance,
-    EditorialStatus,
     EvidenceRole,
-    EvidenceStatus,
     FragmentReviewStatus,
     GenreRelationClaim,
-    GeographicContext,
     HistoricalPeriod,
     RelationType,
     Source,
@@ -26,52 +22,15 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.music_catalog.domain import (
-    ClassificationContent,
-    Genre,
-)
-from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus as GenreEditorialStatus,
-)
+from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre
+from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
+from tests.discovery.builders import published_genre, published_relation_claim
 from tests.historical_knowledge.fakes import (
     FakeGenreStatus,
     FakeHistoricalKnowledgeUnitOfWork,
     FakeSourceRepository,
 )
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
-
-
-def _published_genre(name: str, genre_id: UUID | None = None) -> Genre:
-    return Genre(
-        id=genre_id or uuid7(),
-        content=ClassificationContent.create(name, definition=f"{name} definition"),
-        editorial_status=GenreEditorialStatus.PUBLISHED,
-    )
-
-
-def _claim(
-    *,
-    subject: UUID,
-    target: UUID,
-    relation_type: RelationType,
-    explanation: str,
-    temporal: HistoricalPeriod | None,
-    evidence: tuple[ClaimEvidenceReference, ...] = (),
-    claim_id: UUID | None = None,
-) -> GenreRelationClaim:
-    return GenreRelationClaim(
-        id=claim_id or uuid7(),
-        subject_genre_id=subject,
-        target_genre_id=target,
-        relation_type=relation_type,
-        editorial_status=EditorialStatus.PUBLISHED,
-        evidence_status=EvidenceStatus.SUPPORTED,
-        explanation=explanation,
-        temporal=temporal,
-        geographic=GeographicContext.create("United States"),
-        provenance=ClaimProvenance.create("research"),
-        evidence_references=evidence,
-    )
 
 
 def _reviewed_source(
@@ -120,7 +79,7 @@ def _query(
 
 @pytest.mark.asyncio
 async def test_sources_query_returns_empty_for_published_genre_without_relations() -> None:
-    swing = _published_genre("Swing")
+    swing = published_genre("Swing")
     query = _query({swing.id: swing}, {}, FakeSourceRepository())
 
     response = await query.get(swing.id)
@@ -151,9 +110,9 @@ async def test_sources_query_hides_missing_and_non_public_genres(status: GenreEd
 
 @pytest.mark.asyncio
 async def test_sources_query_deduplicates_and_orders_by_first_citation() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
-    jump = _published_genre("Jump Blues")
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
+    jump = published_genre("Jump Blues")
     sources = FakeSourceRepository()
     smithsonian, smithsonian_fragment = _reviewed_source(
         sources,
@@ -177,7 +136,7 @@ async def test_sources_query_deduplicates_and_orders_by_first_citation() -> None
         external_url="https://www.loc.gov/rnb",
     )
 
-    earlier = _claim(
+    earlier = published_relation_claim(
         subject=swing.id,
         target=jazz.id,
         relation_type=RelationType.DEVELOPED_FROM,
@@ -192,7 +151,7 @@ async def test_sources_query_deduplicates_and_orders_by_first_citation() -> None
             ClaimEvidenceReference.create(smithsonian_second.id, EvidenceRole.SUPPORTS),
         ),
     )
-    later = _claim(
+    later = published_relation_claim(
         subject=swing.id,
         target=jump.id,
         relation_type=RelationType.CONTRIBUTED_TO_EMERGENCE_OF,
@@ -221,8 +180,8 @@ async def test_sources_query_deduplicates_and_orders_by_first_citation() -> None
 
 @pytest.mark.asyncio
 async def test_sources_query_filters_non_reviewed_fragments() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
     sources = FakeSourceRepository()
     source = Source.create("Archive", source_id=uuid7())
     version = SourceVersion.create(source.id, "v1", version_id=uuid7())
@@ -234,7 +193,7 @@ async def test_sources_query_filters_non_reviewed_fragments() -> None:
     sources.sources[source.id] = source
     sources.versions[version.id] = version
     sources.fragments[pending.id] = pending
-    claim = _claim(
+    claim = published_relation_claim(
         subject=swing.id,
         target=jazz.id,
         relation_type=RelationType.DEVELOPED_FROM,
@@ -251,11 +210,11 @@ async def test_sources_query_filters_non_reviewed_fragments() -> None:
 
 @pytest.mark.asyncio
 async def test_sources_query_missing_source_is_assembly_error() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
     sources = FakeSourceRepository()
     source, fragment = _reviewed_source(sources, title="Gone")
-    claim = _claim(
+    claim = published_relation_claim(
         subject=swing.id,
         target=jazz.id,
         relation_type=RelationType.DEVELOPED_FROM,

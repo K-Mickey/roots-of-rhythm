@@ -1,8 +1,6 @@
-from os import environ
 from typing import TYPE_CHECKING
 
 import pytest
-from sqlalchemy import delete
 
 from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
 from roots_of_rhythm.historical_knowledge.domain import (
@@ -16,24 +14,16 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.models import (
-    ClaimEvidenceReferenceRecord,
-    GenreRelationClaimRecord,
-    SourceFragmentRecord,
-    SourceRecord,
-    SourceVersionRecord,
-)
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
-from roots_of_rhythm.infrastructure.database import create_database_engine, create_session_factory
+from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.music_catalog.application import GenreService
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
-from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Collection
+    from collections.abc import Collection
     from uuid import UUID
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
@@ -56,31 +46,6 @@ class SessionGenreStatusLookup:
     async def published_among(self, genre_ids: Collection[UUID]) -> set[UUID]:
         async with SqlAlchemyMusicCatalogUnitOfWork(self._session_factory) as uow:
             return await uow.genres.published_among(genre_ids)
-
-
-@pytest.fixture
-async def engine() -> AsyncIterator[AsyncEngine]:
-    database_url = environ.get(
-        "TEST_DATABASE_URL",
-        "postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm",
-    )
-    database_engine = create_database_engine(database_url)
-    async with database_engine.begin() as connection:
-        await connection.execute(delete(ClaimEvidenceReferenceRecord))
-        await connection.execute(delete(GenreRelationClaimRecord))
-        await connection.execute(delete(SourceFragmentRecord))
-        await connection.execute(delete(SourceVersionRecord))
-        await connection.execute(delete(SourceRecord))
-        await connection.execute(delete(ClassificationConceptRecord))
-    yield database_engine
-    async with database_engine.begin() as connection:
-        await connection.execute(delete(ClaimEvidenceReferenceRecord))
-        await connection.execute(delete(GenreRelationClaimRecord))
-        await connection.execute(delete(SourceFragmentRecord))
-        await connection.execute(delete(SourceVersionRecord))
-        await connection.execute(delete(SourceRecord))
-        await connection.execute(delete(ClassificationConceptRecord))
-    await database_engine.dispose()
 
 
 @pytest.mark.asyncio

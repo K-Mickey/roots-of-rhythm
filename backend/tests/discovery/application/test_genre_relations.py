@@ -11,13 +11,10 @@ from roots_of_rhythm.discovery.application.genre_relations import GenreRelations
 from roots_of_rhythm.historical_knowledge.application import ClaimService
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
-    ClaimProvenance,
-    EditorialStatus,
     EvidenceRole,
     EvidenceStatus,
     FragmentReviewStatus,
     GenreRelationClaim,
-    GeographicContext,
     HistoricalPeriod,
     RelationType,
     Source,
@@ -26,13 +23,9 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.music_catalog.domain import (
-    ClassificationContent,
-    Genre,
-)
-from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus as GenreEditorialStatus,
-)
+from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre
+from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
+from tests.discovery.builders import published_genre, published_relation_claim
 from tests.historical_knowledge.fakes import (
     FakeGenreStatus,
     FakeHistoricalKnowledgeUnitOfWork,
@@ -41,45 +34,11 @@ from tests.historical_knowledge.fakes import (
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
 
 
-def _published_genre(name: str, genre_id: UUID | None = None) -> Genre:
-    return Genre(
-        id=genre_id or uuid7(),
-        content=ClassificationContent.create(name, definition=f"{name} definition"),
-        editorial_status=GenreEditorialStatus.PUBLISHED,
-    )
-
-
-def _claim(
-    *,
-    subject: UUID,
-    target: UUID,
-    relation_type: RelationType,
-    explanation: str,
-    temporal: HistoricalPeriod | None,
-    evidence_status: EvidenceStatus = EvidenceStatus.SUPPORTED,
-    evidence: tuple[ClaimEvidenceReference, ...] = (),
-    claim_id: UUID | None = None,
-) -> GenreRelationClaim:
-    return GenreRelationClaim(
-        id=claim_id or uuid7(),
-        subject_genre_id=subject,
-        target_genre_id=target,
-        relation_type=relation_type,
-        editorial_status=EditorialStatus.PUBLISHED,
-        evidence_status=evidence_status,
-        explanation=explanation,
-        temporal=temporal,
-        geographic=GeographicContext.create("United States"),
-        provenance=ClaimProvenance.create("research"),
-        evidence_references=evidence,
-    )
-
-
 @pytest.mark.asyncio
 async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
-    jump = _published_genre("Jump Blues")
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
+    jump = published_genre("Jump Blues")
     source = Source.create("Smithsonian", source_id=uuid7())
     version = SourceVersion.create(source.id, "v1", version_id=uuid7())
     fragment = SourceFragment(
@@ -100,7 +59,7 @@ async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
     sources.fragments[fragment.id] = fragment
     sources.fragments[pending.id] = pending
 
-    earlier = _claim(
+    earlier = published_relation_claim(
         subject=swing.id,
         target=jazz.id,
         relation_type=RelationType.DEVELOPED_FROM,
@@ -120,7 +79,7 @@ async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
             ClaimEvidenceReference.create(pending.id, EvidenceRole.SUPPORTS),
         ),
     )
-    later = _claim(
+    later = published_relation_claim(
         subject=swing.id,
         target=jump.id,
         relation_type=RelationType.CONTRIBUTED_TO_EMERGENCE_OF,
@@ -153,7 +112,7 @@ async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
 
 @pytest.mark.asyncio
 async def test_relations_query_returns_empty_for_published_genre_without_relations() -> None:
-    swing = _published_genre("Swing")
+    swing = published_genre("Swing")
     claim_service = ClaimService(
         lambda: FakeHistoricalKnowledgeUnitOfWork({}, FakeSourceRepository()),  # type: ignore[arg-type, return-value]
         FakeGenreStatus(published={swing.id}),
@@ -192,9 +151,9 @@ async def test_relations_query_hides_missing_and_non_public_genres(status: Genre
 
 @pytest.mark.asyncio
 async def test_relations_query_unverified_keeps_empty_evidence_references() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
-    claim = _claim(
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
+    claim = published_relation_claim(
         subject=swing.id,
         target=jazz.id,
         relation_type=RelationType.DEVELOPED_FROM,
@@ -220,10 +179,10 @@ async def test_relations_query_unverified_keeps_empty_evidence_references() -> N
 
 @pytest.mark.asyncio
 async def test_relations_query_maps_target_and_symmetric_perspectives() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
-    jump = _published_genre("Jump Blues")
-    target_claim = _claim(
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
+    jump = published_genre("Jump Blues")
+    target_claim = published_relation_claim(
         subject=jazz.id,
         target=swing.id,
         relation_type=RelationType.INFLUENCED,
@@ -231,7 +190,7 @@ async def test_relations_query_maps_target_and_symmetric_perspectives() -> None:
         temporal=HistoricalPeriod.create("1930s", TemporalBound(1930, TemporalPrecision.DECADE)),
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    symmetric_claim = _claim(
+    symmetric_claim = published_relation_claim(
         subject=swing.id,
         target=jump.id,
         relation_type=RelationType.OVERLAPS_WITH,
@@ -260,15 +219,15 @@ async def test_relations_query_maps_target_and_symmetric_perspectives() -> None:
 
 @pytest.mark.asyncio
 async def test_relations_query_sorts_by_period_precision_type_name_and_null_last() -> None:
-    swing = _published_genre("Swing")
+    swing = published_genre("Swing")
     related = [
-        _published_genre("Zulu"),
-        _published_genre("alpha"),
-        _published_genre("Beta"),
-        _published_genre("Early"),
-        _published_genre("No period"),
+        published_genre("Zulu"),
+        published_genre("alpha"),
+        published_genre("Beta"),
+        published_genre("Early"),
+        published_genre("No period"),
     ]
-    decade_influenced = _claim(
+    decade_influenced = published_relation_claim(
         subject=swing.id,
         target=related[0].id,
         relation_type=RelationType.INFLUENCED,
@@ -276,7 +235,7 @@ async def test_relations_query_sorts_by_period_precision_type_name_and_null_last
         temporal=HistoricalPeriod.create("1930s", TemporalBound(1930, TemporalPrecision.DECADE)),
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    decade_developed_alpha = _claim(
+    decade_developed_alpha = published_relation_claim(
         subject=swing.id,
         target=related[1].id,
         relation_type=RelationType.DEVELOPED_FROM,
@@ -284,7 +243,7 @@ async def test_relations_query_sorts_by_period_precision_type_name_and_null_last
         temporal=HistoricalPeriod.create("1930s", TemporalBound(1930, TemporalPrecision.DECADE)),
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    decade_developed_beta = _claim(
+    decade_developed_beta = published_relation_claim(
         subject=swing.id,
         target=related[2].id,
         relation_type=RelationType.DEVELOPED_FROM,
@@ -292,7 +251,7 @@ async def test_relations_query_sorts_by_period_precision_type_name_and_null_last
         temporal=HistoricalPeriod.create("1930s", TemporalBound(1930, TemporalPrecision.DECADE)),
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    early = _claim(
+    early = published_relation_claim(
         subject=swing.id,
         target=related[3].id,
         relation_type=RelationType.INFLUENCED,
@@ -300,7 +259,7 @@ async def test_relations_query_sorts_by_period_precision_type_name_and_null_last
         temporal=HistoricalPeriod.create("early 1930s", TemporalBound(1930, TemporalPrecision.EARLY_DECADE)),
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    no_period = _claim(
+    no_period = published_relation_claim(
         subject=swing.id,
         target=related[4].id,
         relation_type=RelationType.INFLUENCED,
@@ -340,8 +299,8 @@ async def test_relations_query_sorts_by_period_precision_type_name_and_null_last
 
 @pytest.mark.asyncio
 async def test_relations_query_maps_disputed_reviewed_evidence() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
     source = Source.create("Archive")
     version = SourceVersion.create(source.id, "v1")
     fragment = SourceFragment.create(version.id).mark_reviewed()
@@ -349,7 +308,7 @@ async def test_relations_query_maps_disputed_reviewed_evidence() -> None:
     sources.sources[source.id] = source
     sources.versions[version.id] = version
     sources.fragments[fragment.id] = fragment
-    claim = _claim(
+    claim = published_relation_claim(
         subject=swing.id,
         target=jazz.id,
         relation_type=RelationType.DEVELOPED_FROM,
@@ -375,10 +334,10 @@ async def test_relations_query_maps_disputed_reviewed_evidence() -> None:
 
 @pytest.mark.asyncio
 async def test_relations_query_rejects_claim_unrelated_to_page_genre() -> None:
-    swing = _published_genre("Swing")
-    jazz = _published_genre("Jazz")
-    blues = _published_genre("Blues")
-    unrelated = _claim(
+    swing = published_genre("Swing")
+    jazz = published_genre("Jazz")
+    blues = published_genre("Blues")
+    unrelated = published_relation_claim(
         subject=jazz.id,
         target=blues.id,
         relation_type=RelationType.INFLUENCED,
