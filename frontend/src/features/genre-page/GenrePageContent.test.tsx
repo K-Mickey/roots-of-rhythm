@@ -114,9 +114,10 @@ describe('GenrePageContent', () => {
     expect(screen.getByText('Jazz-derived dance music.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Связи' })).toBeInTheDocument();
     expect(screen.getByText(/Развился из —/)).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Jazz', exact: true }),
-    ).toHaveAttribute('href', '/genres/jazz');
+    expect(screen.getByRole('link', { name: /^Jazz$/ })).toHaveAttribute(
+      'href',
+      '/genres/jazz',
+    );
     expect(screen.getByText(/Участвовал в формировании —/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Jump Blues' })).toHaveAttribute(
       'href',

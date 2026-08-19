@@ -32,7 +32,7 @@ Visitor изучает Genre как самостоятельную истори�
 Не включает:
 
 - полноценные страницы Performer, Group и Recording;
-- кликабельный переход на страницу каждого связанного Genre до реализации соответствующего маршрута;
+- кликабельный переход на страницу каждого связанного Genre — выполнено в [STORY-002](story-002-navigate-published-genres/README.md);
 - карту, поиск, Editorial UI, RAG, MCP и streaming providers;
 - Scene и Tradition как обязательные публичные сущности;
 - графовую БД или отдельный search index.
@@ -41,7 +41,7 @@ Visitor изучает Genre как самостоятельную истори�
 ## Stories
 
 1. [STORY-001: открыть опубликованную страницу Genre](story-001-view-published-genre/README.md) — `done`.
-2. [STORY-002: перейти между опубликованными Genre](story-002-navigate-published-genres/README.md) — `accepted`.
+2. [STORY-002: перейти между опубликованными Genre](story-002-navigate-published-genres/README.md) — `done`.
 3. Показать связанные Performer, Group и Recording — относится к интеграции с EPIC-002.
 4. Редактировать и публиковать Genre — относится к EPIC-005.
 

@@ -1,6 +1,6 @@
 # STORY-002: перейти между опубликованными Genre
 
-Статус: `accepted`
+Статус: `done`
 
 Tracker: [GitHub issue #23](https://github.com/K-Mickey/roots-of-rhythm/issues/23).
 
@@ -85,3 +85,5 @@ Epic: [EPIC-001](../README.md).
 
 - 2026-08-19: черновик по решению Product Owner продолжить EPIC-001 навигацией между опубликованными Genre.
 - 2026-08-19: Product Owner утвердил story и декомпозицию.
+- 2026-08-19: прогон TASK-003 записан в [acceptance.md](acceptance.md) (`draft` до утверждения Product Owner).
+- 2026-08-19: Product Owner закрыл приёмку; STORY-002 переведена в `done`.
