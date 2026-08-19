@@ -12,7 +12,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <SiteHeader />
-      <Box component="main" style={{ flex: 1 }}>
+      <Box
+        component="main"
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
         {children}
       </Box>
       <SiteFooter />

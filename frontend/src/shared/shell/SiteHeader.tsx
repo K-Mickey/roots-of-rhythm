@@ -1,6 +1,6 @@
 import { Anchor, Box, Container, Group } from '@mantine/core';
 
-const PRODUCT_NAME = 'Roots of Rhythm';
+import { PRODUCT_NAME } from './product';
 
 export function SiteHeader() {
   return (
@@ -9,9 +9,9 @@ export function SiteHeader() {
       bg="pastel.3"
       style={{ boxShadow: 'var(--mantine-shadow-xs)' }}
     >
-      <Container size="52rem" py="md">
-        <Group justify="space-between">
-          <Anchor href="#" c="pastel.9" underline="hover" fw={600}>
+      <Container fluid px="md" py="md">
+        <Group justify="space-between" wrap="nowrap">
+          <Anchor href="/" c="pastel.9" underline="hover" fw={600}>
             {PRODUCT_NAME}
           </Anchor>
         </Group>

@@ -66,12 +66,11 @@ Task checkpoint: [TASK-008](tasks.md#task-008-реализовать-ssr-genre-p
 
 ```text
 header
-  └── project identity: text-link «Roots of Rhythm» → href="#"
+  └── project identity: text-link «Roots of Rhythm» → href="/"
 main
   └── page content (Genre article на /genres/{id}; scaffold на /)
 footer
-  ├── project identity (текст, не ссылка)
-  └── © {current calendar year}
+  └── © {current calendar year}, по центру
 ```
 
 ### Правила
@@ -79,8 +78,9 @@ footer
 - Landmarks: top-level `header`, `main`, `footer`.
 - Единственный page `h1` живёт внутри `main`, не в header.
 - Primary navigation slot в STORY-001 **пустой и не рендерится** (нет пустого `<nav>` и визуального reserved gap). В header только identity-link.
-- **`href="#"`** — осознанный Product Owner stub для отрисовки хедера и оценки цветов до отдельной home story. Это STORY-001 shell exception к формулировке ui.md «identity не маскируется под ссылку»: ссылка-placeholder разрешена явно; настоящий home content route вне scope.
-- Footer компактный: identity + год. Sources не переносятся в footer ([ui.md](ui.md)).
+- Identity ведёт на `/`. Stub `href="#"` STORY-001 снят в [STORY-003](../../epic-010-home-search-catalog/story-003-minimal-home/README.md).
+- Header chrome (identity и будущая nav) почти на всю ширину viewport с горизонтальным отступом `md`; ширина статьи `52rem` на chrome не распространяется.
+- Footer компактный: только © год по центру, без имени продукта. Sources не переносятся в footer ([ui.md](ui.md)).
 - Год берётся на момент render (calendar year), без хардкода устаревшего значения в спецификации.
 
 ## 4. Mantine theme tokens (стартовые)
@@ -99,7 +99,7 @@ footer
 | `fontSizes` | Опора на Mantine default; body комфортный для статьи |
 | `spacing` | Mantine default; semantic gaps ниже |
 | `breakpoints` | Mantine defaults; переключение колонок — по доступной ширине контейнера ([ui.md](ui.md)), не по названию устройства |
-| Content width | `Container` size ≈ `52rem` (калибровка в диапазоне 48–56rem на seed pages) |
+| Content width | Статья: `Container` size ≈ `52rem` (калибровка в диапазоне 48–56rem на seed pages). Header/footer: `Container fluid` + `px="md"` |
 
 ### Semantic gaps (калибруемые)
 
@@ -122,7 +122,7 @@ footer
 | Loading (client navigation) | Skeleton: полоса header + несколько линий content; `aria-busy` / status; без fake значений |
 | Loaded | Required блоки + только заполненные optional; optional **отсутствуют в DOM** |
 | Empty optional | Нет heading/card/placeholder |
-| Not found | Один экран «Материал не найден»; без утечки name; безопасный путь через identity stub / текст |
+| Not found | Один экран «Материал не найден»; без утечки name; ссылка «На главную» на `/` |
 | Page error (overview fail) | `Alert` + retry control; без stale/invented data |
 | Section error (relations/sources) | Inline `Alert` + retry **в секции**; overview остаётся видимым |
 | Broken optional image | Без browser broken-icon; текстовый layout цел |
@@ -134,7 +134,7 @@ footer
 ### Narrow (одна колонка)
 
 ```text
-┌─ header: Roots of Rhythm (#) ─────────────┐
+┌─ header: Roots of Rhythm (/) ─────────────┐
 ├─ main ────────────────────────────────────┤
 │  h1 Name                                  │
 │  [optional image]                         │
@@ -146,7 +146,7 @@ footer
 │  relation card…                           │
 │  ── Sources ──                            │
 │  source row…                              │
-├─ footer: Roots of Rhythm · © year ────────┤
+├─ footer:           © year                 ┤
 ```
 
 ### Wide (адаптивная сетка по ui.md)
@@ -183,7 +183,7 @@ footer
 | Shell landmarks | Semantic `header`/`main`/`footer` + `Box`/`Group`; не обязателен полный `AppShell` |
 | Content width | `Container` |
 | Titles / body | `Title`, `Text` |
-| Identity link | `Anchor` `href="#"` |
+| Identity link | `Anchor` `href="/"` |
 | Image | `Image` (+ graceful broken state) |
 | Lists | `List` / semantic `ul`/`ol` для features, relations, sources |
 | Relation card | `Paper`/`Box` + лёгкая shadow, `radius={0}` |
@@ -200,7 +200,7 @@ CSS Modules — только если предметную композицию 
 - Localization
 - Related Genre detail links / hover affordance ссылки — см. [STORY-002](../story-002-navigate-published-genres/README.md)
 - Graph/map visuals, search/catalog chrome
-- Реальный home content route (вместо stub `#`) — см. [STORY-003](../../epic-010-home-search-catalog/story-003-minimal-home/README.md)
+- Содержание главной `/` — см. [STORY-003](../../epic-010-home-search-catalog/story-003-minimal-home/README.md)
 - Genre-specific UI код до статуса `accepted` у этого документа
 
 ## 9. Checkpoint
@@ -212,3 +212,5 @@ CSS Modules — только если предметную композицию 
 - 2026-08-19: калибровка — page surface осветлён до `#F7FAFC`, raised `#FFFFFF`.
 - 2026-08-19: Product Owner утвердил design specification (статус `accepted`).
 - 2026-08-19: черновик design specification для TASK-008 checkpoint (пастельный серо-голубой, square chrome, header stub `#`, footer с годом).
+- 2026-08-19: STORY-003 заменила identity stub `#` на `href="/"`.
+- 2026-08-19: header/footer chrome на всю ширину с `px="md"`; footer — только © год по центру.

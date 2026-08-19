@@ -1,4 +1,4 @@
-import { Container, Stack, Text, Title } from '@mantine/core';
+import { Anchor, Container, Stack, Text, Title } from '@mantine/core';
 
 export default function GenreNotFound() {
   return (
@@ -8,6 +8,9 @@ export default function GenreNotFound() {
         <Text>
           Запрошенная страница жанра отсутствует или недоступна для просмотра.
         </Text>
+        <Anchor href="/" underline="hover">
+          На главную
+        </Anchor>
       </Stack>
     </Container>
   );

@@ -32,7 +32,7 @@ describe('AppShell', () => {
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Roots of Rhythm' }),
-    ).toHaveAttribute('href', '#');
+    ).toHaveAttribute('href', '/');
     expect(screen.getByText(/© \d{4}/)).toBeInTheDocument();
   });
 });

@@ -6,6 +6,7 @@ import { Source_Sans_3 } from 'next/font/google';
 import type { ReactNode } from 'react';
 
 import { AppShell } from '@/shared/shell/AppShell';
+import { PRODUCT_NAME, PRODUCT_TAGLINE } from '@/shared/shell/product';
 import { AppProviders } from '@/shared/theme/AppProviders';
 
 const sourceSans = Source_Sans_3({
@@ -14,8 +15,8 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: 'Roots of Rhythm',
-  description: 'История развития музыки и её связей',
+  title: PRODUCT_NAME,
+  description: PRODUCT_TAGLINE,
 };
 
 export default function RootLayout({

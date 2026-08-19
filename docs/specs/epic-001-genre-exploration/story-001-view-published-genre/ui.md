@@ -22,15 +22,14 @@ Main
       └── Group 3: sources
 
 Site footer
-  ├── project identity
-  └── future legal/secondary navigation slots
+  └── © year (centered; no project name)
 ```
 
 `header → main → footer` не является устаревшим визуальным шаблоном: это семантическая структура landmark regions. Site header и page overview — разные уровни; page title остаётся внутри `main`.
 
 Navigation slot предусматривается в shell/component contract, но пустой `<nav>` и визуальный отступ не рендерятся. До появления home route project identity не маскируется под неработающую ссылку.
 
-Site footer не содержит Sources: источники относятся к содержанию Genre и остаются внутри `main`. В STORY-001 footer может быть компактным и содержать только project identity; его расширение относится к общему application shell.
+Site footer не содержит Sources: источники относятся к содержанию Genre и остаются внутри `main`. Footer компактный: только © год по центру. Header chrome почти на всю ширину экрана с отступом от края; колонка статьи уже.
 
 ### Group 1: overview
 
@@ -389,3 +388,4 @@ Product Owner подтвердил весь UI contract 2026-08-16, включа
 - 2026-08-16: Product Owner подтвердил relation/evidence/states/accessibility/view-model решения и предложил общий header/main/footer shell с тремя compact content groups; layout уточнён как adaptive grid без пустых tracks.
 - 2026-08-16: уточнённый layout и весь UI contract подтверждены; зафиксирован баланс компактности и воздуха, а точные отступы оставлены на visual calibration с реальным контентом.
 - 2026-08-17: после разделения API overview остался обязательным page lifecycle, а relations и sources получили независимые inline error/retry states.
+- 2026-08-19: footer — только © год по центру; header chrome почти на всю ширину с отступом от края.
