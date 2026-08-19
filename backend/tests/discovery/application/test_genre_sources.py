@@ -75,11 +75,7 @@ def _query(
                 lambda: FakeMusicCatalogUnitOfWork(
                     music
                     if published is None
-                    else {
-                        genre_id: genre
-                        for genre_id, genre in music.items()
-                        if genre_id in published
-                    }
+                    else {genre_id: genre for genre_id, genre in music.items() if genre_id in published}
                 ),
             )
         ),

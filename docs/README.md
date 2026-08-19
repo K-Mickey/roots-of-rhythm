@@ -59,10 +59,11 @@
 - [Приёмка STORY-001 (TASK-009)](specs/epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `accepted`
 - [Приёмка STORY-002 (TASK-003)](specs/epic-001-genre-exploration/story-002-navigate-published-genres/acceptance.md) — `accepted`
 - [Приёмка STORY-003 (TASK-002)](specs/epic-010-home-search-catalog/story-003-minimal-home/acceptance.md) — `accepted`
+- [Приёмка STORY-005](specs/epic-002-performer-group-recording/story-005-view-published-performer/acceptance.md) — `accepted`
 - [STORY-002: перейти между опубликованными Genre](specs/epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`
 - [STORY-003: открыть минимальную главную](specs/epic-010-home-search-catalog/story-003-minimal-home/README.md) — `done`
 - [STORY-004: открыть каталог опубликованных Genre](specs/epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`
-- [STORY-005: открыть опубликованного исполнителя](specs/epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `accepted`
+- [STORY-005: открыть опубликованного исполнителя](specs/epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `done`
 - [STORY-006: открыть опубликованную группу](specs/epic-002-performer-group-recording/story-006-view-published-group/README.md) — `draft`
 - [STORY-007: открыть опубликованную песню](specs/epic-002-performer-group-recording/story-007-view-published-song/README.md) — `draft`
 - [STORY-008: открыть опубликованную запись](specs/epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `draft`

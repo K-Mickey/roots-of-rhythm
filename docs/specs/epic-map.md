@@ -98,7 +98,7 @@ Performer, Group и Recording не входят в первую story. Связ�
 
 ## Вопросы текущего этапа
 
-STORY-001 выполнена. Приняты STORY-002–004. [EPIC-002](epic-002-performer-group-recording/README.md) декомпозирован на STORY-005–010 (`draft`). EPIC-012 по-прежнему блокирует первый публичный трафик, не локальную разработку.
+STORY-001 выполнена. Приняты STORY-002–004. STORY-005 выполнена. [EPIC-002](epic-002-performer-group-recording/README.md) декомпозирован на STORY-005–010 (`draft`). EPIC-012 по-прежнему блокирует первый публичный трафик, не локальную разработку.
 
 Подтверждено 2026-08-16: EPIC-001 идёт первым; Performer/Group/Recording и локализация исключены из STORY-001; controlled seed/import допустим; для публикации Genre достаточно `name + definition`; пустые секции скрываются; seed содержит Swing, Jazz и Jump Blues; draft GenreRelation допускает частичное заполнение, publish требует полноты; relation публикуется независимо и имеет вычисляемую visibility; `confidence` исключён.
 

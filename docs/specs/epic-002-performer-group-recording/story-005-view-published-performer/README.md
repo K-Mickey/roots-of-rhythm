@@ -1,6 +1,6 @@
 # STORY-005: открыть опубликованного исполнителя
 
-Статус: `accepted`
+Статус: `done`
 
 Tracker: [GitHub issue #31](https://github.com/K-Mickey/roots-of-rhythm/issues/31).
 
@@ -80,6 +80,7 @@ STORY-004 `done`.
 
 ## История изменений
 
+- 2026-08-20: Product Owner закрыл приёмку; STORY-005 переведена в `done`.
 - 2026-08-19: Person content (aliases, dates, identities) на public get; публикация Person по-прежнему только по имени; ClassificationAssignment — explanation или claim, provenance, evidence_status.
 - 2026-08-19: принята; seed-имена, публикация по имени, скрытие пустых секций и опциональный image.
 - 2026-08-19: draft; каталог и header сразу для проверки.

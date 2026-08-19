@@ -225,11 +225,7 @@ class ClaimService:
         }
         required_role = required_roles[claim.evidence_status]
         fragment_ids = sorted(
-            {
-                reference.source_fragment_id
-                for reference in claim.evidence_references
-                if reference.role is required_role
-            }
+            {reference.source_fragment_id for reference in claim.evidence_references if reference.role is required_role}
         )
         for fragment_id in fragment_ids:
             fragment = await uow.sources.get_fragment(fragment_id, for_update=True)

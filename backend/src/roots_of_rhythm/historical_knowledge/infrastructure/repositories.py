@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from sqlalchemy import delete, or_, select, update
 
 from roots_of_rhythm.historical_knowledge.domain import FragmentReviewStatus
-from roots_of_rhythm.infrastructure.database import apply_write_lock
 from roots_of_rhythm.historical_knowledge.infrastructure.mapping import (
     claim_from_records,
     evidence_records_from_claim,
@@ -24,6 +23,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     SourceRecord,
     SourceVersionRecord,
 )
+from roots_of_rhythm.infrastructure.database import apply_write_lock
 
 if TYPE_CHECKING:
     from collections.abc import Collection

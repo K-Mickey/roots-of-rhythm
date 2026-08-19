@@ -1,8 +1,12 @@
-from typing import Any, TypeVar
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.sql import Select
+
+if TYPE_CHECKING:
+    from sqlalchemy.sql import Select
 
 _T = TypeVar("_T", bound=tuple[Any, ...])
 

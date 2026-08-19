@@ -8,7 +8,7 @@
 - [STORY-001: открыть опубликованную страницу Genre](epic-001-genre-exploration/story-001-view-published-genre/README.md) — `done`.
 - [STORY-002: перейти между опубликованными Genre](epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`.
 - [EPIC-002: исполнители, песни, записи и релизы](epic-002-performer-group-recording/README.md) — `draft`.
-- [STORY-005: открыть опубликованного исполнителя](epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `accepted`.
+- [STORY-005: открыть опубликованного исполнителя](epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `done`.
 - [STORY-006: открыть опубликованную группу](epic-002-performer-group-recording/story-006-view-published-group/README.md) — `draft`.
 - [STORY-007: открыть опубликованную песню](epic-002-performer-group-recording/story-007-view-published-song/README.md) — `draft`.
 - [STORY-008: открыть опубликованную запись](epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `draft`.
@@ -27,7 +27,7 @@
 - [Декомпозиция STORY-005](epic-002-performer-group-recording/story-005-view-published-performer/tasks.md) — `accepted`.
 - [Приёмка STORY-001](epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `accepted`.
 - [Приёмка STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/acceptance.md) — `accepted`.
-- [Приёмка STORY-003](epic-010-home-search-catalog/story-003-minimal-home/acceptance.md) — `accepted`.
+- [Приёмка STORY-005](epic-002-performer-group-recording/story-005-view-published-performer/acceptance.md) — `accepted`.
 - [EPIC-012: production readiness](epic-012-production-readiness/README.md) — `draft`; не блокирует локальную реализацию, обязательные work items блокируют публичный трафик.
 
 Каждая story хранится в отдельной директории и содержит цель, контекст, FR, NFR, критерии приёмки, границы, ошибки, зависимости и открытые вопросы.

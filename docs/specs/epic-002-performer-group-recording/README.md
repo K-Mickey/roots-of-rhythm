@@ -44,7 +44,7 @@ Track остаётся дочерней сущностью Release (уникал
 
 Каждая story дополняет controlled seed. STORY-005: публикация Performer по каноническому имени; изображение опционально и в срезе отсутствует; seed Charlie Parker, Count Basie, Benny Goodman, Louis Jordan, Big Joe Turner, Louis Armstrong.
 
-1. [STORY-005: открыть опубликованного исполнителя](story-005-view-published-performer/README.md) — `accepted`, [#31](https://github.com/K-Mickey/roots-of-rhythm/issues/31).
+1. [STORY-005: открыть опубликованного исполнителя](story-005-view-published-performer/README.md) — `done`, [#31](https://github.com/K-Mickey/roots-of-rhythm/issues/31).
 2. [STORY-006: открыть опубликованную группу](story-006-view-published-group/README.md) — `draft`, [#32](https://github.com/K-Mickey/roots-of-rhythm/issues/32).
 3. [STORY-007: открыть опубликованную песню](story-007-view-published-song/README.md) — `draft`, [#33](https://github.com/K-Mickey/roots-of-rhythm/issues/33).
 4. [STORY-008: открыть опубликованную запись](story-008-view-published-recording/README.md) — `draft`, [#34](https://github.com/K-Mickey/roots-of-rhythm/issues/34).
