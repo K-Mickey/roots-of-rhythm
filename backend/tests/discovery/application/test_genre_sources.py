@@ -113,8 +113,8 @@ def _query(
 
     return GenreSourcesQuery(
         lambda: FakeMusicCatalogUnitOfWork(music),
-        ClaimService(uow_factory, FakeGenreStatus(published=published or set(music))),  # type: ignore[arg-type, return-value]
-        SourceService(uow_factory),  # type: ignore[arg-type, return-value]
+        ClaimService(uow_factory, FakeGenreStatus(published=published or set(music))),  # type: ignore[arg-type]
+        SourceService(uow_factory),  # type: ignore[arg-type]
     )
 
 

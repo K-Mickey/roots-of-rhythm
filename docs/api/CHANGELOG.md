@@ -10,7 +10,7 @@ STORY-001 page projections split by Product Owner decision:
 - retained the same public visibility and `GENRE_NOT_FOUND` behavior for all three operations;
 - changed failure semantics: overview failure remains a page error, while relations and Sources failures are independent section errors.
 
-Breaking changes: `GenrePageResponse` was removed and the existing Genre operation changed response shape. No application implementation or external consumer exists yet; the accepted specification explicitly authorizes this pre-implementation contract replacement. The URL version remains `/api/v1` because this is still the first unreleased API generation.
+Breaking changes: `GenrePageResponse` was removed and the existing Genre operation changed response shape. The three operations are implemented by the STORY-001 public API and SSR Genre page; URL version remains `/api/v1` as the first unreleased API generation.
 
 ## 0.1.0 — 2026-08-16
 

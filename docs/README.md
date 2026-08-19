@@ -49,6 +49,7 @@
 - [UI/design specification shell и Genre page](specs/epic-001-genre-exploration/story-001-view-published-genre/design.md) — `accepted`
 - [Data/API workshop публичной Genre page](specs/epic-001-genre-exploration/story-001-view-published-genre/data-api-workshop.md) — `accepted`
 - [Декомпозиция STORY-001](specs/epic-001-genre-exploration/story-001-view-published-genre/tasks.md) — `accepted`
+- [Приёмка STORY-001 (TASK-009)](specs/epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `draft`
 - [OpenAPI contract](api/openapi.yaml) — `0.2.0`
 - [API-контракты](api/README.md)
 - [ADR](decisions/README.md)

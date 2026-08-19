@@ -9,4 +9,4 @@
 - [OpenAPI 3.1](openapi.yaml) — `0.2.0`;
 - [API changelog](CHANGELOG.md).
 
-Установленный contract-lint пока отсутствует и добавляется вместе с утвержденным development toolchain, а не как скрытая dependency этой story.
+Установленный contract-lint: Redocly (`make contract-check` / `pnpm --dir frontend api:lint`) и drift-check generated TypeScript (`api:check`) против [openapi.yaml](openapi.yaml).

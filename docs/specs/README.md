@@ -10,6 +10,7 @@
 - [Data/API workshop публичной Genre page](epic-001-genre-exploration/story-001-view-published-genre/data-api-workshop.md) — `accepted`.
 - [OpenAPI contract](../api/openapi.yaml) — `0.2.0`.
 - [Декомпозиция STORY-001](epic-001-genre-exploration/story-001-view-published-genre/tasks.md) — `accepted`.
+- [Приёмка STORY-001](epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `draft`.
 - [EPIC-012: production readiness](epic-012-production-readiness/README.md) — `draft`; не блокирует локальную реализацию, обязательные work items блокируют публичный трафик.
 
 Каждая story хранится в отдельной директории и содержит цель, контекст, FR, NFR, критерии приёмки, границы, ошибки, зависимости и открытые вопросы.
