@@ -9,7 +9,7 @@
 | ID | Tracker | Пользовательский результат | Поддерживаемые вопросы | Зависимости |
 |---|---|---|---|---|
 | [`EPIC-001`](epic-001-genre-exploration/README.md) | [#1](https://github.com/K-Mickey/roots-of-rhythm/issues/1) | Исследовать жанр и понять его место в истории | CQ-001, CQ-002, CQ-004 | опубликованный Genre, Claims и Evidence |
-| `EPIC-002` | [#6](https://github.com/K-Mickey/roots-of-rhythm/issues/6) | Исследовать Performer, Group и Recording | CQ-003, CQ-004, CQ-005, CQ-007 | People/Music Catalog, credits, ListeningGuide |
+| [`EPIC-002`](epic-002-performer-group-recording/README.md) | [#6](https://github.com/K-Mickey/roots-of-rhythm/issues/6) | Исследовать Performer, Group, Песню, Recording и Release | CQ-003, CQ-004, CQ-005, CQ-007 | People/Music Catalog, credits, ListeningGuide |
 | `EPIC-003` | [#11](https://github.com/K-Mickey/roots-of-rhythm/issues/11) | Проследить развитие музыки по интерактивной карте | CQ-001, CQ-002, CQ-006 | relations, Discovery projections, фильтры и текстовая альтернатива карты |
 | `EPIC-004` | [#3](https://github.com/K-Mickey/roots-of-rhythm/issues/3) | Исследовать связь Dance и Genre | CQ-006 | Dance Catalog, DanceGenreRelation |
 | `EPIC-005` | [#12](https://github.com/K-Mickey/roots-of-rhythm/issues/12) | Войти как Editor, создавать, проверять и публиковать знания | обеспечивает все CQ | authentication, Editorial lifecycle, `/studio`, sources и audit |
@@ -28,9 +28,9 @@ ID отражает стабильную идентичность epic, а не 
 | Область MVP | Epic | Комментарий |
 |---|---|---|
 | Главная и статистика | EPIC-010 | три стадии: HOME-0 без дашборда, HOME-1 статистика, HOME-2 каталоги/поиск; см. [home-evolution](epic-010-home-search-catalog/home-evolution.md) |
-| Списки и единый поиск | EPIC-010 | Genre, Performer, Group, Recording, Dance и Story |
+| Списки и единый поиск | EPIC-010 | Genre уже есть; поиск/фильтры. Минимальные каталоги Performer/Group/Песня/Релиз — первый consumer в EPIC-002 |
 | Страница Genre | EPIC-001 | первая вертикаль |
-| Страницы Performer, Group, Recording | EPIC-002 | MusicalWork/Release pages отложены |
+| Страницы Performer, Group, Песня, Recording, Release | EPIC-002 | каталог записей нет; Track не страница; плеер EPIC-009 |
 | Stories | EPIC-011 | отделены от визуальной карты |
 | Карта и текстовая альтернатива | EPIC-003 | Dance-layer выключаемый |
 | Dance pages и DanceGenreRelation | EPIC-004 | без PracticeFit/DanceRecordingFit |
@@ -48,7 +48,7 @@ ID отражает стабильную идентичность epic, а не 
 - MediaAsset и опциональные основные изображения входят в acceptance criteria соответствующих страниц; загрузка и управление — в EPIC-005. Галереи и автоматические responsive variants отложены.
 - Authentication не выделяется в самостоятельный технический epic: он является необходимым срезом Editor journey EPIC-005.
 - MCP transport не владеет данными и не получает отдельный domain epic.
-- MusicalWork/Release pages, монетизация, публичная социальная функциональность и расширенный Dance domain остаются вне MVP.
+- публичные страницы Track, монетизация, публичная социальная функциональность и расширенный Dance domain остаются вне отдельных epics; страницы MusicalWork и Release входят в [EPIC-002](epic-002-performer-group-recording/README.md).
 
 ## Предлагаемые зависимости и порядок discovery
 
@@ -98,13 +98,13 @@ Performer, Group и Recording не входят в первую story. Связ�
 
 ## Вопросы текущего этапа
 
-STORY-001 выполнена. Приняты [STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/README.md) (ссылки Genre↔Genre) и [STORY-003](epic-010-home-search-catalog/story-003-minimal-home/README.md) (HOME-0 без жанров на главной). Каталог жанров — следующая story EPIC-010. EPIC-012 по-прежнему блокирует первый публичный трафик, не локальную разработку.
+STORY-001 выполнена. Приняты STORY-002–004. [EPIC-002](epic-002-performer-group-recording/README.md) декомпозирован на STORY-005–010 (`draft`). EPIC-012 по-прежнему блокирует первый публичный трафик, не локальную разработку.
 
 Подтверждено 2026-08-16: EPIC-001 идёт первым; Performer/Group/Recording и локализация исключены из STORY-001; controlled seed/import допустим; для публикации Genre достаточно `name + definition`; пустые секции скрываются; seed содержит Swing, Jazz и Jump Blues; draft GenreRelation допускает частичное заполнение, publish требует полноты; relation публикуется независимо и имеет вычисляемую visibility; `confidence` исключён.
 
 ## История изменений
 
-- 2026-08-17: добавлен EPIC-012 Production readiness; отдельно зафиксированы abuse/DDoS protection и observability/alerts.
+- 2026-08-19: EPIC-002 формализован; страницы Песни и Релиза в этом epic; каталог записей не планируется.
 - 2026-08-17: bootstrap GitHub tracker добавлен как обязательный gate перед реализацией.
 
 - 2026-08-16: добавлен EPIC-010 для главной/search/catalog navigation.

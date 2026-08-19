@@ -1,0 +1,74 @@
+# EPIC-002: исполнители, песни, записи и релизы
+
+Статус: `draft`
+
+Tracker: [GitHub issue #6](https://github.com/K-Mickey/roots-of-rhythm/issues/6). Stories: [STORY-005 #31](https://github.com/K-Mickey/roots-of-rhythm/issues/31), [STORY-006 #32](https://github.com/K-Mickey/roots-of-rhythm/issues/32), [STORY-007 #33](https://github.com/K-Mickey/roots-of-rhythm/issues/33), [STORY-008 #34](https://github.com/K-Mickey/roots-of-rhythm/issues/34), [STORY-009 #35](https://github.com/K-Mickey/roots-of-rhythm/issues/35), [STORY-010 #36](https://github.com/K-Mickey/roots-of-rhythm/issues/36).
+
+Приоритет поставки: после Genre vertical slice (EPIC-001) и точки входа HOME-0 / каталог Genre (EPIC-010 STORY-003/004).
+
+## Пользовательский результат
+
+Visitor исследует опубликованных исполнителей и группы, читает **песню** как понятную сущность (жанр, текст, связанные люди), открывает **конкретные записи** этой песни и **релизы** с историей издания — без авторизации и без обязательного плеера.
+
+## Поддерживаемая ценность
+
+- CQ-003, CQ-004, CQ-005, CQ-007;
+- связать Genre с людьми, песнями, записями и изданиями;
+- не смешивать песню, запись, дорожку и альбом.
+
+## Объекты и связи
+
+Доменные имена: Performer (Person), Group, MusicalWork (UI: Песня), Recording (Запись), Release (Релиз), Track (не страница).
+
+```text
+Genre <--ClassificationAssignment--> Performer | Group | MusicalWork | Recording | Release
+MusicalWork 1 -------- * Recording     (публикация Recording требует MusicalWork)
+Recording * --RecordingCredit-- * Performer|Group   (>=1 primary)
+Recording * -- Track -- * Release      (Track — join; владелец агрегата Release)
+Performer * -- GroupMembership -- * Group
+```
+
+- Песня может быть без записей (секция скрыта).
+- Запись без песни публиковать нельзя.
+- Запись без релиза можно.
+- Одна запись может быть на нескольких релизах.
+- Жанр песни, записи и релиза не наследуется автоматически.
+- Исполнители/группы на песне и релизе — related-списки, не WorkCredit/ReleaseCredit.
+- «Послушать» на песне показывает **запись**, не отдельный аудио-объект. Плеер — EPIC-009. ListeningGuide — на странице записи.
+- Каталога записей нет. Минимальные каталоги: исполнители, группы, песни, релизы (+ уже существующий `/genres`).
+- На `/` списков нет (HOME-0). Поиск и фильтры — EPIC-010.
+
+Track остаётся дочерней сущностью Release (уникальный номер на издании) и всегда указывает на Recording. UI записи показывает появления на релизах.
+
+## Stories
+
+Каждая story дополняет controlled seed. Имена seed и обязательность primary image — TBD Product Owner.
+
+1. [STORY-005: открыть опубликованного исполнителя](story-005-view-published-performer/README.md) — `draft`, [#31](https://github.com/K-Mickey/roots-of-rhythm/issues/31).
+2. [STORY-006: открыть опубликованную группу](story-006-view-published-group/README.md) — `draft`, [#32](https://github.com/K-Mickey/roots-of-rhythm/issues/32).
+3. [STORY-007: открыть опубликованную песню](story-007-view-published-song/README.md) — `draft`, [#33](https://github.com/K-Mickey/roots-of-rhythm/issues/33).
+4. [STORY-008: открыть опубликованную запись](story-008-view-published-recording/README.md) — `draft`, [#34](https://github.com/K-Mickey/roots-of-rhythm/issues/34).
+5. [STORY-009: открыть опубликованный релиз](story-009-view-published-release/README.md) — `draft`, [#35](https://github.com/K-Mickey/roots-of-rhythm/issues/35).
+6. [STORY-010: показать связанные сущности на Genre](story-010-genre-related-entities/README.md) — `draft`, [#36](https://github.com/K-Mickey/roots-of-rhythm/issues/36).
+
+`tasks.md` появляется после утверждения соответствующей story.
+
+## Не включает
+
+- единый поиск и фильтры каталогов (EPIC-010);
+- Editorial UI (EPIC-005);
+- встроенный плеер и провайдеры (EPIC-009);
+- Dance, Story, карта карьеры;
+- compare covers; WorkCredit/ReleaseCredit; session/take/master;
+- публичная страница Track;
+- Style/Scene/Tradition как отдельные public pages.
+
+## Зависимости
+
+- STORY-001/002/004 `done`;
+- People Catalog и Music Catalog aggregates ([workshop 004](../../domain/workshops/004-aggregate-boundaries.md));
+- ClassificationAssignment, RecordingCredit, GroupMembership, Track.
+
+## История изменений
+
+- 2026-08-19: Product Owner включил страницы Песни и Релиза в EPIC-002; запись всегда к песне; каталог записей не нужен; текст песни на странице; трек связан с записью через join на релизе.

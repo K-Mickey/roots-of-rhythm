@@ -7,6 +7,13 @@
 - [EPIC-001: исследование жанра](epic-001-genre-exploration/README.md);
 - [STORY-001: открыть опубликованную страницу Genre](epic-001-genre-exploration/story-001-view-published-genre/README.md) — `done`.
 - [STORY-002: перейти между опубликованными Genre](epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`.
+- [EPIC-002: исполнители, песни, записи и релизы](epic-002-performer-group-recording/README.md) — `draft`.
+- [STORY-005: открыть опубликованного исполнителя](epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `draft`.
+- [STORY-006: открыть опубликованную группу](epic-002-performer-group-recording/story-006-view-published-group/README.md) — `draft`.
+- [STORY-007: открыть опубликованную песню](epic-002-performer-group-recording/story-007-view-published-song/README.md) — `draft`.
+- [STORY-008: открыть опубликованную запись](epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `draft`.
+- [STORY-009: открыть опубликованный релиз](epic-002-performer-group-recording/story-009-view-published-release/README.md) — `draft`.
+- [STORY-010: показать связанные сущности на Genre](epic-002-performer-group-recording/story-010-genre-related-entities/README.md) — `draft`.
 - [EPIC-010: точка входа, каталоги и поиск](epic-010-home-search-catalog/README.md) — `draft`.
 - [Эволюция главной](epic-010-home-search-catalog/home-evolution.md) — `accepted`.
 - [STORY-003: открыть минимальную главную](epic-010-home-search-catalog/story-003-minimal-home/README.md) — `done`.

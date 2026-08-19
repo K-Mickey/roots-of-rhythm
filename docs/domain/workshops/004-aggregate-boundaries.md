@@ -189,7 +189,7 @@ Dance Catalog:         Dance
 Historical Knowledge: Claim, Source, SourceVersion, SourceFragment, Story,
                        ListeningGuide
 Supporting:            только operational roots, реально нужные первой story
-Deferred:              Release до соответствующего MVP-этапа
+Deferred:              публичная страница Track; полный мировой каталог переизданий
 ```
 
 Это список границ согласованности, а не требование реализовать все roots до первого vertical slice.

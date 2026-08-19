@@ -24,7 +24,7 @@ People Catalog не владеет музыкальными или танцев�
 - Place, Period и каноническими внешними идентификаторами музыкальных сущностей;
 - ссылки на MediaAsset, которым владеет общий supporting capability Media Management; это не отдельный bounded context.
 
-В MVP MusicalWork и Release могут иметь ограниченную реализацию, но не должны смешиваться с Recording. Одно MusicalWork может иметь несколько Recording.
+В MVP MusicalWork и Release имеют публичные страницы и минимальные каталоги в EPIC-002. Они не смешиваются с Recording. Одно MusicalWork может иметь несколько Recording. Публикация Recording требует MusicalWork.
 
 Person и Group нельзя сводить к одному `Artist`: Group имеет самостоятельную идентичность, а membership и credit обладают собственным смыслом и периодом. `Artist` допустим только как внешний или пользовательский собирательный термин.
 

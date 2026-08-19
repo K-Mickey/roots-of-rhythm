@@ -31,7 +31,7 @@ Visitor изучает Genre как самостоятельную истори�
 
 Не включает:
 
-- полноценные страницы Performer, Group и Recording;
+- полноценные страницы Performer, Group, Песня, Recording и Release — [EPIC-002](../epic-002-performer-group-recording/README.md);
 - кликабельный переход на страницу каждого связанного Genre — выполнено в [STORY-002](story-002-navigate-published-genres/README.md);
 - карту, поиск, Editorial UI, RAG, MCP и streaming providers;
 - Scene и Tradition как обязательные публичные сущности;
@@ -42,12 +42,12 @@ Visitor изучает Genre как самостоятельную истори�
 
 1. [STORY-001: открыть опубликованную страницу Genre](story-001-view-published-genre/README.md) — `done`.
 2. [STORY-002: перейти между опубликованными Genre](story-002-navigate-published-genres/README.md) — `done`.
-3. Показать связанные Performer, Group и Recording — относится к интеграции с EPIC-002.
+3. Показать связанные Performer, Group, Песня, Recording и Release — [STORY-010](../epic-002-performer-group-recording/story-010-genre-related-entities/README.md) ([#36](https://github.com/K-Mickey/roots-of-rhythm/issues/36)) в EPIC-002.
 4. Редактировать и публиковать Genre — относится к EPIC-005.
 
 Минимальная главная и identity `/` — [STORY-003](../epic-010-home-search-catalog/story-003-minimal-home/README.md) в EPIC-010, не в этом epic.
 
-Stories 3–4 являются границами планирования, а не утверждённой декомпозицией.
+Stories 3–4: story 3 формализована в EPIC-002 STORY-010 (`draft`); story 4 остаётся границей планирования (EPIC-005).
 
 Утверждённая техническая декомпозиция STORY-001: [tasks](story-001-view-published-genre/tasks.md) — `accepted`.  
 Утверждённая декомпозиция STORY-002: [tasks](story-002-navigate-published-genres/tasks.md) — `accepted`.

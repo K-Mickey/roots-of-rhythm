@@ -44,6 +44,7 @@
 - [Спецификации](specs/README.md)
 - [Черновая карта epics](specs/epic-map.md)
 - [EPIC-001: исследование жанра](specs/epic-001-genre-exploration/README.md)
+- [EPIC-002: исполнители, песни, записи и релизы](specs/epic-002-performer-group-recording/README.md) — `draft`
 - [EPIC-010: точка входа, каталоги и поиск](specs/epic-010-home-search-catalog/README.md) — `draft`
 - [Эволюция главной HOME-0/1/2](specs/epic-010-home-search-catalog/home-evolution.md) — `accepted`
 - [EPIC-012: production readiness](specs/epic-012-production-readiness/README.md)
@@ -60,6 +61,12 @@
 - [STORY-002: перейти между опубликованными Genre](specs/epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`
 - [STORY-003: открыть минимальную главную](specs/epic-010-home-search-catalog/story-003-minimal-home/README.md) — `done`
 - [STORY-004: открыть каталог опубликованных Genre](specs/epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`
+- [STORY-005: открыть опубликованного исполнителя](specs/epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `draft`
+- [STORY-006: открыть опубликованную группу](specs/epic-002-performer-group-recording/story-006-view-published-group/README.md) — `draft`
+- [STORY-007: открыть опубликованную песню](specs/epic-002-performer-group-recording/story-007-view-published-song/README.md) — `draft`
+- [STORY-008: открыть опубликованную запись](specs/epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `draft`
+- [STORY-009: открыть опубликованный релиз](specs/epic-002-performer-group-recording/story-009-view-published-release/README.md) — `draft`
+- [STORY-010: показать связанные сущности на Genre](specs/epic-002-performer-group-recording/story-010-genre-related-entities/README.md) — `draft`
 - [OpenAPI contract](api/openapi.yaml) — `0.3.0`
 - [API-контракты](api/README.md)
 - [ADR](decisions/README.md)
