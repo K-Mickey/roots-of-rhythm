@@ -1,5 +1,18 @@
 # API changelog
 
+## 0.6.0 — 2026-08-20
+
+STORY-006 published Group catalog and overview:
+
+- added `GET /api/v1/groups` returning `GroupListResponse` with `items` of `GroupSummary` (`id`, `name`);
+- added `GET /api/v1/groups/{group_id}` returning `GroupOverviewResponse` (`id`, `name`, `aliases`, `description`, `period`, `primary_image`, `genres`, `members`);
+- `period` is `{ start, end }` with nullable `TemporalBound`;
+- `members` are `{ id, name, period, roles_or_instruments }` for published memberships of published Performers;
+- unknown or non-public identifiers return `GROUP_NOT_FOUND` with the same safe message as Genre;
+- list failures use `INTERNAL_ERROR` and do not use `GROUP_NOT_FOUND`.
+
+Breaking changes: none; additive.
+
 ## 0.5.0 — 2026-08-19
 
 STORY-005 public Performer overview content:

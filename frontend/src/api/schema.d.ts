@@ -124,6 +124,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published Groups
+         * @description Returns identity summaries of all currently published Groups, ordered by canonical name. Draft, archived, and deleted Groups are omitted. An empty list is a successful result.
+         */
+        get: operations["listPublishedGroups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{group_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a published Group overview
+         * @description Returns public Group content plus members and assigned Genres. Editorial status, deleted flags, timestamps, evidence, and provenance are omitted. Unknown, malformed, draft, and archived identifiers are intentionally indistinguishable.
+         */
+        get: operations["getPublishedGroupOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -134,6 +174,38 @@ export interface components {
         GenreListResponse: {
             /** @description Published Genre summaries ordered by canonical name. */
             items: components["schemas"]["GenreSummary"][];
+        };
+        GroupListResponse: {
+            /** @description Published Group summaries ordered by canonical name. */
+            items: components["schemas"]["GroupSummary"][];
+        };
+        GroupSummary: {
+            id: components["schemas"]["PublicId"];
+            name: string;
+        };
+        GroupPeriodView: {
+            start: components["schemas"]["TemporalBound"] | null;
+            end: components["schemas"]["TemporalBound"] | null;
+        };
+        GroupMemberView: {
+            id: components["schemas"]["PublicId"];
+            name: string;
+            period: components["schemas"]["GroupPeriodView"];
+            /** @description Optional role or instrument labels; may be empty. Not an instrument catalog. */
+            roles_or_instruments: string[];
+        };
+        GroupOverviewResponse: {
+            id: components["schemas"]["PublicId"];
+            name: string;
+            /** @description Alternate names; may be empty. Does not include the canonical name. */
+            aliases: string[];
+            description: components["schemas"]["NullableText"];
+            period: components["schemas"]["GroupPeriodView"];
+            primary_image: components["schemas"]["PublicImageView"] | null;
+            /** @description Published Genre summaries assigned to the Group, ordered by canonical name. */
+            genres: components["schemas"]["GenreSummary"][];
+            /** @description Published memberships of published Performers, ordered by person name. */
+            members: components["schemas"]["GroupMemberView"][];
         };
         PerformerListResponse: {
             /** @description Published Performer summaries ordered by canonical name. */
@@ -298,6 +370,23 @@ export interface components {
                 "application/json": components["schemas"]["ErrorResponse"];
             };
         };
+        /** @description Group is absent or not publicly visible. */
+        GroupNotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "code": "GROUP_NOT_FOUND",
+                 *       "message": "Материал не найден.",
+                 *       "details": null,
+                 *       "request_id": "01K2V3A5J2P9M3EVWQ3E7G4C6X"
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description The requested projection could not be assembled safely. */
         InternalError: {
             headers: {
@@ -321,6 +410,8 @@ export interface components {
         GenreId: components["schemas"]["PublicId"];
         /** @description Stable opaque Performer identifier (Person). Clients must not derive meaning from it. */
         PerformerId: components["schemas"]["PublicId"];
+        /** @description Stable opaque Group identifier. Clients must not derive meaning from it. */
+        GroupId: components["schemas"]["PublicId"];
     };
     requestBodies: never;
     headers: never;
@@ -467,6 +558,52 @@ export interface operations {
                 };
             };
             404: components["responses"]["PerformerNotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listPublishedGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ordered published Group summaries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupListResponse"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getPublishedGroupOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Stable opaque Group identifier. Clients must not derive meaning from it. */
+                group_id: components["parameters"]["GroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public Group overview. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOverviewResponse"];
+                };
+            };
+            404: components["responses"]["GroupNotFound"];
             500: components["responses"]["InternalError"];
         };
     };

@@ -2,13 +2,15 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.5.0
+  version: 0.6.0
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
     description: Published Genre read models.
   - name: Performers
     description: Published Performer (Person) read models.
+  - name: Groups
+    description: Published Group read models.
 paths:
   /api/v1/genres:
     get:
@@ -243,6 +245,82 @@ paths:
           $ref: "#/components/responses/PerformerNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/groups:
+    get:
+      tags: [Groups]
+      operationId: listPublishedGroups
+      summary: List published Groups
+      description: >-
+        Returns identity summaries of all currently published Groups, ordered by
+        canonical name. Draft, archived, and deleted Groups are omitted. An empty
+        list is a successful result.
+      security: []
+      responses:
+        "200":
+          description: Ordered published Group summaries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupListResponse"
+              examples:
+                seed:
+                  value:
+                    items:
+                      - id: 01a01a72-2c01-7000-8000-000000000001
+                        name: Benny Goodman Orchestra
+                      - id: 01a01a72-2c01-7000-8000-000000000002
+                        name: Charlie Parker Quintet
+                      - id: 01a01a72-2c01-7000-8000-000000000003
+                        name: Count Basie Orchestra
+                      - id: 01a01a72-2c01-7000-8000-000000000004
+                        name: Tympany Five
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/groups/{group_id}:
+    get:
+      tags: [Groups]
+      operationId: getPublishedGroupOverview
+      summary: Get a published Group overview
+      description: >-
+        Returns public Group content plus members and assigned Genres.
+        Editorial status, deleted flags, timestamps, evidence, and provenance
+        are omitted. Unknown, malformed, draft, and archived identifiers are
+        intentionally indistinguishable.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      responses:
+        "200":
+          description: Public Group overview.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupOverviewResponse"
+              examples:
+                basie:
+                  value:
+                    id: 01a01a72-2c01-7000-8000-000000000003
+                    name: Count Basie Orchestra
+                    aliases: []
+                    description: null
+                    period:
+                      start: null
+                      end: null
+                    primary_image: null
+                    genres:
+                      - id: 01a0147a-8508-74b7-9689-e7c133e4e7a5
+                        name: Swing
+                    members:
+                      - id: 01a01a72-1be5-7542-b935-47f2b3e1b5a3
+                        name: Count Basie
+                        period:
+                          start: null
+                          end: null
+                        roles_or_instruments: [piano, bandleader]
+        "404":
+          $ref: "#/components/responses/GroupNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   parameters:
     GenreId:
@@ -257,6 +335,13 @@ components:
       in: path
       required: true
       description: Stable opaque Performer identifier (Person). Clients must not derive meaning from it.
+      schema:
+        $ref: "#/components/schemas/PublicId"
+    GroupId:
+      name: group_id
+      in: path
+      required: true
+      description: Stable opaque Group identifier. Clients must not derive meaning from it.
       schema:
         $ref: "#/components/schemas/PublicId"
   responses:
@@ -279,6 +364,17 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             code: PERFORMER_NOT_FOUND
+            message: Материал не найден.
+            details: null
+            request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
+    GroupNotFound:
+      description: Group is absent or not publicly visible.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: GROUP_NOT_FOUND
             message: Материал не найден.
             details: null
             request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
@@ -311,6 +407,80 @@ components:
           type: array
           description: Published Genre summaries ordered by canonical name.
           items: {$ref: "#/components/schemas/GenreSummary"}
+    GroupListResponse:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Published Group summaries ordered by canonical name.
+          items: {$ref: "#/components/schemas/GroupSummary"}
+    GroupSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+    GroupPeriodView:
+      type: object
+      additionalProperties: false
+      required: [start, end]
+      properties:
+        start:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+        end:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+    GroupMemberView:
+      type: object
+      additionalProperties: false
+      required: [id, name, period, roles_or_instruments]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+        period: {$ref: "#/components/schemas/GroupPeriodView"}
+        roles_or_instruments:
+          type: array
+          description: Optional role or instrument labels; may be empty. Not an instrument catalog.
+          items: {type: string, minLength: 1}
+    GroupOverviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - aliases
+        - description
+        - period
+        - primary_image
+        - genres
+        - members
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+        aliases:
+          type: array
+          description: Alternate names; may be empty. Does not include the canonical name.
+          items: {type: string, minLength: 1}
+        description: {$ref: "#/components/schemas/NullableText"}
+        period: {$ref: "#/components/schemas/GroupPeriodView"}
+        primary_image:
+          oneOf:
+            - $ref: "#/components/schemas/PublicImageView"
+            - type: "null"
+        genres:
+          type: array
+          description: Published Genre summaries assigned to the Group, ordered by canonical name.
+          items: {$ref: "#/components/schemas/GenreSummary"}
+        members:
+          type: array
+          description: Published memberships of published Performers, ordered by person name.
+          items: {$ref: "#/components/schemas/GroupMemberView"}
     PerformerListResponse:
       type: object
       additionalProperties: false
