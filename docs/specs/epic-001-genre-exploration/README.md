@@ -41,13 +41,16 @@ Visitor изучает Genre как самостоятельную истори�
 ## Stories
 
 1. [STORY-001: открыть опубликованную страницу Genre](story-001-view-published-genre/README.md) — `done`.
-2. Добавить навигацию между опубликованными Genre — draft-кандидат после появления нескольких detail pages.
+2. [STORY-002: перейти между опубликованными Genre](story-002-navigate-published-genres/README.md) — `accepted`.
 3. Показать связанные Performer, Group и Recording — относится к интеграции с EPIC-002.
 4. Редактировать и публиковать Genre — относится к EPIC-005.
 
-Stories 2–4 являются границами планирования, а не утверждённой декомпозицией.
+Минимальная главная и identity `/` — [STORY-003](../epic-010-home-search-catalog/story-003-minimal-home/README.md) в EPIC-010, не в этом epic.
 
-Утверждённая техническая декомпозиция STORY-001: [tasks](story-001-view-published-genre/tasks.md) — `accepted`.
+Stories 3–4 являются границами планирования, а не утверждённой декомпозицией.
+
+Утверждённая техническая декомпозиция STORY-001: [tasks](story-001-view-published-genre/tasks.md) — `accepted`.  
+Утверждённая декомпозиция STORY-002: [tasks](story-002-navigate-published-genres/tasks.md) — `accepted`.
 
 ## Общие доменные требования
 
@@ -75,6 +78,6 @@ Genre не имеет единственного parent. Historical Knowledge д
 ## Отложенные уточнения epic
 
 - точный состав стартовых 6–10 Genre после первого seed;
-- момент добавления связанных сущностей и переходов между detail pages.
+- момент добавления связанных сущностей.
 
-Они не блокируют STORY-001 и уточняются соответствующими последующими stories.
+Переходы между detail pages Genre формализуются в [STORY-002](story-002-navigate-published-genres/README.md).

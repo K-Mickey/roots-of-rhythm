@@ -17,7 +17,7 @@
 | `EPIC-007` | [#5](https://github.com/K-Mickey/roots-of-rhythm/issues/5) | Читать опубликованные знания через MCP | поддерживает внешние AI-сценарии | стабильные read contracts; `ask_published_corpus` добавляется только после EPIC-006 |
 | `EPIC-008` | [#14](https://github.com/K-Mickey/roots-of-rhythm/issues/14) | Получать AI-предложения для редактора | ускоряет наполнение всех CQ | ручной Editorial workflow, AIProposal и evaluation |
 | `EPIC-009` | [#7](https://github.com/K-Mickey/roots-of-rhythm/issues/7) | Открывать доступные музыкальные примеры | дополняет CQ-001–CQ-006 | MediaReference и исследование providers |
-| `EPIC-010` | [#4](https://github.com/K-Mickey/roots-of-rhythm/issues/4) | Найти точку входа и нужный материал через главную, каталоги и поиск | навигация ко всем CQ | опубликованные сущности, Discovery queries, списки, фильтры и статистика |
+| [`EPIC-010`](epic-010-home-search-catalog/README.md) | [#4](https://github.com/K-Mickey/roots-of-rhythm/issues/4) | Найти точку входа и нужный материал через главную, каталоги и поиск | навигация ко всем CQ | опубликованные сущности, Discovery queries, списки, фильтры; статистика со стадии HOME-1 |
 | `EPIC-011` | [#13](https://github.com/K-Mickey/roots-of-rhythm/issues/13) | Читать структурированные Stories, сравнения и маршруты | CQ-001, CQ-002, CQ-004, CQ-005 | Story, sections, Claims, entity references и музыкальные примеры |
 | [`EPIC-012`](epic-012-production-readiness/README.md) | [#8](https://github.com/K-Mickey/roots-of-rhythm/issues/8) | Безопасно эксплуатировать публичный сервис и своевременно узнавать о проблемах | обеспечивает доступность всех публичных сценариев | стабильная vertical slice, deployment topology и измеримый production baseline |
 
@@ -27,7 +27,7 @@ ID отражает стабильную идентичность epic, а не 
 
 | Область MVP | Epic | Комментарий |
 |---|---|---|
-| Главная и статистика | EPIC-010 | минималистичная, только опубликованный корпус |
+| Главная и статистика | EPIC-010 | три стадии: HOME-0 без дашборда, HOME-1 статистика, HOME-2 каталоги/поиск; см. [home-evolution](epic-010-home-search-catalog/home-evolution.md) |
 | Списки и единый поиск | EPIC-010 | Genre, Performer, Group, Recording, Dance и Story |
 | Страница Genre | EPIC-001 | первая вертикаль |
 | Страницы Performer, Group, Recording | EPIC-002 | MusicalWork/Release pages отложены |
@@ -98,7 +98,7 @@ Performer, Group и Recording не входят в первую story. Связ�
 
 ## Вопросы текущего этапа
 
-STORY-001 выполнена и принята 2026-08-19. EPIC-001 остаётся открытым: следующие stories — навигация между Genre, интеграция с EPIC-002 и editorial UI. EPIC-012 не блокировал локальную реализацию, но его обязательные work items по-прежнему блокируют первый публичный трафик.
+STORY-001 выполнена. Приняты [STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/README.md) (ссылки Genre↔Genre) и [STORY-003](epic-010-home-search-catalog/story-003-minimal-home/README.md) (HOME-0 без жанров на главной). Каталог жанров — следующая story EPIC-010. EPIC-012 по-прежнему блокирует первый публичный трафик, не локальную разработку.
 
 Подтверждено 2026-08-16: EPIC-001 идёт первым; Performer/Group/Recording и локализация исключены из STORY-001; controlled seed/import допустим; для публикации Genre достаточно `name + definition`; пустые секции скрываются; seed содержит Swing, Jazz и Jump Blues; draft GenreRelation допускает частичное заполнение, publish требует полноты; relation публикуется независимо и имеет вычисляемую visibility; `confidence` исключён.
 
@@ -116,3 +116,4 @@ STORY-001 выполнена и принята 2026-08-19. EPIC-001 остаёт
 - 2026-08-16: подтверждены два seed Claims и институциональные Evidence; EPIC-001/STORY-001 переведены в `accepted`.
 - 2026-08-16: UI и OpenAPI `0.1.0` STORY-001 утверждены; текущий этап переведён к архитектурным решениям.
 - 2026-08-19: STORY-001 принята Product Owner; статус story `done`.
+- 2026-08-19: черновики STORY-002 и STORY-003; главная разведена на HOME-0/1/2; EPIC-010 получил спецификацию.

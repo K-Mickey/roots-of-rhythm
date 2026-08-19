@@ -158,7 +158,8 @@ backend/tests/
 - `tests/architecture` проверяет запрещённые imports и направление зависимостей;
 - contract tests проверяют публичные application/port contracts на стороне владельца;
 - end-to-end tests могут охватывать несколько модулей, но не заменяют локальные проверки;
-- тестовые fixtures не становятся общим изменяемым доменным состоянием между модулями.
+- тестовые fixtures не становятся общим изменяемым доменным состоянием между модулями;
+- повторяющиеся builders (published Genre, Claim) и integration `engine`/seed cleanup выносятся в module-local `conftest`/builders или `tests/support` по [STORY-002 TASK-001](specs/epic-001-genre-exploration/story-002-navigate-published-genres/tasks.md), без новых test-фреймворков.
 
 Точная test framework и команды определяются после выбора стека. Создание структуры не отменяет проектное правило: существующие тесты не изменяются без явного подтверждения пользователя.
 

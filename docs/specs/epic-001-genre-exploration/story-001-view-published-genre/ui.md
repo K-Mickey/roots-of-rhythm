@@ -145,7 +145,7 @@ STORY-001 использует вертикальный список текст�
 
 Карточка не показывает внутренние `editorial_status`, provenance, audit author/time или IDs. Public Discovery уже гарантирует публикацию relation и обоих endpoint Genre.
 
-До реализации detail routes имя связанного Genre отображается обычным текстом, а не ссылкой и не элементом с ложным hover/focus affordance.
+До реализации detail routes имя связанного Genre отображается обычным текстом, а не ссылкой и не элементом с ложным hover/focus affordance. Снято [STORY-002](../story-002-navigate-published-genres/ui.md) (`draft`): имя становится ссылкой на `/genres/{genre_id}`.
 
 ### Perspective labels
 

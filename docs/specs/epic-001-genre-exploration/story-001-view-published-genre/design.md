@@ -198,9 +198,9 @@ CSS Modules — только если предметную композицию 
 - Figma-макет как обязательный артефакт
 - Dark mode toggle
 - Localization
-- Related Genre detail links / hover affordance ссылки
+- Related Genre detail links / hover affordance ссылки — см. [STORY-002](../story-002-navigate-published-genres/README.md)
 - Graph/map visuals, search/catalog chrome
-- Реальный home content route (вместо stub `#`)
+- Реальный home content route (вместо stub `#`) — см. [STORY-003](../../epic-010-home-search-catalog/story-003-minimal-home/README.md)
 - Genre-specific UI код до статуса `accepted` у этого документа
 
 ## 9. Checkpoint

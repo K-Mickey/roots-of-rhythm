@@ -128,4 +128,5 @@ Epic: [EPIC-001](../README.md).
 - 2026-08-17: единый `GenrePageResponse` заменён тремя projections: overview, relations и sources; добавлены `FR-016`, `AC-14` и `AC-15`, а ошибки relations/sources стали локальными ошибками секций.
 - 2026-08-19: TASK-009 прогон приёмки записан в [acceptance.md](acceptance.md) (`draft` до утверждения Product Owner).
 - 2026-08-19: Product Owner закрыл приёмку; STORY-001 переведена в `done`.
+- 2026-08-19: переходы на связанные Genre вынесены в [STORY-002](../story-002-navigate-published-genres/README.md); главная — [STORY-003](../../epic-010-home-search-catalog/story-003-minimal-home/README.md).
 - 2026-08-17: каждая из трёх API operations выделена в свою техническую task; актуальная декомпозиция содержит девять tasks.

@@ -44,13 +44,19 @@
 - [Спецификации](specs/README.md)
 - [Черновая карта epics](specs/epic-map.md)
 - [EPIC-001: исследование жанра](specs/epic-001-genre-exploration/README.md)
+- [EPIC-010: точка входа, каталоги и поиск](specs/epic-010-home-search-catalog/README.md) — `draft`
+- [Эволюция главной HOME-0/1/2](specs/epic-010-home-search-catalog/home-evolution.md) — `accepted`
 - [EPIC-012: production readiness](specs/epic-012-production-readiness/README.md)
 - [STORY-001: открыть опубликованную страницу Genre](specs/epic-001-genre-exploration/story-001-view-published-genre/README.md) — `done`
 - [UI contract публичной страницы Genre](specs/epic-001-genre-exploration/story-001-view-published-genre/ui.md) — `accepted`
 - [UI/design specification shell и Genre page](specs/epic-001-genre-exploration/story-001-view-published-genre/design.md) — `accepted`
 - [Data/API workshop публичной Genre page](specs/epic-001-genre-exploration/story-001-view-published-genre/data-api-workshop.md) — `accepted`
 - [Декомпозиция STORY-001](specs/epic-001-genre-exploration/story-001-view-published-genre/tasks.md) — `accepted`
+- [Декомпозиция STORY-002](specs/epic-001-genre-exploration/story-002-navigate-published-genres/tasks.md) — `accepted`
+- [Декомпозиция STORY-003](specs/epic-010-home-search-catalog/story-003-minimal-home/tasks.md) — `accepted`
 - [Приёмка STORY-001 (TASK-009)](specs/epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `accepted`
+- [STORY-002: перейти между опубликованными Genre](specs/epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `accepted`
+- [STORY-003: открыть минимальную главную](specs/epic-010-home-search-catalog/story-003-minimal-home/README.md) — `accepted`
 - [OpenAPI contract](api/openapi.yaml) — `0.2.0`
 - [API-контракты](api/README.md)
 - [ADR](decisions/README.md)
