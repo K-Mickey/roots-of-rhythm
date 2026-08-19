@@ -1,6 +1,6 @@
 # STORY-003: открыть минимальную главную
 
-Статус: `accepted`
+Статус: `done`
 
 Tracker: [GitHub issue #24](https://github.com/K-Mickey/roots-of-rhythm/issues/24).
 
@@ -84,3 +84,5 @@ Epic: [EPIC-010](../README.md).
 - 2026-08-19: черновик HOME-0 с list Genre.
 - 2026-08-19: Product Owner убрал жанры с главной; story принята как центрированные title + description.
 - 2026-08-19: Product Owner зафиксировал слоган главной: «История музыки для тех кто танцует и слушает».
+- 2026-08-19: прогон TASK-002 записан в [acceptance.md](acceptance.md) (`draft` до утверждения Product Owner).
+- 2026-08-19: Product Owner закрыл приёмку; STORY-003 переведена в `done`.

@@ -6,11 +6,10 @@ export default function HomePage() {
   return (
     <Box
       style={{
-        flex: 1,
+        height: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: 0,
       }}
     >
       <Container size="52rem" py="xl">

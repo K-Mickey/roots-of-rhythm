@@ -55,8 +55,9 @@
 - [Декомпозиция STORY-002](specs/epic-001-genre-exploration/story-002-navigate-published-genres/tasks.md) — `accepted`
 - [Декомпозиция STORY-003](specs/epic-010-home-search-catalog/story-003-minimal-home/tasks.md) — `accepted`
 - [Приёмка STORY-001 (TASK-009)](specs/epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `accepted`
+- [Приёмка STORY-003 (TASK-002)](specs/epic-010-home-search-catalog/story-003-minimal-home/acceptance.md) — `accepted`
 - [STORY-002: перейти между опубликованными Genre](specs/epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `accepted`
-- [STORY-003: открыть минимальную главную](specs/epic-010-home-search-catalog/story-003-minimal-home/README.md) — `accepted`
+- [STORY-003: открыть минимальную главную](specs/epic-010-home-search-catalog/story-003-minimal-home/README.md) — `done`
 - [OpenAPI contract](api/openapi.yaml) — `0.2.0`
 - [API-контракты](api/README.md)
 - [ADR](decisions/README.md)

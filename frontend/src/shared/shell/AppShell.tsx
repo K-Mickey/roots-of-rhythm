@@ -9,15 +9,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     <Box
       bg="pastel.1"
       c="pastel.9"
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        // Grid keeps main a block container, so page Containers stay full width,
+        // while the 1fr row gives them a height to center against.
+        gridTemplateRows: 'auto 1fr auto',
+      }}
     >
       <SiteHeader />
-      <Box
-        component="main"
-        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-      >
-        {children}
-      </Box>
+      <Box component="main">{children}</Box>
       <SiteFooter />
     </Box>
   );
