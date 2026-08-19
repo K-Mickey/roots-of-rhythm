@@ -1,4 +1,7 @@
+'use client';
+
 import { Anchor, Paper, Stack, Text, Title } from '@mantine/core';
+import Link from 'next/link';
 
 import type { components } from '@/api/schema';
 import type { GenreRelations } from '@/shared/api/genre';
@@ -73,7 +76,15 @@ function RelationCard({
     >
       <Stack gap="sm">
         <Text fw={600}>
-          {label} — {relation.related_genre.name}
+          {label} —{' '}
+          <Anchor
+            component={Link}
+            href={`/genres/${encodeURIComponent(relation.related_genre.id)}`}
+            c="pastel.7"
+            underline="always"
+          >
+            {relation.related_genre.name}
+          </Anchor>
         </Text>
         <Text>{relation.explanation}</Text>
         <Text size="sm" c="pastel.8">

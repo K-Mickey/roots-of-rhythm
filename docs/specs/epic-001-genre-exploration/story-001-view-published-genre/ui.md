@@ -144,7 +144,7 @@ STORY-001 использует вертикальный список текст�
 
 Карточка не показывает внутренние `editorial_status`, provenance, audit author/time или IDs. Public Discovery уже гарантирует публикацию relation и обоих endpoint Genre.
 
-До реализации detail routes имя связанного Genre отображается обычным текстом, а не ссылкой и не элементом с ложным hover/focus affordance. Снято [STORY-002](../story-002-navigate-published-genres/ui.md) (`draft`): имя становится ссылкой на `/genres/{genre_id}`.
+Имя связанного Genre — ссылка на `/genres/{genre_id}` ([STORY-002](../story-002-navigate-published-genres/ui.md)). Label типа связи, explanation и evidence block ссылками на Genre не становятся.
 
 ### Perspective labels
 
@@ -266,7 +266,7 @@ UI показывает explanation разногласия и прошедшее
 - весь контент читается без pointer device;
 - citation links и будущие раскрываемые элементы доступны с клавиатуры;
 - focus indicator не отключается;
-- неактивное имя связанного Genre не получает `tabindex` и роль ссылки.
+- имя связанного Genre — настоящая ссылка (`<a href="/genres/{id}">`) и доступно с клавиатуры ([STORY-002](../story-002-navigate-published-genres/ui.md)).
 
 ### Не только визуальные сигналы
 
@@ -389,3 +389,4 @@ Product Owner подтвердил весь UI contract 2026-08-16, включа
 - 2026-08-16: уточнённый layout и весь UI contract подтверждены; зафиксирован баланс компактности и воздуха, а точные отступы оставлены на visual calibration с реальным контентом.
 - 2026-08-17: после разделения API overview остался обязательным page lifecycle, а relations и sources получили независимые inline error/retry states.
 - 2026-08-19: footer — только © год по центру; header chrome почти на всю ширину с отступом от края.
+- 2026-08-19: имя связанного Genre в relation card — ссылка STORY-002.
