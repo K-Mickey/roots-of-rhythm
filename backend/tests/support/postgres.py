@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import delete
 
-from roots_of_rhythm.config import settings
 from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     ClaimEvidenceReferenceRecord,
     GenreRelationClaimRecord,
@@ -17,7 +16,11 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     SourceVersionRecord,
 )
 from roots_of_rhythm.infrastructure.database import create_database_engine
-from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import (
+    ClassificationAssignmentRecord,
+    ClassificationConceptRecord,
+)
+from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -30,8 +33,14 @@ _CORPUS_TABLES = (
     SourceFragmentRecord,
     SourceVersionRecord,
     SourceRecord,
+    ClassificationAssignmentRecord,
     ClassificationConceptRecord,
+    PersonRecord,
 )
+
+
+def _resolve_database_url() -> str:
+    return environ["TEST_DATABASE_URL"]
 
 
 async def _wipe_corpus(engine: AsyncEngine) -> None:
@@ -42,8 +51,7 @@ async def _wipe_corpus(engine: AsyncEngine) -> None:
 
 @pytest.fixture
 async def engine() -> AsyncIterator[AsyncEngine]:
-    database_url = environ.get("TEST_DATABASE_URL", settings.database_url)
-    database_engine = create_database_engine(database_url)
+    database_engine = create_database_engine(_resolve_database_url())
     await _wipe_corpus(database_engine)
     yield database_engine
     await _wipe_corpus(database_engine)

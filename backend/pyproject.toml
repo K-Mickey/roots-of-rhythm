@@ -27,6 +27,7 @@ dev = [
     "mypy>=1.17,<2",
     "pytest>=8.4,<10",
     "pytest-asyncio>=1.1,<2",
+    "pytest-env>=1.1,<2",
     "ruff>=0.12,<1",
 ]
 
@@ -45,6 +46,9 @@ asyncio_mode = "auto"
 pythonpath = ["src"]
 testpaths = ["tests"]
 markers = ["integration: requires a running PostgreSQL database"]
+env = [
+    "D:TEST_DATABASE_URL=postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm_test",
+]
 
 [tool.ruff]
 line-length = 120

@@ -1,9 +1,12 @@
 SHELL := /bin/sh
 
-.PHONY: help setup lock db-up up down ps logs backend-dev frontend-dev migrate seed \
+.PHONY: help setup lock db-up test-db-setup up down ps logs backend-dev frontend-dev migrate seed \
 	format format-check lint typecheck test-unit test-integration test-e2e contract-check build check
 
+POSTGRES_USER ?= roots
 DATABASE_URL ?= postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm
+TEST_POSTGRES_DB ?= roots_of_rhythm_test
+TEST_DATABASE_URL ?= postgresql+psycopg://roots:roots@127.0.0.1:5432/$(TEST_POSTGRES_DB)
 PNPM_VERSION := 11.19.0
 PNPM := $(shell \
 	if command -v pnpm >/dev/null 2>&1; then command -v pnpm; \
@@ -23,6 +26,12 @@ lock: ## Refresh dependency lockfiles from manifests
 
 db-up: ## Start PostgreSQL and wait until it is ready
 	docker compose up -d --wait postgres
+
+test-db-setup: db-up ## Create the isolated integration database if absent and migrate it
+	docker compose exec -T postgres psql -U $(POSTGRES_USER) -d postgres -tAc \
+		"SELECT 1 FROM pg_database WHERE datname = '$(TEST_POSTGRES_DB)'" | grep -q 1 \
+		|| docker compose exec -T postgres createdb -U $(POSTGRES_USER) $(TEST_POSTGRES_DB)
+	cd backend && DATABASE_URL=$(TEST_DATABASE_URL) uv run alembic upgrade head
 
 up: ## Build and start the complete local stack
 	docker compose up -d --build --wait
@@ -45,7 +54,7 @@ frontend-dev: ## Run Next.js development server on the host
 migrate: ## Apply backend migrations to the local database
 	cd backend && DATABASE_URL=$(DATABASE_URL) uv run alembic upgrade head
 
-seed: ## Load controlled Jazz–Swing–Jump Blues Genre corpus (idempotent)
+seed: ## Load controlled Genre and Performer corpus (idempotent)
 	cd backend && DATABASE_URL=$(DATABASE_URL) PYTHONPATH=src uv run roots-of-rhythm seed
 
 format: ## Format backend and frontend sources
@@ -68,9 +77,8 @@ test-unit: ## Run backend and frontend unit tests
 	cd backend && uv run pytest -m "not integration"
 	$(PNPM) --dir frontend test
 
-test-integration: db-up ## Run PostgreSQL integration tests
-	$(MAKE) migrate
-	cd backend && TEST_DATABASE_URL=$(DATABASE_URL) uv run pytest -m integration
+test-integration: test-db-setup ## Run PostgreSQL integration tests against the isolated database
+	cd backend && TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run pytest -m integration
 
 test-e2e: ## Run Playwright smoke tests against a running stack
 	$(PNPM) --dir frontend test:e2e
