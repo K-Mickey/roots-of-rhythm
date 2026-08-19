@@ -7,12 +7,15 @@ from roots_of_rhythm.discovery.application.genre_list import GenreListQuery
 from roots_of_rhythm.discovery.application.genre_overview import GenreOverviewQuery
 from roots_of_rhythm.discovery.application.genre_relations import GenreRelationsQuery
 from roots_of_rhythm.discovery.application.genre_sources import GenreSourcesQuery
+from roots_of_rhythm.discovery.application.performer_list import PerformerListQuery
+from roots_of_rhythm.discovery.application.performer_overview import PerformerOverviewQuery
 from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.music_catalog.application import GenreUnitOfWorkStatusLookup
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
+from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -21,6 +24,8 @@ GENRE_LIST_READER_DEPENDENCY = "genre_list_reader"
 GENRE_OVERVIEW_READER_DEPENDENCY = "genre_overview_reader"
 GENRE_RELATIONS_READER_DEPENDENCY = "genre_relations_reader"
 GENRE_SOURCES_READER_DEPENDENCY = "genre_sources_reader"
+PERFORMER_LIST_READER_DEPENDENCY = "performer_list_reader"
+PERFORMER_OVERVIEW_READER_DEPENDENCY = "performer_overview_reader"
 
 type DependencyProviders = Mapping[str, Provide]
 
@@ -32,11 +37,16 @@ def create_api_dependencies(
     def music_uow_factory() -> SqlAlchemyMusicCatalogUnitOfWork:
         return SqlAlchemyMusicCatalogUnitOfWork(session_factory)
 
+    def people_uow_factory() -> SqlAlchemyPeopleCatalogUnitOfWork:
+        return SqlAlchemyPeopleCatalogUnitOfWork(session_factory)
+
     def hk_uow_factory() -> SqlAlchemyHistoricalKnowledgeUnitOfWork:
         return SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory)
 
     list_query = GenreListQuery(music_uow_factory)
     overview_query = GenreOverviewQuery(music_uow_factory)
+    performer_list_query = PerformerListQuery(people_uow_factory)
+    performer_overview_query = PerformerOverviewQuery(people_uow_factory, music_uow_factory)
     claim_service = ClaimService(hk_uow_factory, GenreUnitOfWorkStatusLookup(music_uow_factory))
     source_service = SourceService(hk_uow_factory)
     relations_query = GenreRelationsQuery(music_uow_factory, claim_service)
@@ -47,6 +57,8 @@ def create_api_dependencies(
         GENRE_OVERVIEW_READER_DEPENDENCY: Provide(lambda: overview_query, sync_to_thread=False),
         GENRE_RELATIONS_READER_DEPENDENCY: Provide(lambda: relations_query, sync_to_thread=False),
         GENRE_SOURCES_READER_DEPENDENCY: Provide(lambda: sources_query, sync_to_thread=False),
+        PERFORMER_LIST_READER_DEPENDENCY: Provide(lambda: performer_list_query, sync_to_thread=False),
+        PERFORMER_OVERVIEW_READER_DEPENDENCY: Provide(lambda: performer_overview_query, sync_to_thread=False),
     }
     if overrides is not None:
         dependencies.update(overrides)

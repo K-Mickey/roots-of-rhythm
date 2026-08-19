@@ -2,11 +2,13 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.3.0
+  version: 0.5.0
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
     description: Published Genre read models.
+  - name: Performers
+    description: Published Performer (Person) read models.
 paths:
   /api/v1/genres:
     get:
@@ -166,6 +168,81 @@ paths:
           $ref: "#/components/responses/GenreNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/performers:
+    get:
+      tags: [Performers]
+      operationId: listPublishedPerformers
+      summary: List published Performers
+      description: >-
+        Returns identity summaries of all currently published Performers, ordered by
+        canonical name. Draft, archived, and deleted Persons are omitted. An empty
+        list is a successful result.
+      security: []
+      responses:
+        "200":
+          description: Ordered published Performer summaries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformerListResponse"
+              examples:
+                seed:
+                  value:
+                    items:
+                      - id: 01a01a72-1be5-7542-b935-47f33d83c2ab
+                        name: Benny Goodman
+                      - id: 01a01a72-1be5-7542-b935-47f5372c5a61
+                        name: Big Joe Turner
+                      - id: 01a01a72-1be4-763d-8892-9d922967d97d
+                        name: Charlie Parker
+                      - id: 01a01a72-1be5-7542-b935-47f2b3e1b5a3
+                        name: Count Basie
+                      - id: 01a01a72-1be5-7542-b935-47f617f2cfd3
+                        name: Louis Armstrong
+                      - id: 01a01a72-1be5-7542-b935-47f4d3a8b6a4
+                        name: Louis Jordan
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/performers/{performer_id}:
+    get:
+      tags: [Performers]
+      operationId: getPublishedPerformerOverview
+      summary: Get a published Performer overview
+      description: >-
+        Returns every public Person content field plus primary image and assigned
+        Genres. Editorial status, deleted flags, and timestamps are omitted.
+        Unknown, malformed, draft, and archived identifiers are intentionally
+        indistinguishable.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PerformerId"
+      responses:
+        "200":
+          description: Public Performer overview.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformerOverviewResponse"
+              examples:
+                armstrong:
+                  value:
+                    id: 01a01a72-1be5-7542-b935-47f617f2cfd3
+                    name: Louis Armstrong
+                    aliases: []
+                    biography: null
+                    birth_date: null
+                    death_date: null
+                    external_identities: []
+                    primary_image: null
+                    genres:
+                      - id: 01a0147a-8508-74b7-9689-e7c079b95327
+                        name: Jazz
+                      - id: 01a0147a-8508-74b7-9689-e7c133e4e7a5
+                        name: Swing
+        "404":
+          $ref: "#/components/responses/PerformerNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   parameters:
     GenreId:
@@ -173,6 +250,13 @@ components:
       in: path
       required: true
       description: Stable opaque Genre identifier. Clients must not derive meaning from it.
+      schema:
+        $ref: "#/components/schemas/PublicId"
+    PerformerId:
+      name: performer_id
+      in: path
+      required: true
+      description: Stable opaque Performer identifier (Person). Clients must not derive meaning from it.
       schema:
         $ref: "#/components/schemas/PublicId"
   responses:
@@ -184,6 +268,17 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             code: GENRE_NOT_FOUND
+            message: Материал не найден.
+            details: null
+            request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
+    PerformerNotFound:
+      description: Performer is absent or not publicly visible.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: PERFORMER_NOT_FOUND
             message: Материал не найден.
             details: null
             request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
@@ -216,6 +311,67 @@ components:
           type: array
           description: Published Genre summaries ordered by canonical name.
           items: {$ref: "#/components/schemas/GenreSummary"}
+    PerformerListResponse:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Published Performer summaries ordered by canonical name.
+          items: {$ref: "#/components/schemas/PerformerSummary"}
+    PerformerOverviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - aliases
+        - biography
+        - birth_date
+        - death_date
+        - external_identities
+        - primary_image
+        - genres
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+        aliases:
+          type: array
+          description: Alternate names; may be empty. Does not include the canonical name.
+          items: {type: string, minLength: 1}
+        biography: {$ref: "#/components/schemas/NullableText"}
+        birth_date:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+        death_date:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+        external_identities:
+          type: array
+          description: External identity records; may be empty.
+          items: {$ref: "#/components/schemas/ExternalIdentityView"}
+        primary_image:
+          oneOf:
+            - $ref: "#/components/schemas/PublicImageView"
+            - type: "null"
+        genres:
+          type: array
+          description: Published Genre summaries assigned to the Performer, ordered by canonical name.
+          items: {$ref: "#/components/schemas/GenreSummary"}
+    ExternalIdentityView:
+      type: object
+      additionalProperties: false
+      required: [provider, identifier, url]
+      properties:
+        provider: {type: string, minLength: 1}
+        identifier: {type: string, minLength: 1}
+        url:
+          oneOf:
+            - {type: string, format: uri}
+            - type: "null"
     GenreOverviewResponse:
       type: object
       additionalProperties: false
@@ -271,6 +427,13 @@ components:
           description: Deduplicated bibliography ordered by first public citation occurrence.
           items: {$ref: "#/components/schemas/SourceView"}
     GenreSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+    PerformerSummary:
       type: object
       additionalProperties: false
       required: [id, name]

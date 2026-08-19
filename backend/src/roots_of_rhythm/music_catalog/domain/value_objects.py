@@ -18,7 +18,7 @@ def _required_text(value: str, field: str, *, max_length: int) -> str:
     return normalized
 
 
-def _optional_text(value: str | None, field: str, *, max_length: int) -> str | None:
+def optional_text(value: str | None, field: str, *, max_length: int) -> str | None:
     return None if value is None else _required_text(value, field, max_length=max_length)
 
 
@@ -102,16 +102,16 @@ class ClassificationContent(msgspec.Struct, frozen=True):
         return cls(
             canonical_name=normalized_name,
             aliases=normalized_aliases,
-            definition=_optional_text(definition, "definition", max_length=LONG_TEXT_MAX_LENGTH),
-            boundaries=_optional_text(boundaries, "boundaries", max_length=LONG_TEXT_MAX_LENGTH),
+            definition=optional_text(definition, "definition", max_length=LONG_TEXT_MAX_LENGTH),
+            boundaries=optional_text(boundaries, "boundaries", max_length=LONG_TEXT_MAX_LENGTH),
             period=period,
             geography=geography,
-            historical_context=_optional_text(
+            historical_context=optional_text(
                 historical_context,
                 "historical context",
                 max_length=LONG_TEXT_MAX_LENGTH,
             ),
-            formation=_optional_text(formation, "formation", max_length=LONG_TEXT_MAX_LENGTH),
+            formation=optional_text(formation, "formation", max_length=LONG_TEXT_MAX_LENGTH),
             characteristic_features=_unique_texts(
                 characteristic_features,
                 "characteristic features",

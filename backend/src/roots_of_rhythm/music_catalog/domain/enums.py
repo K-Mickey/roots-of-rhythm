@@ -22,3 +22,17 @@ class TemporalPrecision(StrEnum):
     EARLY_DECADE = "early_decade"
     MID_DECADE = "mid_decade"
     LATE_DECADE = "late_decade"
+
+
+class ClassificationTargetKind(StrEnum):
+    PERSON = "person"
+    GROUP = "group"
+    MUSICAL_WORK = "musical_work"
+    RECORDING = "recording"
+    RELEASE = "release"
+
+
+class EvidenceStatus(StrEnum):
+    UNVERIFIED = "unverified"
+    SUPPORTED = "supported"
+    DISPUTED = "disputed"

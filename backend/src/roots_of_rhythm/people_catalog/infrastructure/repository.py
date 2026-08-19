@@ -1,0 +1,66 @@
+from typing import TYPE_CHECKING
+
+from sqlalchemy import select
+
+from roots_of_rhythm.people_catalog.domain import EditorialStatus, Person
+from roots_of_rhythm.people_catalog.infrastructure.mapping import person_from_record, record_from_person, update_record
+from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+
+class SqlAlchemyPersonRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def add(self, person: Person) -> None:
+        self._session.add(record_from_person(person))
+
+    async def get(self, person_id: UUID) -> Person | None:
+        return await self._get(person_id)
+
+    async def get_published(self, person_id: UUID) -> Person | None:
+        return await self._get(person_id, status=EditorialStatus.PUBLISHED)
+
+    async def list_published(self) -> list[Person]:
+        statement = (
+            select(PersonRecord)
+            .where(
+                PersonRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                PersonRecord.deleted.is_(False),
+            )
+            .order_by(PersonRecord.canonical_name)
+        )
+        result = await self._session.execute(statement)
+        return [person_from_record(record) for record in result.scalars()]
+
+    async def save(self, person: Person) -> None:
+        record = await self._get_record(person.id)
+        if record is None:
+            raise LookupError(str(person.id))
+        update_record(record, person)
+
+    async def mark_deleted(self, person_id: UUID) -> None:
+        record = await self._get_record(person_id)
+        if record is None:
+            raise LookupError(str(person_id))
+        record.deleted = True
+
+    async def _get(self, person_id: UUID, status: EditorialStatus | None = None) -> Person | None:
+        record = await self._get_record(person_id, status=status)
+        return None if record is None else person_from_record(record)
+
+    async def _get_record(
+        self,
+        person_id: UUID,
+        *,
+        status: EditorialStatus | None = None,
+    ) -> PersonRecord | None:
+        statement = select(PersonRecord).where(PersonRecord.id == person_id, PersonRecord.deleted.is_(False))
+        if status is not None:
+            statement = statement.where(PersonRecord.editorial_status == status.value)
+        result = await self._session.execute(statement)
+        return result.scalar_one_or_none()

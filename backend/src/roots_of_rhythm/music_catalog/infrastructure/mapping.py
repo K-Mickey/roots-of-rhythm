@@ -1,13 +1,19 @@
 from roots_of_rhythm.music_catalog.domain import (
+    ClassificationAssignment,
     ClassificationContent,
+    ClassificationTargetKind,
     EditorialStatus,
+    EvidenceStatus,
     Genre,
     GeographicContext,
     HistoricalPeriod,
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import (
+    ClassificationAssignmentRecord,
+    ClassificationConceptRecord,
+)
 
 
 def record_from_genre(genre: Genre) -> ClassificationConceptRecord:
@@ -78,6 +84,45 @@ def update_record(record: ClassificationConceptRecord, genre: Genre) -> None:
     record.formation = genre.content.formation
     record.characteristic_features = list(genre.content.characteristic_features)
     record.primary_image_id = genre.content.primary_image_id
+
+
+def record_from_assignment(assignment: ClassificationAssignment) -> ClassificationAssignmentRecord:
+    return ClassificationAssignmentRecord(
+        id=assignment.id,
+        target_kind=assignment.target_kind.value,
+        target_id=assignment.target_id,
+        concept_id=assignment.concept_id,
+        explanation=assignment.explanation,
+        claim_id=assignment.claim_id,
+        provenance=assignment.provenance,
+        evidence_status=assignment.evidence_status.value,
+        editorial_status=assignment.editorial_status.value,
+    )
+
+
+def assignment_from_record(record: ClassificationAssignmentRecord) -> ClassificationAssignment:
+    return ClassificationAssignment(
+        id=record.id,
+        target_kind=ClassificationTargetKind(record.target_kind),
+        target_id=record.target_id,
+        concept_id=record.concept_id,
+        explanation=record.explanation,
+        claim_id=record.claim_id,
+        provenance=record.provenance,
+        evidence_status=EvidenceStatus(record.evidence_status),
+        editorial_status=EditorialStatus(record.editorial_status),
+    )
+
+
+def update_assignment_record(record: ClassificationAssignmentRecord, assignment: ClassificationAssignment) -> None:
+    record.target_kind = assignment.target_kind.value
+    record.target_id = assignment.target_id
+    record.concept_id = assignment.concept_id
+    record.explanation = assignment.explanation
+    record.claim_id = assignment.claim_id
+    record.provenance = assignment.provenance
+    record.evidence_status = assignment.evidence_status.value
+    record.editorial_status = assignment.editorial_status.value
 
 
 def _temporal_bound(year: int | None, precision: str | None) -> TemporalBound | None:

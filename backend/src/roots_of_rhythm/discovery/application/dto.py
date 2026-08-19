@@ -13,6 +13,7 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.music_catalog.domain import (
     TemporalPrecision as McTemporalPrecision,
 )
+from roots_of_rhythm.people_catalog.domain import TemporalPrecision as PersonTemporalPrecision
 
 
 class RelationPerspective(StrEnum):
@@ -76,6 +77,38 @@ class GenreSummary(msgspec.Struct, frozen=True):
 
 class GenreListResponse(msgspec.Struct, frozen=True):
     items: list[GenreSummary]
+
+
+class PerformerSummary(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+
+
+class PerformerListResponse(msgspec.Struct, frozen=True):
+    items: list[PerformerSummary]
+
+
+class PersonDateView(msgspec.Struct, frozen=True):
+    year: int
+    precision: PersonTemporalPrecision
+
+
+class ExternalIdentityView(msgspec.Struct, frozen=True):
+    provider: str
+    identifier: str
+    url: str | None
+
+
+class PerformerOverviewResponse(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+    aliases: list[str]
+    biography: str | None
+    birth_date: PersonDateView | None
+    death_date: PersonDateView | None
+    external_identities: list[ExternalIdentityView]
+    primary_image: PublicImageView | None
+    genres: list[GenreSummary]
 
 
 class EvidenceReferenceView(msgspec.Struct, frozen=True):

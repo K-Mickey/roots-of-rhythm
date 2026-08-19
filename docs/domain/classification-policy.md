@@ -61,7 +61,9 @@ genre | style | scene | tradition
 
 Track как позиция внутри Release по умолчанию не получает собственную музыкальную классификацию: она относится к связанной Recording. Если конкретное место в издании имеет отдельный редакционный смысл, он описывается контекстным Claim, а не копированием жанров Recording в Track.
 
-Assignment хранит назначенное понятие, объяснение или Claim, provenance, evidence status и editorial status. Поле «единственный основной жанр» не является обязательным.
+Assignment хранит назначенное понятие, `explanation` или `claim_id` (достаточно одного), provenance, `evidence_status` и editorial status. Поле «единственный основной жанр» не является обязательным.
+
+Публикация ClassificationAssignment требует explanation или claim_id, provenance и уже опубликованные target и concept (для STORY-005 — published Person и published Genre). Проверка endpoints read-only: публикация assignment не каскадно публикует Person или Genre. До модели evidence references публиковать можно только `unverified`; `supported` и `disputed` допустимы в draft, но не в `published`. Изменение assignment не перепубликует Person, Group или Recording.
 
 ## Уровень поддержки в MVP
 

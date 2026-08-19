@@ -7,8 +7,31 @@ if TYPE_CHECKING:
     from types import TracebackType
     from uuid import UUID
 
-    from roots_of_rhythm.music_catalog.application.ports import GenreRepository
-    from roots_of_rhythm.music_catalog.domain import Genre
+    from roots_of_rhythm.music_catalog.application.ports import ClassificationAssignmentRepository, GenreRepository
+    from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, Genre
+
+
+class FakeClassificationAssignmentRepository:
+    def __init__(self, assignments: dict[UUID, ClassificationAssignment]) -> None:
+        self._assignments = assignments
+
+    async def add(self, assignment: ClassificationAssignment) -> None:
+        self._assignments[assignment.id] = assignment
+
+    async def get(self, assignment_id: UUID) -> ClassificationAssignment | None:
+        return self._assignments.get(assignment_id)
+
+    async def list_published_for_person(self, person_id: UUID) -> list[ClassificationAssignment]:
+        return [
+            assignment
+            for assignment in self._assignments.values()
+            if assignment.target_id == person_id and assignment.editorial_status is EditorialStatus.PUBLISHED
+        ]
+
+    async def save(self, assignment: ClassificationAssignment) -> None:
+        if assignment.id not in self._assignments:
+            raise LookupError(str(assignment.id))
+        self._assignments[assignment.id] = assignment
 
 
 class FakeGenreRepository:
@@ -59,8 +82,13 @@ class FakeGenreRepository:
 
 
 class FakeMusicCatalogUnitOfWork:
-    def __init__(self, genres: dict[UUID, Genre]) -> None:
+    def __init__(
+        self,
+        genres: dict[UUID, Genre],
+        assignments: dict[UUID, ClassificationAssignment] | None = None,
+    ) -> None:
         self.genres: GenreRepository = FakeGenreRepository(genres)
+        self.assignments: ClassificationAssignmentRepository = FakeClassificationAssignmentRepository(assignments or {})
         self.commits = 0
         self.rollbacks = 0
 

@@ -1,44 +1,31 @@
-from os import environ
 from typing import TYPE_CHECKING
 from uuid import uuid7
 
 import pytest
-from sqlalchemy import delete, inspect
+from sqlalchemy import inspect
 
-from roots_of_rhythm.infrastructure.database import create_database_engine, create_session_factory
-from roots_of_rhythm.music_catalog.application import GenreNameConflict, GenreService, UniqueConstraintViolation
+from roots_of_rhythm.infrastructure.database import create_session_factory
+from roots_of_rhythm.music_catalog.application import (
+    ClassificationAssignmentService,
+    GenreNameConflict,
+    GenreService,
+    UniqueConstraintViolation,
+)
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationContent,
     EditorialStatus,
+    EvidenceStatus,
     GeographicContext,
     HistoricalPeriod,
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
-
     from sqlalchemy.ext.asyncio import AsyncEngine
 
 pytestmark = pytest.mark.integration
-
-
-@pytest.fixture
-async def engine() -> AsyncIterator[AsyncEngine]:
-    database_url = environ.get(
-        "TEST_DATABASE_URL",
-        "postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm",
-    )
-    database_engine = create_database_engine(database_url)
-    async with database_engine.begin() as connection:
-        await connection.execute(delete(ClassificationConceptRecord))
-    yield database_engine
-    async with database_engine.begin() as connection:
-        await connection.execute(delete(ClassificationConceptRecord))
-    await database_engine.dispose()
 
 
 @pytest.mark.asyncio
@@ -96,6 +83,40 @@ async def test_repository_round_trip_and_public_filter(engine: AsyncEngine) -> N
 
 
 @pytest.mark.asyncio
+async def test_assignment_repository_round_trips_publication_content(engine: AsyncEngine) -> None:
+    session_factory = create_session_factory(engine)
+    genres = GenreService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
+    assignments = ClassificationAssignmentService(
+        lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory),
+        lambda _: _published(True),
+    )
+    jazz = await genres.create(ClassificationContent.create("Jazz", definition="A genre."))
+    await genres.publish(jazz.id)
+    person_id = uuid7()
+    claim_id = uuid7()
+    assignment = await assignments.create_for_person(
+        person_id,
+        jazz.id,
+        claim_id=claim_id,
+        provenance="Editorial review.",
+        evidence_status=EvidenceStatus.UNVERIFIED,
+    )
+    published = await assignments.publish(assignment.id)
+
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        loaded = await uow.assignments.get(assignment.id)
+        listed = await uow.assignments.list_published_for_person(person_id)
+
+    assert loaded == published
+    assert loaded is not None
+    assert loaded.claim_id == claim_id
+    assert loaded.explanation is None
+    assert loaded.provenance == "Editorial review."
+    assert loaded.evidence_status is EvidenceStatus.UNVERIFIED
+    assert listed == [published]
+
+
+@pytest.mark.asyncio
 async def test_unit_of_work_rolls_back_and_unique_name_is_case_insensitive(engine: AsyncEngine) -> None:
     session_factory = create_session_factory(engine)
     service = GenreService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
@@ -125,3 +146,7 @@ async def test_unit_of_work_rolls_back_and_unique_name_is_case_insensitive(engin
         assert await uow.genres.get(genre.id) is None
     recreated = await service.create(ClassificationContent.create("Swing"))
     assert recreated.id != genre.id
+
+
+async def _published(value: bool) -> bool:
+    return value

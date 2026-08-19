@@ -99,7 +99,7 @@ Person/Group/MusicalWork/Recording/Release ── ClassificationAssignment ─�
 Person/Group ── Claim(claim_kind=influence) ── Person/Group
 ```
 
-`GroupMembership` содержит период и роли. `RecordingCredit` может содержать instrument/function и credited name. `ClassificationAssignment` содержит provenance, объяснение и evidence status; классификация Group не вычисляется автоматически из одной Recording и не наследуется ей.
+`GroupMembership` содержит период и роли. `RecordingCredit` может содержать instrument/function и credited name. `ClassificationAssignment` содержит provenance, explanation или claim_id и evidence status; публикация требует опубликованные endpoints, а до evidence references — только `unverified`. Классификация Group не вычисляется автоматически из одной Recording и не наследуется ей.
 
 ### Проверенный пример
 

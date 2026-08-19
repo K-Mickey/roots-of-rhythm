@@ -15,9 +15,11 @@
 
 Historical Knowledge владеет Claims и историческими связями и ссылается на стабильные IDs остальных contexts. Context изменяет только принадлежащие ему данные; межконтекстные операции оркестрируются application layer.
 
-Первая фактическая предметная проекция — Python package `music_catalog`. Его domain содержит immutable Genre/ClassificationConcept, application — команды и принадлежащие ему Repository/Unit of Work contracts, infrastructure — отдельную SQLAlchemy persistence model и PostgreSQL adapters. ORM models и sessions не выходят из infrastructure; transport DTO не переиспользуют domain entities.
+Первая фактическая предметная проекция — Python package `music_catalog`. Его domain содержит immutable Genre/ClassificationConcept и ClassificationAssignment, application — команды и принадлежащие ему Repository/Unit of Work contracts, infrastructure — отдельную SQLAlchemy persistence model и PostgreSQL adapters. ORM models и sessions не выходят из infrastructure; transport DTO не переиспользуют domain entities.
 
-Вторая проекция — `historical_knowledge`: GenreRelation Claim с Evidence references и Source/SourceVersion/SourceFragment aggregates. Source хранит bibliographic metadata (title, author, responsible organization, publication, publication date, canonical external URL); SourceFragment хранит citation locator. Публикация Claim проверяет published endpoint Genre через application port Music Catalog (`GenreStatusLookup`); публичная видимость relation пересчитывается на чтении. Discovery отдаёт public Genre overview, relations, sources и list projections.
+Вторая проекция — `historical_knowledge`: GenreRelation Claim с Evidence references и Source/SourceVersion/SourceFragment aggregates. Source хранит bibliographic metadata (title, author, responsible organization, publication, publication date, canonical external URL); SourceFragment хранит citation locator. Публикация Claim проверяет published endpoint Genre через application port Music Catalog (`GenreStatusLookup`); публичная видимость relation пересчитывается на чтении.
+
+Третья проекция — `people_catalog`: Person (публичная страница исполнителя — Discovery-представление Person). Discovery отдаёт public Genre и Performer projections.
 
 Editorial, Discovery и AI Research планируются как логические supporting capabilities, но не как bounded contexts или сервисы. Editorial оркестрирует редакционный lifecycle, Discovery является read side, AI Research владеет только техническими индексами, AI-запусками и proposals. Их физические code/module boundaries не фиксируются до использующей story.
 

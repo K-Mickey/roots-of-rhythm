@@ -63,13 +63,15 @@ Aggregate не означает:
 | `Recording` | metadata исполнения, ссылка на MusicalWork и ограниченная коллекция RecordingCredit | classifications, Claims, releases |
 | `Release` | metadata издания и упорядоченные Track | Recording и их credits |
 | `GroupMembership` | PersonId, GroupId, период, роли/инструменты, provenance и статус | Person и Group целиком |
-| `ClassificationAssignment` | target ID/type, concept ID, explanation, provenance, evidence/editorial status | target и concept целиком |
+| `ClassificationAssignment` | target ID/type, concept ID, explanation или claim_id, provenance, evidence/editorial status | target и concept целиком |
 
 `RecordingCredit` является дочерней Entity внутри Recording, а не отдельным Aggregate Root. Причина: минимальный инвариант публикации Recording — хотя бы один `billing_role=primary`; добавление, удаление и проверка credits должны быть согласованы с Recording. Количество credits одной Recording естественно ограничено.
 
 `GroupMembership` является отдельным aggregate: состав группы меняется независимо, может быть неполным и со временем образует растущую коллекцию. Group публикуется без полного состава.
 
 `ClassificationAssignment` также отдельный aggregate: это независимо редактируемая many-to-many связь со своим provenance и lifecycle. Изменение назначения не перепубликует Person, Group или Recording.
+
+Публикация assignment требует explanation или claim_id, provenance и опубликованные target и concept. До появления owned evidence references публиковать можно только `evidence_status=unverified`; `supported` и `disputed` можно хранить в draft.
 
 `Track` остаётся дочерней Entity Release: порядок дорожек и отсутствие двух позиций с одинаковым номером являются локальным инвариантом конкретного издания. Полноценная реализация Release отложена, но граница не смешивает Track с Recording.
 
@@ -205,3 +207,5 @@ Deferred:              публичная страница Track; полный �
 Решения приняты пользователем 2026-08-15. Основные критерии — атомарность инвариантов и баланс размера aggregates.
 
 Уточнение 2026-08-15: межагрегатная локальная транзакция не используется для связи домена с сильным кандидатом на отдельный процесс. AIProposal принимается двухшагово и идемпотентно; это исправляет конфликт с направлением будущего выделения AI Research.
+
+Уточнение 2026-08-19 (STORY-005): ClassificationAssignment хранит explanation или claim_id; публикация требует provenance и published endpoints; до evidence references публикуется только `unverified`.

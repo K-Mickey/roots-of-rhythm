@@ -8,7 +8,7 @@
 - [STORY-001: открыть опубликованную страницу Genre](epic-001-genre-exploration/story-001-view-published-genre/README.md) — `done`.
 - [STORY-002: перейти между опубликованными Genre](epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`.
 - [EPIC-002: исполнители, песни, записи и релизы](epic-002-performer-group-recording/README.md) — `draft`.
-- [STORY-005: открыть опубликованного исполнителя](epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `draft`.
+- [STORY-005: открыть опубликованного исполнителя](epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `accepted`.
 - [STORY-006: открыть опубликованную группу](epic-002-performer-group-recording/story-006-view-published-group/README.md) — `draft`.
 - [STORY-007: открыть опубликованную песню](epic-002-performer-group-recording/story-007-view-published-song/README.md) — `draft`.
 - [STORY-008: открыть опубликованную запись](epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `draft`.
@@ -20,10 +20,11 @@
 - [STORY-004: открыть каталог опубликованных Genre](epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`.
 - [UI contract публичной страницы Genre](epic-001-genre-exploration/story-001-view-published-genre/ui.md) — `accepted`.
 - [Data/API workshop публичной Genre page](epic-001-genre-exploration/story-001-view-published-genre/data-api-workshop.md) — `accepted`.
-- [OpenAPI contract](../api/openapi.yaml) — `0.3.0`.
+- [OpenAPI contract](../api/openapi.yaml) — `0.5.0`.
 - [Декомпозиция STORY-001](epic-001-genre-exploration/story-001-view-published-genre/tasks.md) — `accepted`.
 - [Декомпозиция STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/tasks.md) — `accepted`.
 - [Декомпозиция STORY-003](epic-010-home-search-catalog/story-003-minimal-home/tasks.md) — `accepted`.
+- [Декомпозиция STORY-005](epic-002-performer-group-recording/story-005-view-published-performer/tasks.md) — `accepted`.
 - [Приёмка STORY-001](epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `accepted`.
 - [Приёмка STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/acceptance.md) — `accepted`.
 - [Приёмка STORY-003](epic-010-home-search-catalog/story-003-minimal-home/acceptance.md) — `accepted`.

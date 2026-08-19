@@ -16,10 +16,18 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
-from roots_of_rhythm.music_catalog.application import GenreService, GenreUnitOfWorkStatusLookup
+from roots_of_rhythm.music_catalog.application import (
+    ClassificationAssignmentService,
+    GenreService,
+    GenreUnitOfWorkStatusLookup,
+)
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
+from roots_of_rhythm.people_catalog.application import PersonService
+from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
+from roots_of_rhythm.people_catalog.domain import PersonContent
+from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 from roots_of_rhythm.seed import corpus as data
 
 if TYPE_CHECKING:
@@ -29,18 +37,23 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
-    from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
+    from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
 
 
 class CorpusSeedRunner:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
-        self._music_uow: Callable[[], MusicCatalogUnitOfWork] = lambda: SqlAlchemyMusicCatalogUnitOfWork(
+        self._music_uow: Callable[[], SqlAlchemyMusicCatalogUnitOfWork] = lambda: SqlAlchemyMusicCatalogUnitOfWork(
+            session_factory
+        )
+        self._people_uow: Callable[[], PeopleCatalogUnitOfWork] = lambda: SqlAlchemyPeopleCatalogUnitOfWork(
             session_factory
         )
         self._hk_uow: Callable[[], HistoricalKnowledgeUnitOfWork] = lambda: SqlAlchemyHistoricalKnowledgeUnitOfWork(
             session_factory
         )
         self._genres = GenreService(self._music_uow)
+        self._persons = PersonService(self._people_uow)
+        self._assignments = ClassificationAssignmentService(self._music_uow, self._person_is_published)
         self._sources = SourceService(self._hk_uow)
         self._claims: ClaimService | None = None
 
@@ -51,6 +64,8 @@ class CorpusSeedRunner:
         )
         await self._ensure_sources()
         await self._ensure_genres()
+        await self._ensure_persons()
+        await self._ensure_assignments()
         await self._ensure_claims()
 
     async def _ensure_sources(self) -> None:
@@ -200,6 +215,66 @@ class CorpusSeedRunner:
             return
         if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
             await self._genres.publish(genre_id)
+
+    async def _ensure_persons(self) -> None:
+        for person_id, name in data.SEED_PERFORMERS:
+            await self._ensure_published_person(person_id, name)
+
+    async def _ensure_published_person(self, person_id: UUID, name: str) -> None:
+        async with self._people_uow() as uow:
+            existing = await uow.persons.get(person_id)
+        if existing is None:
+            await self._persons.create(PersonContent.create(name), person_id=person_id)
+            await self._persons.publish(person_id)
+            return
+        if existing.editorial_status is not PersonEditorialStatus.PUBLISHED:
+            await self._persons.publish(person_id)
+
+    async def _ensure_assignments(self) -> None:
+        for assignment_id, person_id, genre_id, explanation, provenance in data.SEED_PERSON_GENRE_ASSIGNMENTS:
+            await self._ensure_published_assignment(
+                assignment_id,
+                person_id,
+                genre_id,
+                explanation=explanation,
+                provenance=provenance,
+            )
+
+    async def _ensure_published_assignment(
+        self,
+        assignment_id: UUID,
+        person_id: UUID,
+        genre_id: UUID,
+        *,
+        explanation: str,
+        provenance: str,
+    ) -> None:
+        async with self._music_uow() as uow:
+            existing = await uow.assignments.get(assignment_id)
+        if existing is None:
+            await self._assignments.create_for_person(
+                person_id,
+                genre_id,
+                explanation=explanation,
+                provenance=provenance,
+                assignment_id=assignment_id,
+            )
+            await self._assignments.publish(assignment_id)
+            return
+        if existing.explanation != explanation or existing.provenance != provenance:
+            await self._assignments.replace_content(
+                assignment_id,
+                explanation=explanation,
+                claim_id=existing.claim_id,
+                provenance=provenance,
+                evidence_status=existing.evidence_status,
+            )
+        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+            await self._assignments.publish(assignment_id)
+
+    async def _person_is_published(self, person_id: UUID) -> bool:
+        async with self._people_uow() as uow:
+            return await uow.persons.get_published(person_id) is not None
 
     async def _ensure_published_claim(
         self,

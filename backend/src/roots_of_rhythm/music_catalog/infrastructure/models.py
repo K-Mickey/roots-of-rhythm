@@ -6,13 +6,21 @@ from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
-from roots_of_rhythm.music_catalog.domain.enums import ClassificationKind, EditorialStatus
+from roots_of_rhythm.music_catalog.domain.enums import (
+    ClassificationKind,
+    ClassificationTargetKind,
+    EditorialStatus,
+    EvidenceStatus,
+)
 from roots_of_rhythm.music_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
 
 CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT = "uq_classification_concepts_kind_canonical_name_ci"
 
 KIND_CHECK = f"kind IN ({', '.join(repr(kind.value) for kind in ClassificationKind)})"
+TARGET_KIND_CHECK = f"target_kind IN ({', '.join(repr(kind.value) for kind in ClassificationTargetKind)})"
 EDITORIAL_STATUS_CHECK = f"editorial_status IN ({', '.join(repr(status.value) for status in EditorialStatus)})"
+EVIDENCE_STATUS_CHECK = f"evidence_status IN ({', '.join(repr(status.value) for status in EvidenceStatus)})"
+CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT = "uq_classification_assignments_target_concept"
 
 
 class MusicCatalogBase(DeclarativeBase):
@@ -59,4 +67,42 @@ Index(
     "ix_classification_concepts_kind_editorial_status",
     ClassificationConceptRecord.kind,
     ClassificationConceptRecord.editorial_status,
+)
+
+
+class ClassificationAssignmentRecord(ServiceColumnsMixin, MusicCatalogBase):
+    __tablename__ = "classification_assignments"
+    __table_args__ = (
+        CheckConstraint(TARGET_KIND_CHECK, name="ck_classification_assignments_target_kind"),
+        CheckConstraint(EDITORIAL_STATUS_CHECK, name="ck_classification_assignments_editorial_status"),
+        CheckConstraint(EVIDENCE_STATUS_CHECK, name="ck_classification_assignments_evidence_status"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
+    target_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    target_id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), nullable=False)
+    concept_id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), nullable=False)
+    explanation: Mapped[str | None] = mapped_column(String(LONG_TEXT_MAX_LENGTH))
+    claim_id: Mapped[UUID | None] = mapped_column(PostgreSQLUUID(as_uuid=True))
+    provenance: Mapped[str | None] = mapped_column(String(LONG_TEXT_MAX_LENGTH))
+    evidence_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        server_default=EvidenceStatus.UNVERIFIED.value,
+    )
+    editorial_status: Mapped[str] = mapped_column(String(32), nullable=False)
+
+
+Index(
+    CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
+    ClassificationAssignmentRecord.target_kind,
+    ClassificationAssignmentRecord.target_id,
+    ClassificationAssignmentRecord.concept_id,
+    unique=True,
+    postgresql_where=ClassificationAssignmentRecord.deleted.is_(False),
+)
+Index(
+    "ix_classification_assignments_target",
+    ClassificationAssignmentRecord.target_kind,
+    ClassificationAssignmentRecord.target_id,
 )

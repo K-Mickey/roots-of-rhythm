@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from types import TracebackType
     from uuid import UUID
 
-    from roots_of_rhythm.music_catalog.domain import Genre
+    from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, Genre
 
 
 class GenreRepository(Protocol):
@@ -28,6 +28,16 @@ class GenreRepository(Protocol):
     async def canonical_name_exists(self, canonical_name: str, *, excluding: UUID | None = None) -> bool: ...
 
 
+class ClassificationAssignmentRepository(Protocol):
+    async def add(self, assignment: ClassificationAssignment) -> None: ...
+
+    async def get(self, assignment_id: UUID) -> ClassificationAssignment | None: ...
+
+    async def list_published_for_person(self, person_id: UUID) -> list[ClassificationAssignment]: ...
+
+    async def save(self, assignment: ClassificationAssignment) -> None: ...
+
+
 class GenreStatusLookup(Protocol):
     async def is_published(self, genre_id: UUID) -> bool: ...
 
@@ -38,6 +48,7 @@ class GenreStatusLookup(Protocol):
 
 class MusicCatalogUnitOfWork(Protocol):
     genres: GenreRepository
+    assignments: ClassificationAssignmentRepository
 
     async def __aenter__(self) -> Self: ...
 

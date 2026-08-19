@@ -86,7 +86,7 @@ Genre является полноценной сущностью и узлом �
 
 ### ClassificationAssignment — назначение классификации
 
-Редакционно управляемая связь Performer, Group, MusicalWork, Recording или Release с конкретным Genre, Style, Scene или Tradition. Хранит provenance, editorial status и evidence status; допускает несколько назначений.
+Редакционно управляемая связь Performer, Group, MusicalWork, Recording или Release с конкретным Genre, Style, Scene или Tradition. Хранит explanation или claim_id, provenance, editorial status и evidence status; допускает несколько назначений. Публикация требует provenance и опубликованные target и concept; до evidence references публикуется только `unverified`.
 
 ### Claim — утверждение
 

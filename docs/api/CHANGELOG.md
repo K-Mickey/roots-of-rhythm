@@ -1,5 +1,29 @@
 # API changelog
 
+## 0.5.0 — 2026-08-19
+
+STORY-005 public Performer overview content:
+
+- extended `PerformerOverviewResponse` with `aliases`, `birth_date`, `death_date` and `external_identities`;
+- dates reuse `TemporalBound` (`year` plus `exact_year | circa_year | decade | early_decade | mid_decade | late_decade`) and are nullable;
+- `external_identities` items are `{ provider, identifier, url }` with nullable `url`;
+- `GET /api/v1/performers` remains `{ id, name }` summaries; overview still omits editorial status, deleted flags and timestamps;
+- `primary_image` stays nullable and is `null` in this slice.
+
+Breaking changes: none; additive.
+
+## 0.4.0 — 2026-08-19
+
+STORY-005 published Performer catalog and overview:
+
+- added `GET /api/v1/performers` returning `PerformerListResponse` with `items` of `PerformerSummary` (`id`, `name`);
+- added `GET /api/v1/performers/{performer_id}` returning `PerformerOverviewResponse` (`id`, `name`, optional `biography`, `primary_image`, `genres`);
+- listed and returned only published, not deleted Person; empty catalog is `200` with `items: []`;
+- unknown or non-public identifiers return `PERFORMER_NOT_FOUND` with the same safe message as Genre;
+- list failures use `INTERNAL_ERROR` and do not use `PERFORMER_NOT_FOUND`.
+
+Breaking changes: none; additive.
+
 ## 0.3.0 — 2026-08-19
 
 STORY-004 published Genre catalog:

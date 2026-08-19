@@ -23,9 +23,16 @@ from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.database import create_session_factory
+from roots_of_rhythm.music_catalog.domain import ClassificationAssignment
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
-from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import (
+    ClassificationAssignmentRecord,
+    ClassificationConceptRecord,
+)
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
+from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
+from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
+from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 from roots_of_rhythm.seed import CorpusSeedRunner
 from roots_of_rhythm.seed import corpus as data
 
@@ -35,9 +42,11 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.integration
 
 
-async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int]:
+async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int, int, int]:
     async with engine.connect() as connection:
         genres = await connection.scalar(select(func.count()).select_from(ClassificationConceptRecord))
+        assignments = await connection.scalar(select(func.count()).select_from(ClassificationAssignmentRecord))
+        persons = await connection.scalar(select(func.count()).select_from(PersonRecord))
         claims = await connection.scalar(select(func.count()).select_from(GenreRelationClaimRecord))
         sources = await connection.scalar(select(func.count()).select_from(SourceRecord))
         versions = await connection.scalar(select(func.count()).select_from(SourceVersionRecord))
@@ -45,6 +54,8 @@ async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int]:
         evidence = await connection.scalar(select(func.count()).select_from(ClaimEvidenceReferenceRecord))
     return (
         int(genres or 0),
+        int(persons or 0),
+        int(assignments or 0),
         int(claims or 0),
         int(sources or 0),
         int(versions or 0),
@@ -63,7 +74,7 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     await runner.run()
     second = await _counts(engine)
 
-    assert first == second == (3, 2, 2, 2, 4, 4)
+    assert first == second == (3, 6, 7, 2, 2, 2, 4, 4)
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         jazz = await uow.genres.get_published(data.JAZZ_ID)
@@ -74,6 +85,25 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     assert swing is not None and swing.content.canonical_name == "Swing"
     assert jump is not None and jump.content.canonical_name == "Jump Blues"
     assert {jazz.editorial_status, swing.editorial_status, jump.editorial_status} == {GenreEditorialStatus.PUBLISHED}
+
+    async with SqlAlchemyPeopleCatalogUnitOfWork(session_factory) as uow:
+        persons = [await uow.persons.get_published(person_id) for person_id, _ in data.SEED_PERFORMERS]
+    assert [person.canonical_name for person in persons if person is not None] == [
+        name for _, name in data.SEED_PERFORMERS
+    ]
+    assert all(person is not None and person.editorial_status is PersonEditorialStatus.PUBLISHED for person in persons)
+
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        assignments = [
+            await uow.assignments.get(assignment_id) for assignment_id, *_ in data.SEED_PERSON_GENRE_ASSIGNMENTS
+        ]
+    assert [
+        None if assignment is None else (assignment.editorial_status, assignment.explanation, assignment.provenance)
+        for assignment in assignments
+    ] == [
+        (GenreEditorialStatus.PUBLISHED, explanation, provenance)
+        for _, _, _, explanation, provenance in data.SEED_PERSON_GENRE_ASSIGNMENTS
+    ]
 
     async with SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory) as uow:
         developed = await uow.claims.get(data.SWING_FROM_JAZZ_CLAIM_ID)
@@ -120,7 +150,37 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
         fragment is not None and fragment.review_status is FragmentReviewStatus.REVIEWED for fragment in fragments
     )
 
-    # Controlled corpus must not introduce Performer/Group/Recording persistence.
+    # Controlled corpus must not introduce separate Performer/Group/Recording persistence.
     async with engine.connect() as connection:
         tables = set(await connection.run_sync(lambda sync: sync.dialect.get_table_names(sync)))
     assert not {"performers", "groups", "recordings"} & tables
+
+
+@pytest.mark.asyncio
+async def test_corpus_seed_repairs_published_assignment_content(engine: AsyncEngine) -> None:
+    session_factory = create_session_factory(engine)
+    runner = CorpusSeedRunner(session_factory)
+    await runner.run()
+    assignment_id, _, _, explanation, provenance = data.SEED_PERSON_GENRE_ASSIGNMENTS[0]
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        assignment = await uow.assignments.get(assignment_id)
+        assert assignment is not None
+        await uow.assignments.save(
+            ClassificationAssignment(
+                id=assignment.id,
+                target_kind=assignment.target_kind,
+                target_id=assignment.target_id,
+                concept_id=assignment.concept_id,
+                editorial_status=assignment.editorial_status,
+            )
+        )
+        await uow.commit()
+
+    await runner.run()
+
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        repaired = await uow.assignments.get(assignment_id)
+    assert repaired is not None
+    assert repaired.explanation == explanation
+    assert repaired.provenance == provenance
+    assert repaired.editorial_status is GenreEditorialStatus.PUBLISHED

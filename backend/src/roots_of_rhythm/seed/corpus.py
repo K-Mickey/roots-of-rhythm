@@ -1,7 +1,7 @@
-"""Controlled Genre corpus seed data (Jazz, Swing, Jump Blues).
+"""Controlled corpus seed data (Jazz, Swing, Jump Blues and published Performers).
 
 Stable identities are fixed UUID7 literals. Re-running seed is a no-op for existing rows
-and never invents Performer/Group/Recording entities.
+and never invents Group/Recording entities.
 """
 
 from uuid import UUID
@@ -149,3 +149,81 @@ SWING_FROM_JAZZ_RELATION = RelationType.DEVELOPED_FROM
 SWING_TO_JUMP_RELATION = RelationType.CONTRIBUTED_TO_EMERGENCE_OF
 SWING_FROM_JAZZ_EVIDENCE_STATUS = EvidenceStatus.SUPPORTED
 SWING_TO_JUMP_EVIDENCE_STATUS = EvidenceStatus.SUPPORTED
+
+# --- Performers -------------------------------------------------------------
+CHARLIE_PARKER_ID = UUID("01a01a72-1be4-763d-8892-9d922967d97d")
+COUNT_BASIE_ID = UUID("01a01a72-1be5-7542-b935-47f2b3e1b5a3")
+BENNY_GOODMAN_ID = UUID("01a01a72-1be5-7542-b935-47f33d83c2ab")
+LOUIS_JORDAN_ID = UUID("01a01a72-1be5-7542-b935-47f4d3a8b6a4")
+BIG_JOE_TURNER_ID = UUID("01a01a72-1be5-7542-b935-47f5372c5a61")
+LOUIS_ARMSTRONG_ID = UUID("01a01a72-1be5-7542-b935-47f617f2cfd3")
+
+CHARLIE_PARKER_JAZZ_ASSIGNMENT_ID = UUID("01a01a72-1be5-7542-b935-47f73650f305")
+COUNT_BASIE_SWING_ASSIGNMENT_ID = UUID("01a01a72-1be5-7542-b935-47f8242e6fb0")
+BENNY_GOODMAN_SWING_ASSIGNMENT_ID = UUID("01a01a72-1be5-7542-b935-47f9f7082a27")
+LOUIS_JORDAN_JUMP_ASSIGNMENT_ID = UUID("01a01a72-1be5-7542-b935-47faef4ad12c")
+BIG_JOE_TURNER_JUMP_ASSIGNMENT_ID = UUID("01a01a72-1be5-7542-b935-47fb7216332d")
+LOUIS_ARMSTRONG_JAZZ_ASSIGNMENT_ID = UUID("01a01a72-1be5-7542-b935-47fc9c2d6f8d")
+LOUIS_ARMSTRONG_SWING_ASSIGNMENT_ID = UUID("01a01a72-1be5-7542-b935-47fd2ab545c0")
+
+SEED_PERFORMERS: tuple[tuple[UUID, str], ...] = (
+    (CHARLIE_PARKER_ID, "Charlie Parker"),
+    (COUNT_BASIE_ID, "Count Basie"),
+    (BENNY_GOODMAN_ID, "Benny Goodman"),
+    (LOUIS_JORDAN_ID, "Louis Jordan"),
+    (BIG_JOE_TURNER_ID, "Big Joe Turner"),
+    (LOUIS_ARMSTRONG_ID, "Louis Armstrong"),
+)
+
+SEED_ASSIGNMENT_PROVENANCE = "Controlled corpus editorial seed."
+SEED_PERSON_GENRE_ASSIGNMENTS: tuple[tuple[UUID, UUID, UUID, str, str], ...] = (
+    (
+        CHARLIE_PARKER_JAZZ_ASSIGNMENT_ID,
+        CHARLIE_PARKER_ID,
+        JAZZ_ID,
+        "Charlie Parker is classified as a Jazz performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        COUNT_BASIE_SWING_ASSIGNMENT_ID,
+        COUNT_BASIE_ID,
+        SWING_ID,
+        "Count Basie is classified as a Swing performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        BENNY_GOODMAN_SWING_ASSIGNMENT_ID,
+        BENNY_GOODMAN_ID,
+        SWING_ID,
+        "Benny Goodman is classified as a Swing performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        LOUIS_JORDAN_JUMP_ASSIGNMENT_ID,
+        LOUIS_JORDAN_ID,
+        JUMP_BLUES_ID,
+        "Louis Jordan is classified as a Jump Blues performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        BIG_JOE_TURNER_JUMP_ASSIGNMENT_ID,
+        BIG_JOE_TURNER_ID,
+        JUMP_BLUES_ID,
+        "Big Joe Turner is classified as a Jump Blues performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        LOUIS_ARMSTRONG_JAZZ_ASSIGNMENT_ID,
+        LOUIS_ARMSTRONG_ID,
+        JAZZ_ID,
+        "Louis Armstrong is classified as a Jazz performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        LOUIS_ARMSTRONG_SWING_ASSIGNMENT_ID,
+        LOUIS_ARMSTRONG_ID,
+        SWING_ID,
+        "Louis Armstrong is classified as a Swing performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+)
