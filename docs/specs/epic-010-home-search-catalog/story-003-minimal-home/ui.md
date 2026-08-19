@@ -7,7 +7,7 @@ Shell: [design STORY-001](../../epic-001-genre-exploration/story-001-view-publis
 
 ## Страница `/`
 
-Landmarks: тот же `header` / `main` / `footer`. Primary nav не рендерится.
+Landmarks: тот же `header` / `main` / `footer`. Primary nav в STORY-003 не рендерится; ссылка «Жанры» добавляется [STORY-004](../story-004-published-genre-catalog/ui.md).
 
 `main` — одна центрированная группа:
 

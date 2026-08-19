@@ -32,6 +32,12 @@ class FakeGenreRepository:
             if (genre := self._genres.get(genre_id)) is not None and genre.editorial_status is EditorialStatus.PUBLISHED
         }
 
+    async def list_published(self) -> list[Genre]:
+        return sorted(
+            (genre for genre in self._genres.values() if genre.editorial_status is EditorialStatus.PUBLISHED),
+            key=lambda genre: genre.content.canonical_name,
+        )
+
     async def save(self, genre: Genre) -> None:
         self._genres[genre.id] = genre
 

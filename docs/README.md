@@ -59,7 +59,8 @@
 - [Приёмка STORY-003 (TASK-002)](specs/epic-010-home-search-catalog/story-003-minimal-home/acceptance.md) — `accepted`
 - [STORY-002: перейти между опубликованными Genre](specs/epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`
 - [STORY-003: открыть минимальную главную](specs/epic-010-home-search-catalog/story-003-minimal-home/README.md) — `done`
-- [OpenAPI contract](api/openapi.yaml) — `0.2.0`
+- [STORY-004: открыть каталог опубликованных Genre](specs/epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`
+- [OpenAPI contract](api/openapi.yaml) — `0.3.0`
 - [API-контракты](api/README.md)
 - [ADR](decisions/README.md)
 - [ADR-0004: application stack первой вертикали](decisions/0004-application-stack.md) — `accepted`

@@ -4,6 +4,4 @@
 
 Story: [STORY-003](README.md).
 
-HOME-0 не добавляет public HTTP operations. Страница `/` не вызывает Genre list/overview. OpenAPI остаётся `0.2.0`.
-
-Каталог всех опубликованных Genre — отдельная будущая story EPIC-010; её contract не проектируется здесь.
+HOME-0 не добавляет public HTTP operations. Страница `/` не вызывает Genre list/overview. OpenAPI для HOME-0 не менялся. Каталог: [STORY-004](../story-004-published-genre-catalog/data-api-workshop.md), OpenAPI `0.3.0`.

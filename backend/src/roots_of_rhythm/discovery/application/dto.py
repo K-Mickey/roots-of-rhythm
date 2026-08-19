@@ -74,6 +74,10 @@ class GenreSummary(msgspec.Struct, frozen=True):
     name: str
 
 
+class GenreListResponse(msgspec.Struct, frozen=True):
+    items: list[GenreSummary]
+
+
 class EvidenceReferenceView(msgspec.Struct, frozen=True):
     source_id: str
     role: EvidenceRole

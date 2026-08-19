@@ -66,9 +66,10 @@ Task checkpoint: [TASK-008](tasks.md#task-008-реализовать-ssr-genre-p
 
 ```text
 header
-  └── project identity: text-link «Roots of Rhythm» → href="/"
+  ├── project identity: text-link «Roots of Rhythm» → href="/"
+  └── «Жанры» → href="/genres" ([STORY-004](../../epic-010-home-search-catalog/story-004-published-genre-catalog/ui.md))
 main
-  └── page content (Genre article на /genres/{id}; scaffold на /)
+  └── page content (каталог на /genres; Genre article на /genres/{id}; HOME-0 на /)
 footer
   └── © {current calendar year}, по центру
 ```
@@ -77,7 +78,7 @@ footer
 
 - Landmarks: top-level `header`, `main`, `footer`.
 - Единственный page `h1` живёт внутри `main`, не в header.
-- Primary navigation slot в STORY-001 **пустой и не рендерится** (нет пустого `<nav>` и визуального reserved gap). В header только identity-link.
+- Primary navigation slot в STORY-001 **пустой и не рендерится** (нет пустого `<nav>` и визуального reserved gap). Ссылка «Жанры» добавляется [STORY-004](../../epic-010-home-search-catalog/story-004-published-genre-catalog/ui.md).
 - Identity ведёт на `/`. Stub `href="#"` STORY-001 снят в [STORY-003](../../epic-010-home-search-catalog/story-003-minimal-home/README.md).
 - Header chrome (identity и будущая nav) почти на всю ширину viewport с горизонтальным отступом `md`; ширина статьи `52rem` на chrome не распространяется.
 - Footer компактный: только © год по центру, без имени продукта. Sources не переносятся в footer ([ui.md](ui.md)).
@@ -214,3 +215,4 @@ CSS Modules — только если предметную композицию 
 - 2026-08-19: черновик design specification для TASK-008 checkpoint (пастельный серо-голубой, square chrome, header stub `#`, footer с годом).
 - 2026-08-19: STORY-003 заменила identity stub `#` на `href="/"`.
 - 2026-08-19: header/footer chrome на всю ширину с `px="md"`; footer — только © год по центру.
+- 2026-08-19: STORY-004 добавила ссылку «Жанры» на `/genres`.

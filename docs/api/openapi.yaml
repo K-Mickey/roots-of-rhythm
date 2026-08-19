@@ -2,12 +2,41 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.2.0
+  version: 0.3.0
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
     description: Published Genre read models.
 paths:
+  /api/v1/genres:
+    get:
+      tags: [Genres]
+      operationId: listPublishedGenres
+      summary: List published Genres
+      description: >-
+        Returns identity summaries of all currently published Genres, ordered by
+        canonical name. Draft, archived, and deleted Genres are omitted. An empty
+        list is a successful result.
+      security: []
+      responses:
+        "200":
+          description: Ordered published Genre summaries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenreListResponse"
+              examples:
+                seed:
+                  value:
+                    items:
+                      - id: 01a0147a-8508-74b7-9689-e7c079b95327
+                        name: Jazz
+                      - id: 01a0147a-8508-74b7-9689-e7c272039bac
+                        name: Jump Blues
+                      - id: 01a0147a-8508-74b7-9689-e7c133e4e7a5
+                        name: Swing
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/v1/genres/{genre_id}:
     get:
       tags: [Genres]
@@ -178,6 +207,15 @@ components:
       oneOf:
         - type: string
         - type: "null"
+    GenreListResponse:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Published Genre summaries ordered by canonical name.
+          items: {$ref: "#/components/schemas/GenreSummary"}
     GenreOverviewResponse:
       type: object
       additionalProperties: false

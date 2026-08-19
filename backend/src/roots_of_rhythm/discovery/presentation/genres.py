@@ -7,6 +7,7 @@ from litestar.params import FromPath  # noqa: TC002 - required at runtime for Li
 from litestar.response import Response
 
 from roots_of_rhythm.discovery.application.dto import (
+    GenreListResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
     GenreOverviewResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
     GenreRelationsResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
     GenreSourcesResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
@@ -15,6 +16,9 @@ from roots_of_rhythm.discovery.application.errors import (
     GenreOverviewNotFound,
     GenreRelationsNotFound,
     GenreSourcesNotFound,
+)
+from roots_of_rhythm.discovery.application.genre_list import (
+    GenreListReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
 )
 from roots_of_rhythm.discovery.application.genre_overview import (
     GenreOverviewReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
@@ -33,6 +37,22 @@ _INTERNAL_ERROR_MESSAGE = "Не удалось загрузить материа
 
 
 def create_genres_router() -> Router:
+    @get()
+    async def list_published_genres(
+        genre_list_reader: NamedDependency[GenreListReader],
+    ) -> GenreListResponse | Response[ErrorResponse]:
+        try:
+            return await genre_list_reader.list()
+        except Exception:
+            request_id = str(uuid7())
+            logger.exception("Failed to list published Genres", extra={"request_id": request_id})
+            return _error_response(
+                500,
+                "INTERNAL_ERROR",
+                _INTERNAL_ERROR_MESSAGE,
+                request_id=request_id,
+            )
+
     @get("/{genre_id:str}")
     async def get_published_genre_overview(
         genre_id: FromPath[str],
@@ -105,6 +125,7 @@ def create_genres_router() -> Router:
     return Router(
         path="/api/v1/genres",
         route_handlers=[
+            list_published_genres,
             get_published_genre_overview,
             get_published_genre_relations,
             get_published_genre_sources,

@@ -2,7 +2,7 @@
 
 Статус: `draft`
 
-Tracker: [GitHub issue #4](https://github.com/K-Mickey/roots-of-rhythm/issues/4). Первая story: [STORY-003 #24](https://github.com/K-Mickey/roots-of-rhythm/issues/24).
+Tracker: [GitHub issue #4](https://github.com/K-Mickey/roots-of-rhythm/issues/4). Stories: [STORY-003 #24](https://github.com/K-Mickey/roots-of-rhythm/issues/24), [STORY-004 #30](https://github.com/K-Mickey/roots-of-rhythm/issues/30).
 
 ## Пользовательский результат
 
@@ -26,12 +26,12 @@ Visitor находит, с чего начать, и добирается до �
 ## Stories
 
 1. [STORY-003: открыть минимальную главную](story-003-minimal-home/README.md) — `done`.
-2. Показать список опубликованных Genre — draft-кандидат после HOME-0; отдельная страница, не главная.
+2. [STORY-004: открыть каталог опубликованных Genre](story-004-published-genre-catalog/README.md) — `done`; страница `/genres`, не главная.
 3. Базовая главная со статистикой и навигацией по типам сущностей — после появления соответствующих public pages (EPIC-002/004/011 и карта EPIC-003 по мере готовности).
 4. Списки и фильтры прочих каталогов — не раньше, чем сущность имеет public page.
 5. Единый поиск — после нескольких типов опубликованных сущностей.
 
-Stories 2–5 — границы планирования, кроме STORY-003.
+Stories 3–5 — границы планирования.
 
 ## Не включает
 
@@ -52,3 +52,5 @@ Stories 2–5 — границы планирования, кроме STORY-003.
 - 2026-08-19: Product Owner ввёл минимальную стадию главной без дашбордов и разрешил взять её сразу; зафиксированы три стадии эволюции.
 - 2026-08-19: STORY-003 принята без жанров на главной; каталог Genre запланирован отдельной story.
 - 2026-08-19: STORY-003 HOME-0 закрыта (`done`).
+- 2026-08-19: STORY-004 принята: каталог published Genre на `/genres`, вход из header.
+- 2026-08-19: STORY-004 закрыта (`done`, [#30](https://github.com/K-Mickey/roots-of-rhythm/issues/30)).

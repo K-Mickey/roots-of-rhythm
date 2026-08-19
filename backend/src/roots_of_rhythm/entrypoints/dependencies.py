@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 from litestar.di import Provide
 
+from roots_of_rhythm.discovery.application.genre_list import GenreListQuery
 from roots_of_rhythm.discovery.application.genre_overview import GenreOverviewQuery
 from roots_of_rhythm.discovery.application.genre_relations import GenreRelationsQuery
 from roots_of_rhythm.discovery.application.genre_sources import GenreSourcesQuery
@@ -16,6 +17,7 @@ from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemy
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+GENRE_LIST_READER_DEPENDENCY = "genre_list_reader"
 GENRE_OVERVIEW_READER_DEPENDENCY = "genre_overview_reader"
 GENRE_RELATIONS_READER_DEPENDENCY = "genre_relations_reader"
 GENRE_SOURCES_READER_DEPENDENCY = "genre_sources_reader"
@@ -33,6 +35,7 @@ def create_api_dependencies(
     def hk_uow_factory() -> SqlAlchemyHistoricalKnowledgeUnitOfWork:
         return SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory)
 
+    list_query = GenreListQuery(music_uow_factory)
     overview_query = GenreOverviewQuery(music_uow_factory)
     claim_service = ClaimService(hk_uow_factory, GenreUnitOfWorkStatusLookup(music_uow_factory))
     source_service = SourceService(hk_uow_factory)
@@ -40,6 +43,7 @@ def create_api_dependencies(
     sources_query = GenreSourcesQuery(music_uow_factory, claim_service, source_service)
 
     dependencies = {
+        GENRE_LIST_READER_DEPENDENCY: Provide(lambda: list_query, sync_to_thread=False),
         GENRE_OVERVIEW_READER_DEPENDENCY: Provide(lambda: overview_query, sync_to_thread=False),
         GENRE_RELATIONS_READER_DEPENDENCY: Provide(lambda: relations_query, sync_to_thread=False),
         GENRE_SOURCES_READER_DEPENDENCY: Provide(lambda: sources_query, sync_to_thread=False),

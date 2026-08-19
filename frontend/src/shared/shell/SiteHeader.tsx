@@ -11,9 +11,14 @@ export function SiteHeader() {
     >
       <Container fluid px="md" py="md">
         <Group justify="space-between" wrap="nowrap">
-          <Anchor href="/" c="pastel.9" underline="hover" fw={600}>
-            {PRODUCT_NAME}
-          </Anchor>
+          <Group gap="md" wrap="nowrap">
+            <Anchor href="/" c="pastel.9" underline="hover" fw={600}>
+              {PRODUCT_NAME}
+            </Anchor>
+            <Anchor href="/genres" c="pastel.9" underline="hover">
+              Жанры
+            </Anchor>
+          </Group>
         </Group>
       </Container>
     </Box>

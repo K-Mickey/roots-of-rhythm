@@ -95,6 +95,7 @@ backend/src/roots_of_rhythm/
 │   │   ├── dto.py
 │   │   ├── errors.py
 │   │   ├── genre_overview.py
+│   │   ├── genre_list.py
 │   │   ├── genre_relation_projection.py
 │   │   ├── genre_relations.py
 │   │   └── genre_sources.py

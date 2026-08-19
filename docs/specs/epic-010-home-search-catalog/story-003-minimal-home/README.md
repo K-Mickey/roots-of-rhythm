@@ -86,3 +86,4 @@ Epic: [EPIC-010](../README.md).
 - 2026-08-19: Product Owner зафиксировал слоган главной: «История музыки для тех кто танцует и слушает».
 - 2026-08-19: прогон TASK-002 записан в [acceptance.md](acceptance.md) (`draft` до утверждения Product Owner).
 - 2026-08-19: Product Owner закрыл приёмку; STORY-003 переведена в `done`.
+- 2026-08-19: каталог Genre вынесен в [STORY-004](../story-004-published-genre-catalog/README.md); AC-2 для `/` сохраняется.

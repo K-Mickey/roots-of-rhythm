@@ -2,6 +2,7 @@ import type { components } from '@/api/schema';
 
 import { getApiBaseUrl } from './base-url';
 
+export type GenreList = components['schemas']['GenreListResponse'];
 export type GenreOverview = components['schemas']['GenreOverviewResponse'];
 export type GenreRelations = components['schemas']['GenreRelationsResponse'];
 export type GenreSources = components['schemas']['GenreSourcesResponse'];
@@ -67,4 +68,10 @@ export async function fetchGenrePage(
   ]);
 
   return { overview, relations, sources };
+}
+
+export async function fetchPublishedGenres(): Promise<
+  ProjectionResult<GenreList>
+> {
+  return fetchProjection<GenreList>('/api/v1/genres');
 }

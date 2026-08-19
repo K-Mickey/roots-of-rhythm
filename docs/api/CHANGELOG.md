@@ -1,5 +1,16 @@
 # API changelog
 
+## 0.3.0 — 2026-08-19
+
+STORY-004 published Genre catalog:
+
+- added `GET /api/v1/genres` returning `GenreListResponse` with `items` of `GenreSummary` (`id`, `name`);
+- listed only published, not deleted Genres, ordered by canonical name;
+- empty corpus returns `200` with `items: []`;
+- retained `INTERNAL_ERROR` for read failures; this operation does not use `GENRE_NOT_FOUND`.
+
+Breaking changes: none; additive.
+
 ## 0.2.0 — 2026-08-17
 
 STORY-001 page projections split by Product Owner decision:

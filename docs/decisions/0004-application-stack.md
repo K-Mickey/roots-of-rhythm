@@ -187,7 +187,7 @@ Django прямо описывает admin как model-centric internal tool и
 - [ADR-0002](0002-aggregate-and-transaction-boundaries.md)
 - [ADR-0003](0003-extraction-ready-monolith.md)
 - [STORY-001](../specs/epic-001-genre-exploration/story-001-view-published-genre/README.md)
-- [OpenAPI 0.2.0](../api/openapi.yaml)
+- [OpenAPI 0.3.0](../api/openapi.yaml)
 - [UI contract](../specs/epic-001-genre-exploration/story-001-view-published-genre/ui.md)
 - [Структура модулей](../module-structure.md)
 

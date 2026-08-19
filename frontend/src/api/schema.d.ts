@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/api/v1/genres": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published Genres
+         * @description Returns identity summaries of all currently published Genres, ordered by canonical name. Draft, archived, and deleted Genres are omitted. An empty list is a successful result.
+         */
+        get: operations["listPublishedGenres"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/genres/{genre_id}": {
         parameters: {
             query?: never;
@@ -71,6 +91,10 @@ export interface components {
         /** @description Stable opaque identifier whose internal format is not a client contract. */
         PublicId: string;
         NullableText: string | null;
+        GenreListResponse: {
+            /** @description Published Genre summaries ordered by canonical name. */
+            items: components["schemas"]["GenreSummary"][];
+        };
         GenreOverviewResponse: {
             id: components["schemas"]["PublicId"];
             name: string;
@@ -218,6 +242,27 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listPublishedGenres: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ordered published Genre summaries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenreListResponse"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
     getPublishedGenreOverview: {
         parameters: {
             query?: never;

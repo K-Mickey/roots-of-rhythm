@@ -39,6 +39,19 @@ class SqlAlchemyGenreRepository:
         result = await self._session.execute(statement)
         return {record.id: genre_from_record(record) for record in result.scalars()}
 
+    async def list_published(self) -> list[Genre]:
+        statement = (
+            select(ClassificationConceptRecord)
+            .where(
+                ClassificationConceptRecord.kind == ClassificationKind.GENRE.value,
+                ClassificationConceptRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                ClassificationConceptRecord.deleted.is_(False),
+            )
+            .order_by(ClassificationConceptRecord.canonical_name)
+        )
+        result = await self._session.execute(statement)
+        return [genre_from_record(record) for record in result.scalars()]
+
     async def save(self, genre: Genre) -> None:
         record = await self._get_record(genre.id)
         if record is None:

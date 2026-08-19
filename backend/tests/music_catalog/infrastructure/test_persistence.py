@@ -82,6 +82,14 @@ async def test_repository_round_trip_and_public_filter(engine: AsyncEngine) -> N
     assert loaded == published
     assert loaded is not None and loaded.content.primary_image_id == image_id
 
+    jump = await service.create(ClassificationContent.create("Jump Blues", definition="A related genre."))
+    await service.publish(jump.id)
+    draft_only = await service.create(ClassificationContent.create("Unpublished", definition="Still draft."))
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        listed = await uow.genres.list_published()
+    assert [genre.content.canonical_name for genre in listed] == ["Jump Blues", "Swing"]
+    assert draft_only.id not in {genre.id for genre in listed}
+
     await service.archive(draft.id)
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         assert await uow.genres.get_published(draft.id) is None

@@ -10,9 +10,10 @@
 - [EPIC-010: точка входа, каталоги и поиск](epic-010-home-search-catalog/README.md) — `draft`.
 - [Эволюция главной](epic-010-home-search-catalog/home-evolution.md) — `accepted`.
 - [STORY-003: открыть минимальную главную](epic-010-home-search-catalog/story-003-minimal-home/README.md) — `done`.
+- [STORY-004: открыть каталог опубликованных Genre](epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`.
 - [UI contract публичной страницы Genre](epic-001-genre-exploration/story-001-view-published-genre/ui.md) — `accepted`.
 - [Data/API workshop публичной Genre page](epic-001-genre-exploration/story-001-view-published-genre/data-api-workshop.md) — `accepted`.
-- [OpenAPI contract](../api/openapi.yaml) — `0.2.0`.
+- [OpenAPI contract](../api/openapi.yaml) — `0.3.0`.
 - [Декомпозиция STORY-001](epic-001-genre-exploration/story-001-view-published-genre/tasks.md) — `accepted`.
 - [Декомпозиция STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/tasks.md) — `accepted`.
 - [Декомпозиция STORY-003](epic-010-home-search-catalog/story-003-minimal-home/tasks.md) — `accepted`.

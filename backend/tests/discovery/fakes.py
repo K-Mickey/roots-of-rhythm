@@ -4,10 +4,21 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from roots_of_rhythm.discovery.application.dto import (
+        GenreListResponse,
         GenreOverviewResponse,
         GenreRelationsResponse,
         GenreSourcesResponse,
     )
+
+
+class StubGenreListReader:
+    def __init__(self, result: GenreListResponse | Exception) -> None:
+        self._result = result
+
+    async def list(self) -> GenreListResponse:
+        if isinstance(self._result, Exception):
+            raise self._result
+        return self._result
 
 
 class StubGenreOverviewReader:
