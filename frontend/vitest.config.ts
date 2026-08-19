@@ -17,5 +17,8 @@ export default defineConfig({
     environment: 'jsdom',
     exclude: ['e2e/**', 'node_modules/**'],
     setupFiles: ['./vitest.setup.ts'],
+    pool: 'threads',
+    fileParallelism: false,
+    maxWorkers: 1,
   },
 });
