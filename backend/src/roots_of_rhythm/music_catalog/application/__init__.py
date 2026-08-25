@@ -4,6 +4,7 @@ from roots_of_rhythm.music_catalog.application.assignment_service import (
 from roots_of_rhythm.music_catalog.application.errors import (
     ClassificationAssignmentConflict,
     ClassificationAssignmentGenreNotPublished,
+    ClassificationAssignmentGroupNotPublished,
     ClassificationAssignmentNotFound,
     ClassificationAssignmentPersonNotPublished,
     ClassificationAssignmentTargetUnsupported,
@@ -27,6 +28,7 @@ from roots_of_rhythm.music_catalog.application.service import GenreService, Unit
 __all__ = [
     "ClassificationAssignmentConflict",
     "ClassificationAssignmentGenreNotPublished",
+    "ClassificationAssignmentGroupNotPublished",
     "ClassificationAssignmentNotFound",
     "ClassificationAssignmentPersonNotPublished",
     "ClassificationAssignmentRepository",

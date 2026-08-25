@@ -28,6 +28,8 @@ from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditori
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     ClassificationAssignmentRecord,
     ClassificationConceptRecord,
+    GroupMembershipRecord,
+    GroupRecord,
 )
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
@@ -42,11 +44,13 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.integration
 
 
-async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int, int, int]:
+async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int, int, int, int, int]:
     async with engine.connect() as connection:
         genres = await connection.scalar(select(func.count()).select_from(ClassificationConceptRecord))
-        assignments = await connection.scalar(select(func.count()).select_from(ClassificationAssignmentRecord))
         persons = await connection.scalar(select(func.count()).select_from(PersonRecord))
+        groups = await connection.scalar(select(func.count()).select_from(GroupRecord))
+        memberships = await connection.scalar(select(func.count()).select_from(GroupMembershipRecord))
+        assignments = await connection.scalar(select(func.count()).select_from(ClassificationAssignmentRecord))
         claims = await connection.scalar(select(func.count()).select_from(GenreRelationClaimRecord))
         sources = await connection.scalar(select(func.count()).select_from(SourceRecord))
         versions = await connection.scalar(select(func.count()).select_from(SourceVersionRecord))
@@ -55,6 +59,8 @@ async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int, in
     return (
         int(genres or 0),
         int(persons or 0),
+        int(groups or 0),
+        int(memberships or 0),
         int(assignments or 0),
         int(claims or 0),
         int(sources or 0),
@@ -74,7 +80,7 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     await runner.run()
     second = await _counts(engine)
 
-    assert first == second == (3, 6, 7, 2, 2, 2, 4, 4)
+    assert first == second == (3, 6, 4, 4, 11, 2, 2, 2, 4, 4)
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         jazz = await uow.genres.get_published(data.JAZZ_ID)
@@ -94,15 +100,29 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     assert all(person is not None and person.editorial_status is PersonEditorialStatus.PUBLISHED for person in persons)
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
-        assignments = [
+        person_assignments = [
             await uow.assignments.get(assignment_id) for assignment_id, *_ in data.SEED_PERSON_GENRE_ASSIGNMENTS
         ]
+        group_assignments = [
+            await uow.assignments.get(assignment_id) for assignment_id, *_ in data.SEED_GROUP_GENRE_ASSIGNMENTS
+        ]
+        groups = [await uow.groups.get_published(group_id) for group_id, _ in data.SEED_GROUPS]
     assert [
         None if assignment is None else (assignment.editorial_status, assignment.explanation, assignment.provenance)
-        for assignment in assignments
+        for assignment in person_assignments
     ] == [
         (GenreEditorialStatus.PUBLISHED, explanation, provenance)
         for _, _, _, explanation, provenance in data.SEED_PERSON_GENRE_ASSIGNMENTS
+    ]
+    assert [
+        None if assignment is None else (assignment.editorial_status, assignment.explanation, assignment.provenance)
+        for assignment in group_assignments
+    ] == [
+        (GenreEditorialStatus.PUBLISHED, explanation, provenance)
+        for _, _, _, explanation, provenance in data.SEED_GROUP_GENRE_ASSIGNMENTS
+    ]
+    assert [group.canonical_name for group in groups if group is not None] == [
+        content.canonical_name for _, content in data.SEED_GROUPS
     ]
 
     async with SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory) as uow:

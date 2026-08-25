@@ -85,6 +85,20 @@ def test_assignment_publication_accepts_claim_id() -> None:
     assert published.claim_id == claim_id
 
 
+def test_group_assignment_publication_does_not_require_membership() -> None:
+    assignment = ClassificationAssignment.create_for_group(
+        uuid7(),
+        uuid7(),
+        uuid7(),
+        explanation="A Jazz group.",
+        provenance="Editorial review.",
+    )
+
+    published = assignment.publish()
+
+    assert published.editorial_status is EditorialStatus.PUBLISHED
+
+
 def test_assignment_replace_content_preserves_identity_and_status() -> None:
     assignment_id = uuid7()
     person_id = uuid7()

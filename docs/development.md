@@ -22,7 +22,7 @@
 | `make backend-dev` | корень | PostgreSQL, `make setup` | Запускает Litestar на `127.0.0.1:8000` с hot reload. |
 | `make frontend-dev` | корень | `make setup` | Запускает Next.js на `127.0.0.1:3000`. |
 | `make migrate` | корень | PostgreSQL | Выполняет `alembic upgrade head`. |
-| `make seed` | корень | PostgreSQL, миграции | Идемпотентно загружает controlled Genre corpus, две published relations и шесть published Performer с Genre assignments. |
+| `make seed` | корень | PostgreSQL, миграции | Идемпотентно загружает controlled Genre corpus, две published relations, шесть published Performer, четыре published Group с membership и Group→Genre assignments. |
 
 Локальные значения окружения перечислены в `.env.example`. Compose публикует порты только на `127.0.0.1`: PostgreSQL `5432`, backend `8000`, frontend `3000`. Frontend SSR читает `API_BASE_URL` (host default `http://127.0.0.1:8000`, в Compose — `http://backend:8000`).
 

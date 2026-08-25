@@ -29,6 +29,10 @@ class ClassificationAssignmentPersonNotPublished(ValueError):
     pass
 
 
+class ClassificationAssignmentGroupNotPublished(ValueError):
+    pass
+
+
 class ClassificationAssignmentGenreNotPublished(ValueError):
     pass
 

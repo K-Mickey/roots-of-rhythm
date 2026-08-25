@@ -20,8 +20,10 @@ from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope, m
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentService,
     GenreService,
+    GroupMembershipService,
+    GroupService,
 )
-from roots_of_rhythm.music_catalog.domain import ClassificationContent
+from roots_of_rhythm.music_catalog.domain import ClassificationContent, GroupContent, GroupMembershipContent
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.application import PersonService
@@ -52,6 +54,8 @@ class CorpusSeedRunner:
             session_factory
         )
         self._genres = GenreService(self._music_uow)
+        self._groups = GroupService(self._music_uow)
+        self._group_memberships = GroupMembershipService(self._music_uow)
         self._persons = PersonService(self._people_uow)
         self._assignments = ClassificationAssignmentService(lambda: music_people_scope(session_factory))
         self._sources = SourceService(self._hk_uow)
@@ -63,7 +67,10 @@ class CorpusSeedRunner:
         await self._ensure_sources()
         await self._ensure_genres()
         await self._ensure_persons()
+        await self._ensure_groups()
+        await self._ensure_group_memberships()
         await self._ensure_assignments()
+        await self._ensure_group_genre_assignments()
         await self._ensure_claims()
 
     async def _ensure_sources(self) -> None:
@@ -230,7 +237,7 @@ class CorpusSeedRunner:
 
     async def _ensure_assignments(self) -> None:
         for assignment_id, person_id, genre_id, explanation, provenance in data.SEED_PERSON_GENRE_ASSIGNMENTS:
-            await self._ensure_published_assignment(
+            await self._ensure_published_person_assignment(
                 assignment_id,
                 person_id,
                 genre_id,
@@ -238,7 +245,57 @@ class CorpusSeedRunner:
                 provenance=provenance,
             )
 
-    async def _ensure_published_assignment(
+    async def _ensure_group_genre_assignments(self) -> None:
+        for assignment_id, group_id, genre_id, explanation, provenance in data.SEED_GROUP_GENRE_ASSIGNMENTS:
+            await self._ensure_published_group_assignment(
+                assignment_id,
+                group_id,
+                genre_id,
+                explanation=explanation,
+                provenance=provenance,
+            )
+
+    async def _ensure_groups(self) -> None:
+        for group_id, content in data.SEED_GROUPS:
+            await self._ensure_published_group(group_id, content)
+
+    async def _ensure_published_group(self, group_id: UUID, content: GroupContent) -> None:
+        async with self._music_uow() as uow:
+            existing = await uow.groups.get(group_id)
+        if existing is None:
+            await self._groups.create(content, group_id=group_id)
+            await self._groups.publish(group_id)
+            return
+        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+            await self._groups.publish(group_id)
+
+    async def _ensure_group_memberships(self) -> None:
+        for membership_id, person_id, group_id, content in data.SEED_GROUP_MEMBERSHIPS:
+            await self._ensure_published_group_membership(membership_id, person_id, group_id, content)
+
+    async def _ensure_published_group_membership(
+        self,
+        membership_id: UUID,
+        person_id: UUID,
+        group_id: UUID,
+        content: GroupMembershipContent,
+    ) -> None:
+        async with self._music_uow() as uow:
+            existing = await uow.group_memberships.get(membership_id)
+        if existing is None:
+            await self._group_memberships.create(person_id, group_id, content, membership_id=membership_id)
+            await self._group_memberships.publish(membership_id)
+            return
+        if (
+            existing.period != content.period
+            or existing.roles_or_instruments != content.roles_or_instruments
+            or existing.provenance != content.provenance
+        ):
+            await self._group_memberships.replace_content(membership_id, content)
+        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+            await self._group_memberships.publish(membership_id)
+
+    async def _ensure_published_person_assignment(
         self,
         assignment_id: UUID,
         person_id: UUID,
@@ -252,6 +309,38 @@ class CorpusSeedRunner:
         if existing is None:
             await self._assignments.create_for_person(
                 person_id,
+                genre_id,
+                explanation=explanation,
+                provenance=provenance,
+                assignment_id=assignment_id,
+            )
+            await self._assignments.publish(assignment_id)
+            return
+        if existing.explanation != explanation or existing.provenance != provenance:
+            await self._assignments.replace_content(
+                assignment_id,
+                explanation=explanation,
+                claim_id=existing.claim_id,
+                provenance=provenance,
+                evidence_status=existing.evidence_status,
+            )
+        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+            await self._assignments.publish(assignment_id)
+
+    async def _ensure_published_group_assignment(
+        self,
+        assignment_id: UUID,
+        group_id: UUID,
+        genre_id: UUID,
+        *,
+        explanation: str,
+        provenance: str,
+    ) -> None:
+        async with self._music_uow() as uow:
+            existing = await uow.assignments.get(assignment_id)
+        if existing is None:
+            await self._assignments.create_for_group(
+                group_id,
                 genre_id,
                 explanation=explanation,
                 provenance=provenance,
