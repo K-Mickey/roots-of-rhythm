@@ -7,8 +7,13 @@ if TYPE_CHECKING:
     from types import TracebackType
     from uuid import UUID
 
-    from roots_of_rhythm.music_catalog.application.ports import ClassificationAssignmentRepository, GenreRepository
-    from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, Genre
+    from roots_of_rhythm.music_catalog.application.ports import (
+        ClassificationAssignmentRepository,
+        GenreRepository,
+        GroupMembershipRepository,
+        GroupRepository,
+    )
+    from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, Genre, Group, GroupMembership
 
 
 class FakeClassificationAssignmentRepository:
@@ -81,14 +86,86 @@ class FakeGenreRepository:
         )
 
 
+class FakeGroupRepository:
+    def __init__(self, groups: dict[UUID, Group]) -> None:
+        self._groups = groups
+
+    async def add(self, group: Group) -> None:
+        self._groups[group.id] = group
+
+    async def get(self, group_id: UUID, *, for_update: bool = False) -> Group | None:
+        return self._groups.get(group_id)
+
+    async def get_published(self, group_id: UUID, *, for_update: bool = False) -> Group | None:
+        group = self._groups.get(group_id)
+        return group if group is not None and group.editorial_status is EditorialStatus.PUBLISHED else None
+
+    async def list_published(self) -> list[Group]:
+        return sorted(
+            (group for group in self._groups.values() if group.editorial_status is EditorialStatus.PUBLISHED),
+            key=lambda group: group.canonical_name,
+        )
+
+    async def save(self, group: Group) -> None:
+        if group.id not in self._groups:
+            raise LookupError(str(group.id))
+        self._groups[group.id] = group
+
+    async def mark_deleted(self, group_id: UUID) -> None:
+        self._groups.pop(group_id, None)
+
+
+class FakeGroupMembershipRepository:
+    def __init__(self, memberships: dict[UUID, GroupMembership]) -> None:
+        self._memberships = memberships
+
+    async def add(self, membership: GroupMembership) -> None:
+        self._memberships[membership.id] = membership
+
+    async def get(self, membership_id: UUID, *, for_update: bool = False) -> GroupMembership | None:
+        return self._memberships.get(membership_id)
+
+    async def get_published(self, membership_id: UUID, *, for_update: bool = False) -> GroupMembership | None:
+        membership = self._memberships.get(membership_id)
+        if membership is None or membership.editorial_status is not EditorialStatus.PUBLISHED:
+            return None
+        return membership
+
+    async def list_published_by_group(self, group_id: UUID) -> list[GroupMembership]:
+        return sorted(
+            (
+                membership
+                for membership in self._memberships.values()
+                if membership.group_id == group_id and membership.editorial_status is EditorialStatus.PUBLISHED
+            ),
+            key=lambda membership: membership.id,
+        )
+
+    async def save(self, membership: GroupMembership) -> None:
+        if membership.id not in self._memberships:
+            raise LookupError(str(membership.id))
+        self._memberships[membership.id] = membership
+
+    async def mark_deleted(self, membership_id: UUID) -> None:
+        self._memberships.pop(membership_id, None)
+
+
 class FakeMusicCatalogUnitOfWork:
     def __init__(
         self,
         genres: dict[UUID, Genre],
         assignments: dict[UUID, ClassificationAssignment] | None = None,
+        groups: dict[UUID, Group] | None = None,
+        group_memberships: dict[UUID, GroupMembership] | None = None,
     ) -> None:
         self.genres: GenreRepository = FakeGenreRepository(genres)
-        self.assignments: ClassificationAssignmentRepository = FakeClassificationAssignmentRepository(assignments or {})
+        self.assignments: ClassificationAssignmentRepository = FakeClassificationAssignmentRepository(
+            {} if assignments is None else assignments
+        )
+        self.groups: GroupRepository = FakeGroupRepository({} if groups is None else groups)
+        self.group_memberships: GroupMembershipRepository = FakeGroupMembershipRepository(
+            {} if group_memberships is None else group_memberships
+        )
         self.commits = 0
         self.rollbacks = 0
 

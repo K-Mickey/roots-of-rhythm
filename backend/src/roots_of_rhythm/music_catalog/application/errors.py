@@ -35,3 +35,11 @@ class ClassificationAssignmentGenreNotPublished(ValueError):
 
 class ClassificationAssignmentTargetUnsupported(ValueError):
     pass
+
+
+class GroupNotFound(LookupError):
+    pass
+
+
+class GroupMembershipNotFound(LookupError):
+    pass

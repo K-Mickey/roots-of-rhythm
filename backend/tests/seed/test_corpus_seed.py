@@ -150,10 +150,12 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
         fragment is not None and fragment.review_status is FragmentReviewStatus.REVIEWED for fragment in fragments
     )
 
-    # Controlled corpus must not introduce separate Performer/Group/Recording persistence.
+    # Controlled corpus must not introduce Performer/Recording persistence.
+    # Group tables exist (TASK-001); group seed is TASK-002.
     async with engine.connect() as connection:
         tables = set(await connection.run_sync(lambda sync: sync.dialect.get_table_names(sync)))
-    assert not {"performers", "groups", "recordings"} & tables
+    assert not {"performers", "recordings"} & tables
+    assert {"groups", "group_memberships"} <= tables
 
 
 @pytest.mark.asyncio

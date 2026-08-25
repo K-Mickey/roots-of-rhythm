@@ -14,6 +14,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
+from roots_of_rhythm.music_catalog.application import GroupMembershipService, GroupService
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
@@ -26,6 +27,8 @@ GENRE_RELATIONS_READER_DEPENDENCY = "genre_relations_reader"
 GENRE_SOURCES_READER_DEPENDENCY = "genre_sources_reader"
 PERFORMER_LIST_READER_DEPENDENCY = "performer_list_reader"
 PERFORMER_OVERVIEW_READER_DEPENDENCY = "performer_overview_reader"
+GROUP_SERVICE_DEPENDENCY = "group_service"
+GROUP_MEMBERSHIP_SERVICE_DEPENDENCY = "group_membership_service"
 
 type DependencyProviders = Mapping[str, Provide]
 
@@ -49,6 +52,8 @@ def create_api_dependencies(
     performer_overview_query = PerformerOverviewQuery(people_uow_factory, music_uow_factory)
     claim_service = ClaimService(lambda: knowledge_music_scope(session_factory))
     source_service = SourceService(hk_uow_factory)
+    group_service = GroupService(music_uow_factory)
+    group_membership_service = GroupMembershipService(music_uow_factory)
     relations_query = GenreRelationsQuery(music_uow_factory, claim_service)
     sources_query = GenreSourcesQuery(music_uow_factory, claim_service, source_service)
 
@@ -59,6 +64,8 @@ def create_api_dependencies(
         GENRE_SOURCES_READER_DEPENDENCY: Provide(lambda: sources_query, sync_to_thread=False),
         PERFORMER_LIST_READER_DEPENDENCY: Provide(lambda: performer_list_query, sync_to_thread=False),
         PERFORMER_OVERVIEW_READER_DEPENDENCY: Provide(lambda: performer_overview_query, sync_to_thread=False),
+        GROUP_SERVICE_DEPENDENCY: Provide(lambda: group_service, sync_to_thread=False),
+        GROUP_MEMBERSHIP_SERVICE_DEPENDENCY: Provide(lambda: group_membership_service, sync_to_thread=False),
     }
     if overrides is not None:
         dependencies.update(overrides)

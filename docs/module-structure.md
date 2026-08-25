@@ -68,16 +68,22 @@ backend/src/roots_of_rhythm/
 │   │   ├── errors.py
 │   │   ├── assignment.py
 │   │   ├── genre.py
+│   │   ├── group.py
+│   │   ├── group_membership.py
 │   │   └── value_objects.py
 │   ├── application/
 │   │   ├── errors.py
 │   │   ├── assignment_service.py
+│   │   ├── group_membership_service.py
+│   │   ├── group_service.py
 │   │   ├── ports.py
 │   │   └── service.py
 │   └── infrastructure/
 │       ├── mapping.py
 │       ├── models.py
 │       ├── assignment_repository.py
+│       ├── group_membership_repository.py
+│       ├── group_repository.py
 │       ├── repository.py
 │       └── unit_of_work.py
 ├── historical_knowledge/

@@ -19,6 +19,8 @@ from roots_of_rhythm.infrastructure.database import create_database_engine
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     ClassificationAssignmentRecord,
     ClassificationConceptRecord,
+    GroupMembershipRecord,
+    GroupRecord,
 )
 from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
 
@@ -34,6 +36,8 @@ _CORPUS_TABLES = (
     SourceVersionRecord,
     SourceRecord,
     ClassificationAssignmentRecord,
+    GroupMembershipRecord,
+    GroupRecord,
     ClassificationConceptRecord,
     PersonRecord,
 )

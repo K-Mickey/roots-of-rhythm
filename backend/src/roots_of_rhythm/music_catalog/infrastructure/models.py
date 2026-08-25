@@ -11,6 +11,7 @@ from roots_of_rhythm.music_catalog.domain.enums import (
     ClassificationTargetKind,
     EditorialStatus,
     EvidenceStatus,
+    TemporalPrecision,
 )
 from roots_of_rhythm.music_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
 
@@ -21,6 +22,15 @@ TARGET_KIND_CHECK = f"target_kind IN ({', '.join(repr(kind.value) for kind in Cl
 EDITORIAL_STATUS_CHECK = f"editorial_status IN ({', '.join(repr(status.value) for status in EditorialStatus)})"
 EVIDENCE_STATUS_CHECK = f"evidence_status IN ({', '.join(repr(status.value) for status in EvidenceStatus)})"
 CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT = "uq_classification_assignments_target_concept"
+TEMPORAL_PRECISION_CHECK = (
+    "({year_column} IS NULL AND {precision_column} IS NULL) OR "
+    "({year_column} IS NOT NULL AND {precision_column} IN "
+    f"({', '.join(repr(precision.value) for precision in TemporalPrecision)}))"
+)
+PERIOD_START_YEAR_COLUMN = "period_start_year"
+PERIOD_START_PRECISION_COLUMN = "period_start_precision"
+PERIOD_END_YEAR_COLUMN = "period_end_year"
+PERIOD_END_PRECISION_COLUMN = "period_end_precision"
 
 
 class MusicCatalogBase(DeclarativeBase):
@@ -106,3 +116,81 @@ Index(
     ClassificationAssignmentRecord.target_kind,
     ClassificationAssignmentRecord.target_id,
 )
+
+
+class GroupRecord(ServiceColumnsMixin, MusicCatalogBase):
+    __tablename__ = "groups"
+    __table_args__ = (
+        CheckConstraint(EDITORIAL_STATUS_CHECK, name="ck_groups_editorial_status"),
+        CheckConstraint(
+            TEMPORAL_PRECISION_CHECK.format(
+                year_column=PERIOD_START_YEAR_COLUMN,
+                precision_column=PERIOD_START_PRECISION_COLUMN,
+            ),
+            name="ck_groups_period_start",
+        ),
+        CheckConstraint(
+            TEMPORAL_PRECISION_CHECK.format(
+                year_column=PERIOD_END_YEAR_COLUMN,
+                precision_column=PERIOD_END_PRECISION_COLUMN,
+            ),
+            name="ck_groups_period_end",
+        ),
+        CheckConstraint(
+            "period_start_year IS NULL OR period_end_year IS NULL OR period_start_year <= period_end_year",
+            name="ck_groups_period_order",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
+    editorial_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    canonical_name: Mapped[str] = mapped_column(String(SHORT_TEXT_MAX_LENGTH), nullable=False)
+    aliases: Mapped[list[str]] = mapped_column(ARRAY(String(SHORT_TEXT_MAX_LENGTH)), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(LONG_TEXT_MAX_LENGTH))
+    period_start_year: Mapped[int | None]
+    period_start_precision: Mapped[str | None] = mapped_column(String(32))
+    period_end_year: Mapped[int | None]
+    period_end_precision: Mapped[str | None] = mapped_column(String(32))
+
+
+Index("ix_groups_editorial_status", GroupRecord.editorial_status)
+
+
+class GroupMembershipRecord(ServiceColumnsMixin, MusicCatalogBase):
+    __tablename__ = "group_memberships"
+    __table_args__ = (
+        CheckConstraint(EDITORIAL_STATUS_CHECK, name="ck_group_memberships_editorial_status"),
+        CheckConstraint(
+            TEMPORAL_PRECISION_CHECK.format(
+                year_column=PERIOD_START_YEAR_COLUMN,
+                precision_column=PERIOD_START_PRECISION_COLUMN,
+            ),
+            name="ck_group_memberships_period_start",
+        ),
+        CheckConstraint(
+            TEMPORAL_PRECISION_CHECK.format(
+                year_column=PERIOD_END_YEAR_COLUMN,
+                precision_column=PERIOD_END_PRECISION_COLUMN,
+            ),
+            name="ck_group_memberships_period_end",
+        ),
+        CheckConstraint(
+            "period_start_year IS NULL OR period_end_year IS NULL OR period_start_year <= period_end_year",
+            name="ck_group_memberships_period_order",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
+    person_id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), nullable=False)
+    group_id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), nullable=False)
+    editorial_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    period_start_year: Mapped[int | None]
+    period_start_precision: Mapped[str | None] = mapped_column(String(32))
+    period_end_year: Mapped[int | None]
+    period_end_precision: Mapped[str | None] = mapped_column(String(32))
+    roles_or_instruments: Mapped[list[str]] = mapped_column(ARRAY(String(SHORT_TEXT_MAX_LENGTH)), nullable=False)
+    provenance: Mapped[str | None] = mapped_column(String(LONG_TEXT_MAX_LENGTH))
+
+
+Index("ix_group_memberships_group_id", GroupMembershipRecord.group_id)
+Index("ix_group_memberships_person_id", GroupMembershipRecord.person_id)

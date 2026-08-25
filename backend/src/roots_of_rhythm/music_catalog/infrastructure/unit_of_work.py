@@ -7,6 +7,10 @@ from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintVio
 from roots_of_rhythm.music_catalog.infrastructure.assignment_repository import (
     SqlAlchemyClassificationAssignmentRepository,
 )
+from roots_of_rhythm.music_catalog.infrastructure.group_membership_repository import (
+    SqlAlchemyGroupMembershipRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
     CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
@@ -18,7 +22,12 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from roots_of_rhythm.music_catalog.application.ports import ClassificationAssignmentRepository, GenreRepository
+    from roots_of_rhythm.music_catalog.application.ports import (
+        ClassificationAssignmentRepository,
+        GenreRepository,
+        GroupMembershipRepository,
+        GroupRepository,
+    )
 
 
 class SqlAlchemyMusicCatalogUnitOfWork:
@@ -36,6 +45,8 @@ class SqlAlchemyMusicCatalogUnitOfWork:
         self._owns_session = owns_session
         self.genres: GenreRepository = SqlAlchemyGenreRepository(session)
         self.assignments: ClassificationAssignmentRepository = SqlAlchemyClassificationAssignmentRepository(session)
+        self.groups: GroupRepository = SqlAlchemyGroupRepository(session)
+        self.group_memberships: GroupMembershipRepository = SqlAlchemyGroupMembershipRepository(session)
 
     async def __aenter__(self) -> Self:
         return self
