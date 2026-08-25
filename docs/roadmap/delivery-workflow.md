@@ -45,6 +45,22 @@ Issue не становится копией specification. Он содержи�
 - Blocked item хранит причину, владельца следующего действия и дату повторной проверки.
 - Future ideas остаются в docs future scope или backlog и не смешиваются с committed milestone.
 
+## Ветки и Pull Request
+
+Ветка именуется `<type>/<issue-number>-<short-description>`, например `feat/31-performer-page`. `type` принимает значения `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `build`, `ci`; описание пишется в lowercase kebab-case. Номер GitHub issue уникален в repository, поэтому идентификаторы `STORY-*` и `TASK-*`, которые могут повторяться в разных stories, в имени ветки не дублируются. Ручная привязка ветки через GitHub Development не требуется.
+
+Заголовок Pull Request использует формат commit: `type(scope): сообщение`, например `feat(performer-page): добавил страницу исполнителя`. Сообщение пишется кратко, в прошедшем времени и без точки в конце.
+
+Описание Pull Request содержит:
+
+- краткий результат изменения;
+- `Closes #<issue-number>` для связи и автоматического закрытия issue после merge в default branch;
+- ссылку на исходную specification;
+- фактически выполненные проверки и их результаты;
+- обязательные проверки, которые выполнить не удалось.
+
+Перед созданием Pull Request нужно проверить diff и отсутствие чужих изменений и секретов. Ветка и Pull Request создаются только по явной команде пользователя. Pull Request template и автоматическая проверка имени ветки не требуются.
+
 ## Контроль процесса
 
 Периодически проверять:
