@@ -9,12 +9,12 @@ from roots_of_rhythm.discovery.application.dto import (
     TemporalBoundView,
 )
 from roots_of_rhythm.discovery.application.errors import GroupOverviewNotFound
-from roots_of_rhythm.music_catalog.domain.value_objects import ExistencePeriod, TemporalBound
 
 if TYPE_CHECKING:
     from uuid import UUID
 
     from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
+    from roots_of_rhythm.music_catalog.domain.value_objects import ExistencePeriod, TemporalBound
     from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
 
 type PeopleUnitOfWorkFactory = Callable[[], PeopleCatalogUnitOfWork]

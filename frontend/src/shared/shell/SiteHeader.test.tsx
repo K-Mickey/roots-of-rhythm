@@ -25,5 +25,9 @@ describe('SiteHeader', () => {
       'href',
       '/performers',
     );
+    expect(screen.getByRole('link', { name: 'Группы' })).toHaveAttribute(
+      'href',
+      '/groups',
+    );
   });
 });

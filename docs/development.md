@@ -26,7 +26,7 @@
 
 Локальные значения окружения перечислены в `.env.example`. Compose публикует порты только на `127.0.0.1`: PostgreSQL `5432`, backend `8000`, frontend `3000`. Frontend SSR читает `API_BASE_URL` (host default `http://127.0.0.1:8000`, в Compose — `http://backend:8000`).
 
-Публичная главная: `http://127.0.0.1:3000/`. Каталоги: `/genres`, `/performers`. Публичные страницы: `/genres/{genre_id}`, `/performers/{performer_id}`. Публичные API: `GET /api/v1/groups`, `GET /api/v1/groups/{group_id}` (UI-каталог `/groups` — STORY-006 TASK-004). Seed Swing: `/genres/01a0147a-8508-74b7-9689-e7c133e4e7a5`; Louis Armstrong: `/performers/01a01a72-1be5-7542-b935-47f617f2cfd3`.
+Публичная главная: `http://127.0.0.1:3000/`. Каталоги: `/genres`, `/performers`, `/groups`. Публичные страницы: `/genres/{genre_id}`, `/performers/{performer_id}`, `/groups/{group_id}`. Публичные API: `GET /api/v1/groups`, `GET /api/v1/groups/{group_id}`. Seed Swing: `/genres/01a0147a-8508-74b7-9689-e7c133e4e7a5`; Louis Armstrong: `/performers/01a01a72-1be5-7542-b935-47f617f2cfd3`; Count Basie Orchestra: `/groups/01a01a72-2c01-7000-8000-000000000003`.
 
 ## Проверки
 
@@ -39,7 +39,7 @@
 | `make test-unit` | `make setup` | Запускает backend unit tests и Vitest. |
 | `make test-db-setup` | Docker, `make setup` | Идемпотентно создаёт БД `roots_of_rhythm_test` через запущенный сервис `postgres` и применяет к ней Alembic migrations. |
 | `make test-integration` | Docker, `make setup` | Выполняет `make test-db-setup` и проверяет readiness и persistence на изолированной БД `roots_of_rhythm_test`. |
-| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: `/`, identity/not-found HOME-0, header «Жанры» и «Исполнители», каталоги `/genres` и `/performers`, seed Swing page, seed Louis Armstrong page и переходы relation-имён Swing→Jazz и Swing→Jump Blues. |
+| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: `/`, identity/not-found HOME-0, header «Жанры», «Исполнители» и «Группы», каталоги `/genres`, `/performers` и `/groups`, seed Swing page, seed Louis Armstrong page, seed Count Basie Orchestra page и переходы relation-имён Swing→Jazz и Swing→Jump Blues. |
 | `make contract-check` | `make setup` | Проверяет OpenAPI через Redocly и отсутствие drift в generated TypeScript contract. |
 | `make build` | Docker | Собирает production images backend и frontend. |
 | `make check` | Docker, `make setup` | Выполняет format-check, lint, typecheck, unit tests, contract-check и Docker build. |

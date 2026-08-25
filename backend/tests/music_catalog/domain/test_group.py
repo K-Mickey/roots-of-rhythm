@@ -69,14 +69,14 @@ def test_group_publish_requires_only_canonical_name() -> None:
 def test_group_membership_accepts_minimal_and_rich_content() -> None:
     minimal = GroupMembership.create(uuid7(), uuid7(), uuid7())
     rich = GroupMembership.create(
-      uuid7(),
-      uuid7(),
-      uuid7(),
-      GroupMembershipContent.create(
-          period=ExistencePeriod.create(start=TemporalBound(1940, TemporalPrecision.EXACT_YEAR)),
-          roles_or_instruments=("alto saxophone", "leader"),
-          provenance="Editorial note.",
-      ),
+        uuid7(),
+        uuid7(),
+        uuid7(),
+        GroupMembershipContent.create(
+            period=ExistencePeriod.create(start=TemporalBound(1940, TemporalPrecision.EXACT_YEAR)),
+            roles_or_instruments=("alto saxophone", "leader"),
+            provenance="Editorial note.",
+        ),
     )
 
     assert minimal.period is None
