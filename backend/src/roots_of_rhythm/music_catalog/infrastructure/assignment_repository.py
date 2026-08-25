@@ -44,6 +44,16 @@ class SqlAlchemyClassificationAssignmentRepository:
         result = await self._session.execute(statement)
         return [assignment_from_record(record) for record in result.scalars()]
 
+    async def list_published_for_group(self, group_id: UUID) -> list[ClassificationAssignment]:
+        statement = select(ClassificationAssignmentRecord).where(
+            ClassificationAssignmentRecord.target_kind == ClassificationTargetKind.GROUP.value,
+            ClassificationAssignmentRecord.target_id == group_id,
+            ClassificationAssignmentRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+            ClassificationAssignmentRecord.deleted.is_(False),
+        )
+        result = await self._session.execute(statement)
+        return [assignment_from_record(record) for record in result.scalars()]
+
     async def save(self, assignment: ClassificationAssignment) -> None:
         statement = select(ClassificationAssignmentRecord).where(
             ClassificationAssignmentRecord.id == assignment.id,

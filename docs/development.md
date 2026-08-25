@@ -26,7 +26,7 @@
 
 Локальные значения окружения перечислены в `.env.example`. Compose публикует порты только на `127.0.0.1`: PostgreSQL `5432`, backend `8000`, frontend `3000`. Frontend SSR читает `API_BASE_URL` (host default `http://127.0.0.1:8000`, в Compose — `http://backend:8000`).
 
-Публичная главная: `http://127.0.0.1:3000/`. Каталоги: `/genres`, `/performers`. Публичные страницы: `/genres/{genre_id}`, `/performers/{performer_id}`. Seed Swing: `/genres/01a0147a-8508-74b7-9689-e7c133e4e7a5`; Louis Armstrong: `/performers/01a01a72-1be5-7542-b935-47f617f2cfd3`.
+Публичная главная: `http://127.0.0.1:3000/`. Каталоги: `/genres`, `/performers`. Публичные страницы: `/genres/{genre_id}`, `/performers/{performer_id}`. Публичные API: `GET /api/v1/groups`, `GET /api/v1/groups/{group_id}` (UI-каталог `/groups` — STORY-006 TASK-004). Seed Swing: `/genres/01a0147a-8508-74b7-9689-e7c133e4e7a5`; Louis Armstrong: `/performers/01a01a72-1be5-7542-b935-47f617f2cfd3`.
 
 ## Проверки
 

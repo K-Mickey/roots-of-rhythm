@@ -8,6 +8,8 @@ if TYPE_CHECKING:
         GenreOverviewResponse,
         GenreRelationsResponse,
         GenreSourcesResponse,
+        GroupListResponse,
+        GroupOverviewResponse,
         PerformerListResponse,
         PerformerOverviewResponse,
     )
@@ -72,6 +74,27 @@ class StubPerformerOverviewReader:
 
     async def get(self, performer_id: UUID) -> PerformerOverviewResponse:
         del performer_id
+        if isinstance(self._result, Exception):
+            raise self._result
+        return self._result
+
+
+class StubGroupListReader:
+    def __init__(self, result: GroupListResponse | Exception) -> None:
+        self._result = result
+
+    async def list(self) -> GroupListResponse:
+        if isinstance(self._result, Exception):
+            raise self._result
+        return self._result
+
+
+class StubGroupOverviewReader:
+    def __init__(self, result: GroupOverviewResponse | Exception) -> None:
+        self._result = result
+
+    async def get(self, group_id: UUID) -> GroupOverviewResponse:
+        del group_id
         if isinstance(self._result, Exception):
             raise self._result
         return self._result

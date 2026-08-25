@@ -4,6 +4,8 @@ from roots_of_rhythm.discovery.application.dto import (
     GenreOverviewResponse,
     GenreRelationsResponse,
     GenreSourcesResponse,
+    GroupListResponse,
+    GroupOverviewResponse,
     PerformerListResponse,
     PerformerOverviewResponse,
     PersonDateView,
@@ -15,12 +17,15 @@ from roots_of_rhythm.discovery.application.errors import (
     GenreRelationsNotFound,
     GenreSourcesAssemblyError,
     GenreSourcesNotFound,
+    GroupOverviewNotFound,
     PerformerOverviewNotFound,
 )
 from roots_of_rhythm.discovery.application.genre_list import GenreListQuery, GenreListReader
 from roots_of_rhythm.discovery.application.genre_overview import GenreOverviewQuery, GenreOverviewReader
 from roots_of_rhythm.discovery.application.genre_relations import GenreRelationsQuery, GenreRelationsReader
 from roots_of_rhythm.discovery.application.genre_sources import GenreSourcesQuery, GenreSourcesReader
+from roots_of_rhythm.discovery.application.group_list import GroupListQuery, GroupListReader
+from roots_of_rhythm.discovery.application.group_overview import GroupOverviewQuery, GroupOverviewReader
 from roots_of_rhythm.discovery.application.performer_list import PerformerListQuery, PerformerListReader
 from roots_of_rhythm.discovery.application.performer_overview import (
     PerformerOverviewQuery,
@@ -46,6 +51,13 @@ __all__ = [
     "GenreSourcesQuery",
     "GenreSourcesReader",
     "GenreSourcesResponse",
+    "GroupListQuery",
+    "GroupListReader",
+    "GroupListResponse",
+    "GroupOverviewNotFound",
+    "GroupOverviewQuery",
+    "GroupOverviewReader",
+    "GroupOverviewResponse",
     "ExternalIdentityView",
     "PerformerListQuery",
     "PerformerListReader",

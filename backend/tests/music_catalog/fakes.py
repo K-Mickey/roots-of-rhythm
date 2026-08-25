@@ -27,10 +27,25 @@ class FakeClassificationAssignmentRepository:
         return self._assignments.get(assignment_id)
 
     async def list_published_for_person(self, person_id: UUID) -> list[ClassificationAssignment]:
+        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
+
         return [
             assignment
             for assignment in self._assignments.values()
-            if assignment.target_id == person_id and assignment.editorial_status is EditorialStatus.PUBLISHED
+            if assignment.target_kind is ClassificationTargetKind.PERSON
+            and assignment.target_id == person_id
+            and assignment.editorial_status is EditorialStatus.PUBLISHED
+        ]
+
+    async def list_published_for_group(self, group_id: UUID) -> list[ClassificationAssignment]:
+        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
+
+        return [
+            assignment
+            for assignment in self._assignments.values()
+            if assignment.target_kind is ClassificationTargetKind.GROUP
+            and assignment.target_id == group_id
+            and assignment.editorial_status is EditorialStatus.PUBLISHED
         ]
 
     async def save(self, assignment: ClassificationAssignment) -> None:
