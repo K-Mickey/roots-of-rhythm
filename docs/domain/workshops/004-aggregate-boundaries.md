@@ -59,13 +59,15 @@ Aggregate не означает:
 |---|---|---|
 | `ClassificationConcept` | kind, canonical name, aliases, определение, границы и статус | assignments и исторические relations |
 | `Group` | identity metadata, aliases, период существования и статус | memberships, recordings, Claims |
-| `MusicalWork` | identity произведения, названия, авторские metadata доступной глубины | recordings и releases |
-| `Recording` | metadata исполнения, ссылка на MusicalWork и ограниченная коллекция RecordingCredit | classifications, Claims, releases |
+| `MusicalWork` | identity произведения, названия и авторские metadata доступной глубины | recordings и releases |
+| `Recording` | metadata исполнения и ограниченные коллекции RecordingCredit, RecordingWorkUsage и RecordingLyricsUsage | classifications, Claims, releases |
 | `Release` | metadata издания и упорядоченные Track | Recording и их credits |
 | `GroupMembership` | PersonId, GroupId, период, роли/инструменты, provenance и статус | Person и Group целиком |
 | `ClassificationAssignment` | target ID/type, concept ID, explanation или claim_id, provenance, evidence/editorial status | target и concept целиком |
 
 `RecordingCredit` является дочерней Entity внутри Recording, а не отдельным Aggregate Root. Причина: минимальный инвариант публикации Recording — хотя бы один `billing_role=primary`; добавление, удаление и проверка credits должны быть согласованы с Recording. Количество credits одной Recording естественно ограничено.
+
+`RecordingWorkUsage` также является дочерней Entity: публикация требует хотя бы один usage на published Work, а обычная Recording использует один или несколько Works естественно ограниченного medley. `RecordingLyricsUsage` входит в тот же root, чтобы фактически звучащая LyricsVersion атомарно проверялась против Work usages. Полные Work и LyricsVersion не входят в Recording и загружаются по ID. Это уточнение проектируется в [ADR-0007](../../decisions/0007-musical-work-recording-and-origin-boundaries.md), который остаётся `proposed` до отдельного принятия.
 
 `GroupMembership` является отдельным aggregate: состав группы меняется независимо, может быть неполным и со временем образует растущую коллекцию. Group публикуется без полного состава.
 
@@ -175,7 +177,7 @@ Write-команды identity aggregates блокируют корневую с�
 
 | Команда | Одна транзакция | Не происходит автоматически |
 |---|---|---|
-| Опубликовать Recording | Recording и его credits | публикация Person, Group, Claims и assignments |
+| Опубликовать Recording | Recording, credits, Work usages и lyrics usages | публикация Person, Group, Works, LyricsVersion, Claims и assignments |
 | Добавить GroupMembership | новая membership и проверка IDs/периода | изменение Group или Person |
 | Поддержать Claim Evidence | Claim и его evidence references/status | изменение SourceFragment |
 | Опубликовать Story | Story, sections и narrative references | публикация всех упомянутых Claims |
@@ -199,7 +201,7 @@ Deferred:              публичная страница Track; полный �
 ## Принятые решения
 
 1. Принят принцип малых aggregates и ссылок по ID вместо общего графового aggregate.
-2. `RecordingCredit` входит в Recording; GroupMembership и ClassificationAssignment являются самостоятельными aggregates.
+2. `RecordingCredit`, `RecordingWorkUsage` и `RecordingLyricsUsage` входят в Recording; GroupMembership и ClassificationAssignment являются самостоятельными aggregates.
 3. Claim владеет Evidence references; Source, SourceVersion и SourceFragment являются отдельными roots.
 4. Story владеет секциями; ListeningGuide отдельно владеет наблюдениями.
 5. По умолчанию одна транзакция изменяет один aggregate; синхронная межагрегатная оркестрация является явным исключением; event bus не используется.
@@ -209,3 +211,5 @@ Deferred:              публичная страница Track; полный �
 Уточнение 2026-08-15: межагрегатная локальная транзакция не используется для связи домена с сильным кандидатом на отдельный процесс. AIProposal принимается двухшагово и идемпотентно; это исправляет конфликт с направлением будущего выделения AI Research.
 
 Уточнение 2026-08-19 (STORY-005): ClassificationAssignment хранит explanation или claim_id; публикация требует provenance и published endpoints; до evidence references публикуется только `unverified`.
+
+Предлагаемое уточнение 2026-08-27 (STORY-007/008): одиночная ссылка MusicalWork заменяется owned Work usages, Recording получает owned lyrics usages; окончательный архитектурный статус зависит от принятия ADR-0007.

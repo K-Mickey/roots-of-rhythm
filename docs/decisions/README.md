@@ -12,3 +12,4 @@
 - [ADR-0004: application stack первой вертикали](0004-application-stack.md) — `accepted`.
 - [ADR-0005: сервисные колонки persistence и soft-delete](0005-persistence-service-columns-and-soft-delete.md) — `proposed`.
 - [ADR-0006: пессимистические lock на write-path](0006-pessimistic-write-locks.md) — `proposed`.
+- [ADR-0007: границы MusicalWork, Recording и происхождения исполнений](0007-musical-work-recording-and-origin-boundaries.md) — `proposed`.

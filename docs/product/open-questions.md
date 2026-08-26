@@ -36,9 +36,9 @@
 4. Нужны ли локализованные URL и SEO-slugs?
 12. Как хранить локализованный редакционный контент: типизированными translation entities, JSON-документом на локаль или в отдельном Content aggregate?
 
-Эти вопросы не блокируют EPIC-001 и возвращаются только при создании отдельной localization story.
+Эти вопросы не блокируют EPIC-001 и возвращаются только при создании отдельной localization story. Языки LyricsVersion в STORY-007 являются metadata музыкального текста, а не решением локализации всего приложения.
 
-- страницы MusicalWork, Release и Album;
+- расширенные страницы Album за пределами минимального Release EPIC-002;
 - танцоры и связи между танцами;
 - школы, события и география танцевальных сцен;
 - пользовательские коллекции;
@@ -50,7 +50,7 @@
 - варианты монетизации после подтверждения продуктовой ценности.
 - временные шкалы и карты карьеры Performer;
 - расширенные credits Recording и Release;
-- тексты MusicalWork, переводы и аннотации;
+- расширенные аннотации и культурный контекст LyricsVersion;
 - галереи и архивные MediaAsset;
 - механизм определения и показа знаковых материалов.
 
@@ -102,9 +102,21 @@
 
 ### Является ли Recording полноценной публичной страницей MVP?
 
-Решение: да. Recording является самостоятельным доказательным музыкальным примером. MusicalWork отделяется от Recording; сравнение разных записей одного произведения откладывается.
+Решение: да. Recording является самостоятельным доказательным музыкальным примером. MusicalWork отделяется от Recording; базовое переключение известных Recording одного Work входит в STORY-008, а синхронное side-by-side сравнение остаётся deferred.
 
-Основание: [глоссарий](../domain/glossary.md) и [границы MVP](mvp-scope.md).
+Основание: [глоссарий](../domain/glossary.md), [границы MVP](mvp-scope.md) и [STORY-008](../specs/epic-002-performer-group-recording/story-008-view-published-recording/README.md).
+
+### Как разделяются MusicalWork, Recording и их происхождение?
+
+Решение 2026-08-27: Work определяется авторским произведением, а не исполнителем или жанром. Recording связывается с Works через `RecordingWorkUsage`; исполняемые тексты — через `RecordingLyricsUsage`. Постоянная Interpretation, единый `is_original` и обязательное дерево covers не вводятся. Recording сортируются по известной хронологии, а виды исторического первенства выражаются supported Claims. Жанры Recording образуют отдельные фасеты с количеством и не становятся классификацией Work.
+
+Основание: [исследование](../research/musical-work-recording-boundaries.md), [ADR-0007](../decisions/0007-musical-work-recording-and-origin-boundaries.md), [STORY-007](../specs/epic-002-performer-group-recording/story-007-view-published-song/README.md) и [STORY-008](../specs/epic-002-performer-group-recording/story-008-view-published-recording/README.md).
+
+### Обязательны ли текст и Recording для публикации MusicalWork?
+
+Решение 2026-08-27: нет. Published Work требует canonical title и provenance. WorkCredit, LyricsVersion, ClassificationAssignment и Recording опциональны; права Source могут разрешать metadata без полного тела текста.
+
+Основание: [STORY-007](../specs/epic-002-performer-group-recording/story-007-view-published-song/README.md).
 
 ### Когда выбирать и интегрировать музыкальных провайдеров?
 

@@ -14,15 +14,43 @@
 
 Не является: аудиофайлом, дорожкой альбома или конкретным исполнением.
 
-Инвариант: одно MusicalWork может иметь несколько Recording. В UI сущность называется «Песня». Публичная страница и минимальный каталог — [EPIC-002](../specs/epic-002-performer-group-recording/README.md). Опциональный текст песни показывается на странице; пустой скрыт. Сравнение cover versions по-прежнему отложено.
+Смена исполнителя, состава Group, периода, жанра, темпа, инструментов или формата live/studio не создаёт новый Work. Исполняемый перевод, новые авторские слова, адаптация или независимо воспроизводимая опубликованная аранжировка образуют производный Work с доказательной связью с исходным.
+
+В UI сущность называется «Песня». Публичная страница и минимальный каталог — [EPIC-002](../specs/epic-002-performer-group-recording/README.md). Текст не обязателен для публикации.
 
 ### Recording — запись
 
-Зафиксированное конкретное исполнение MusicalWork одним или несколькими Performer или Group. Recording имеет собственные дату или период, участников, особенности исполнения и исторический контекст.
+Зафиксированный результат конкретного исполнения одного или нескольких MusicalWork одним или несколькими Performer или Group. Recording имеет собственные дату или период, участников, особенности исполнения и исторический контекст.
 
 Не является: MusicalWork или местом записи на альбоме.
 
-В MVP Recording имеет публичную страницу без отдельного каталога. Публикация Recording требует MusicalWork. Сценарий сравнения всех Recording одного MusicalWork откладывается; список записей на странице песни входит в EPIC-002.
+В MVP Recording имеет публичную страницу без отдельного каталога. Публикация требует хотя бы один RecordingWorkUsage и один primary RecordingCredit. Разные takes и live performances являются разными Recording; то же аудио на нескольких Release остаётся одной Recording.
+
+### WorkCredit — авторский вклад в произведение
+
+Редакционно управляемая связь Person с MusicalWork в роли composer, lyricist, writer, translator, adapter, arranger или другой подтверждённой роли. Количество credits не ограничивается; неизвестное авторство не заменяется фиктивным Person.
+
+### WorkRelation — связь произведений
+
+Направленная доказательная связь производного Work с исходным: `translation_of`, `adaptation_of`, `arrangement_of` или `medley_of`. Смена исполнителя или жанра relation не создаёт.
+
+### RecordingWorkUsage — использование произведения в записи
+
+Дочерняя связь Recording с Work. `usage_kind` принимает `complete`, `partial` или `medley_component`; для компонентов medley допускается `position`. Обычная запись имеет один `complete`, а medley может ссылаться на несколько Works.
+
+### LyricsVersion — версия текста
+
+Конкретный текст одного MusicalWork с BCP 47 language tag, назначением `performable` или `reading_translation`, provenance, editorial status и ссылкой на SourceVersion. Полное тело опционально, не требуется для публикации Work и выдаётся по rights/access policy Source.
+
+Исполняемый перевод принадлежит производному Work. Машинный перевод является только `reading_translation`, явно маркируется и не может считаться фактически исполненным.
+
+### LyricsVersionRelation — связь версий текста
+
+Направленная связь точной версии текста с исходной: `translation_of` для перевода для чтения или `adaptation_of` для авторской адаптации. Она не заменяет WorkRelation между произведениями.
+
+### RecordingLyricsUsage — текст, звучащий в записи
+
+Дочерняя упорядоченная связь Recording с одной или несколькими `performable` LyricsVersion. Каждая версия должна принадлежать Work из RecordingWorkUsage. Переводы для чтения к Recording не копируются и находятся через LyricsVersionRelation.
 
 ### Track — дорожка релиза
 
@@ -94,6 +122,8 @@ Genre является полноценной сущностью и узлом �
 
 Значимость моделируется Claim с `claim_kind=significance` и одной или несколькими структурированными причинами вклада, а не отдельным объектом или рейтингом.
 
+Происхождение Recording моделируется Claim с `claim_kind=recording_origin`: `first_known_performance_of`, `first_recording_of`, `first_released_recording_of` или `recorded_by_work_author`. Самая ранняя известная дата не создаёт такой Claim автоматически.
+
 ### Evidence — свидетельство
 
 Конкретный SourceFragment или locator, связанный с Claim в роли `supports`, `opposes` или `context`. Наличие Source без указания релевантного места не всегда является достаточным Evidence. Только прошедший review `supports` позволяет установить `supported`; прошедший review `opposes` участвует в обосновании `disputed`.
@@ -139,7 +169,12 @@ Claim о роли Genre в формировании или документир�
 ## Принятые отношения
 
 ```text
-MusicalWork 1 ─── * Recording
+Recording 1 ─── * RecordingWorkUsage * ─── 1 MusicalWork
+Recording 1 ─── * RecordingLyricsUsage * ─── 1 LyricsVersion
+MusicalWork 1 ─── * LyricsVersion
+MusicalWork * ─── * Person через WorkCredit
+MusicalWork * ─── * MusicalWork через WorkRelation
+LyricsVersion * ─── * LyricsVersion через LyricsVersionRelation
 Release 1 ─── * Track
 Track * ─── 1 Recording
 Recording * ─── * Person в роли Performer через RecordingCredit
@@ -156,8 +191,6 @@ Dance * ─── * Genre через DanceGenreRelation
 
 ## Осознанно отложено
 
-- страница всех интерпретаций одного MusicalWork;
-- сравнение cover versions;
 - полный каталог всех переизданий мира (минимальный каталог продукта — EPIC-002);
 - точное моделирование session, take, master и alternate take;
 - авторские доли и сложные credits;
@@ -165,8 +198,9 @@ Dance * ─── * Genre через DanceGenreRelation
 - временная шкала карьеры Performer;
 - полная реконструкция GroupMembership;
 - сложные RecordingCredit и ReleaseCredit;
-- переводы и аннотации текста MusicalWork сверх одного опционального текста на странице Песни;
 - галереи MediaAsset и архивные коллекции.
+
+Постоянная сущность Interpretation, единый `is_original` и обязательное дерево cover versions осознанно не вводятся. Группировка Recording по исполнителю, периоду и жанру является Discovery projection.
 
 ## Типы отношений Genre
 

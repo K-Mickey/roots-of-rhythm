@@ -31,6 +31,7 @@
 - [Исследование источников музыкальной классификации](research/music-classification-sources.md)
 - [Исследование связей танца и музыки](research/dance-music-relations.md)
 - [Исследование подходов к локализации](research/localization-approaches.md)
+- [Исследование границы MusicalWork и Recording](research/musical-work-recording-boundaries.md)
 - [Исследование Genre relations первого seed](research/seed-genre-relations.md)
 - [Аудит согласованности архитектурных решений](research/architecture-consistency-audit-2026-08-15.md)
 - [Аудит покрытия epics](research/epic-coverage-audit-2026-08-16.md)
@@ -66,8 +67,10 @@
 - [STORY-004: открыть каталог опубликованных Genre](specs/epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`
 - [STORY-005: открыть опубликованного исполнителя](specs/epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `done`
 - [STORY-006: открыть опубликованную группу](specs/epic-002-performer-group-recording/story-006-view-published-group/README.md) — `accepted`
-- [STORY-007: открыть опубликованную песню](specs/epic-002-performer-group-recording/story-007-view-published-song/README.md) — `draft`
-- [STORY-008: открыть опубликованную запись](specs/epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `draft`
+- [STORY-007: открыть опубликованную песню](specs/epic-002-performer-group-recording/story-007-view-published-song/README.md) — `accepted`
+- [UI/Data/API/декомпозиция STORY-007](specs/epic-002-performer-group-recording/story-007-view-published-song/tasks.md) — `accepted`
+- [STORY-008: открыть опубликованную запись](specs/epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `accepted`
+- [UI/Data/API/декомпозиция STORY-008](specs/epic-002-performer-group-recording/story-008-view-published-recording/tasks.md) — `accepted`
 - [STORY-009: открыть опубликованный релиз](specs/epic-002-performer-group-recording/story-009-view-published-release/README.md) — `draft`
 - [STORY-010: показать связанные сущности на Genre](specs/epic-002-performer-group-recording/story-010-genre-related-entities/README.md) — `draft`
 - [OpenAPI contract](api/openapi.yaml) — `0.6.0`
@@ -75,6 +78,7 @@
 - [ADR](decisions/README.md)
 - [ADR-0004: application stack первой вертикали](decisions/0004-application-stack.md) — `accepted`
 - [ADR-0005: сервисные колонки persistence и soft-delete](decisions/0005-persistence-service-columns-and-soft-delete.md) — `proposed`
+- [ADR-0007: границы MusicalWork, Recording и происхождения исполнений](decisions/0007-musical-work-recording-and-origin-boundaries.md) — `proposed`
 
 ## SDD-последовательность
 

@@ -19,12 +19,14 @@ People Catalog не владеет музыкальными или танцев�
 - Genre, Style и ClassificationConcept;
 - Group;
 - MusicalWork, Recording и Release;
-- RecordingCredit и GroupMembership, ссылающимися на PersonId;
+- WorkCredit, WorkRelation, RecordingWorkUsage, RecordingLyricsUsage и RecordingCredit;
+- LyricsVersion и LyricsVersionRelation;
+- GroupMembership, ссылающийся на PersonId;
 - ClassificationAssignment;
 - Place, Period и каноническими внешними идентификаторами музыкальных сущностей;
 - ссылки на MediaAsset, которым владеет общий supporting capability Media Management; это не отдельный bounded context.
 
-В MVP MusicalWork и Release имеют публичные страницы и минимальные каталоги в EPIC-002. Они не смешиваются с Recording. Одно MusicalWork может иметь несколько Recording. Публикация Recording требует MusicalWork.
+В MVP MusicalWork и Release имеют публичные страницы и минимальные каталоги в EPIC-002. Они не смешиваются с Recording. Recording ссылается на один или несколько MusicalWork через `RecordingWorkUsage`; публикация требует хотя бы один usage на опубликованный Work.
 
 Person и Group нельзя сводить к одному `Artist`: Group имеет самостоятельную идентичность, а membership и credit обладают собственным смыслом и периодом. `Artist` допустим только как внешний или пользовательский собирательный термин.
 
@@ -43,6 +45,8 @@ Person и Group нельзя сводить к одному `Artist`: Group им
 - Genre relations, Influence и DanceGenreRelation;
 - Story, StorySection и NarrativeEntityReference;
 - редакционными объяснениями и степенью уверенности.
+
+Historical Knowledge также владеет Claims о происхождении Recording: первое известное исполнение, первая сделанная запись, первая выпущенная запись и исполнение автором Work. Music Catalog не хранит единый флаг `is_original`.
 
 Historical Knowledge ссылается на стабильные IDs People Catalog, Music Catalog и Dance Catalog, но не владеет их identity metadata.
 
@@ -139,6 +143,26 @@ Credit Recording и membership Group — разные факты. Человек
 
 Release в будущем получает собственные ReleaseCredit: основной артист издания, producer, label и другие роли не обязаны совпадать с составом каждой Recording.
 
+## Произведение, запись и текст
+
+`MusicalWork` определяется авторским произведением, а не исполнителем или жанром. Смена исполнителя, состава Group, периода, жанра, темпа, инструментов или формата live/studio создаёт новую Recording того же Work. Исполняемый перевод, новые авторские слова, адаптация и независимо воспроизводимая опубликованная аранжировка создают производный Work с доказательной `WorkRelation`.
+
+```text
+Recording
+├── RecordingWorkUsage[]
+│   ├── work_id
+│   ├── usage_kind: complete | partial | medley_component
+│   └── position optional
+├── RecordingCredit[]
+└── RecordingLyricsUsage[] ─── LyricsVersion
+```
+
+Обычная Recording имеет один `complete` Work usage. Medley может ссылаться на несколько Works; отдельный composite Work создаётся только при самостоятельной идентичности. То же аудио на нескольких Release остаётся одной Recording, а новый take или live performance является новой Recording. Session, take и master пока не получают отдельных aggregates.
+
+`LyricsVersion` принадлежит одному Work и хранит конкретный исполняемый текст либо перевод для чтения. RecordingLyricsUsage указывает только на фактически звучащие версии; перевод для чтения находится через `LyricsVersionRelation.translation_of`. Машинный перевод не может быть исполняемым. Полный текст не обязателен для публикации Work или Recording и выдаётся только при разрешающей rights/access policy Source.
+
+Постоянная сущность Interpretation и дерево `original → covers` не вводятся. Все Recording одного Work равноправны; по умолчанию Discovery сортирует их по дате записи, затем по дате первого выпуска, оставляя неизвестные даты последними. Утверждающие публичные бейджи исторического первенства показываются только для `published + supported` Claims.
+
 ## Изображения
 
 Изображение рассматривается как управляемый `MediaAsset`, а не как строковый URL внутри Performer или Genre:
@@ -171,7 +195,7 @@ PostgreSQL-таблицы отношений достаточно для MVP. Р
 
 Минимальный enum отношений: `influenced`, `contributed_to_emergence_of`, `developed_from`, симметричный `overlaps_with` и `revival_of`. Эти значения различают причинность и исторический смысл, а не силу влияния. `fused_with` выражается несколькими причинными связями и объясняющим Claim.
 
-Классификация Group, Release, MusicalWork и Recording независима и допускает несколько Genre/Style. Scene требует периода, места, участников и совместных практик; Tradition — подтверждаемой преемственности. Полная политика описана в [политике музыкальной классификации](classification-policy.md).
+Классификация Group, Release, MusicalWork и Recording независима и допускает несколько Genre/Style. Страница Work не сохраняет объединение жанров Recording: Discovery отдельно вычисляет фасеты «Жанры исполнений» с количеством опубликованных Recording. `medley_component` не переносит общий жанр medley на каждый Work. Scene требует периода, места, участников и совместных практик; Tradition — подтверждаемой преемственности. Полная политика описана в [политике музыкальной классификации](classification-policy.md).
 
 ## Состояние Domain Discovery
 

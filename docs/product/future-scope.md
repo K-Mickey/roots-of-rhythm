@@ -29,15 +29,16 @@
 
 ## MusicalWork, Recording и Release
 
-- список всех известных Recording одного MusicalWork;
-- сравнение разных интерпретаций;
+- синхронное side-by-side сравнение аудио или нескольких текстов; базовое переключение Recording входит в EPIC-002;
 - session, take, master и alternate take;
-- полноценные страницы Release и Album;
+- Event/Performance для известных, но не зафиксированных исполнений;
+- доказательная lineage `remix_of` / `edit_of` / `derived_from_recording`;
+- полный мировой корпус всех Recording и переизданий;
 - ReleaseCredit и состав конкретного издания;
 - история переизданий;
 - связь Recording с историческими Stories;
-- тексты MusicalWork, переводы, отсылки и культурный контекст;
-- права и разрешённые способы показа текстов.
+- расширенные аннотации, отсылки и культурный контекст LyricsVersion;
+- автоматизированный rights clearance сверх принятой Source rights/access policy.
 
 ## Изображения
 
@@ -60,7 +61,7 @@
 - locale negotiation, явный fallback и локализованные URL;
 - локализованный поиск и aliases.
 
-Локализация не входит в EPIC-001. До возвращения темы в scope доменная и API-модель первого vertical slice не содержит locale, translation или fallback abstractions. Сохранённое исследование: [подходы к локализации](../research/localization-approaches.md).
+Локализация интерфейса и общего редакционного контента не входит в EPIC-001. До возвращения темы в scope модель Genre первого vertical slice не содержит locale, translation или fallback abstractions. BCP 47 language tag и переводы LyricsVersion в STORY-007 описывают тексты музыкального произведения и не создают общий localization framework. Сохранённое исследование: [подходы к локализации](../research/localization-approaches.md).
 
 ## Танцевальный домен
 
