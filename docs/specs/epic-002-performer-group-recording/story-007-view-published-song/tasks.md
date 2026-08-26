@@ -9,6 +9,8 @@ Story: [STORY-007](README.md).
 
 ## TASK-001: MusicalWork aggregate и persistence
 
+Tracker: [#42](https://github.com/K-Mickey/roots-of-rhythm/issues/42).
+
 ### Результат
 
 Music Catalog хранит MusicalWork с canonical title, aliases, description, period, external identities, provenance и editorial lifecycle. Published Work требует title и provenance, но не требует credits, текста, классификации или Recording.
@@ -33,6 +35,8 @@ Domain и PostgreSQL integration: publish только с title+provenance; publ
 Credits, relations, lyrics, HTTP и Recording.
 
 ## TASK-002: WorkCredit и производные WorkRelation
+
+Tracker: [#43](https://github.com/K-Mickey/roots-of-rhythm/issues/43).
 
 ### Результат
 
@@ -60,6 +64,8 @@ Work получает несколько авторских credits и дока�
 
 ## TASK-003: LyricsVersion, переводы и права
 
+Tracker: [#44](https://github.com/K-Mickey/roots-of-rhythm/issues/44).
+
 ### Результат
 
 Work хранит любое число типизированных версий текста; публичный API раскрывает body только по разрешающей политике SourceVersion.
@@ -86,6 +92,8 @@ RecordingLyricsUsage, синхронный машинный перевод, по
 
 ## TASK-004: controlled seed MusicalWork
 
+Tracker: [#45](https://github.com/K-Mickey/roots-of-rhythm/issues/45).
+
 ### Результат
 
 Идемпотентный seed содержит шесть published Works: Sixteen Tons, One O'Clock Jump, Ornithology, Sing, Sing, Sing (With a Swing), Shake, Rattle and Roll и West End Blues.
@@ -110,6 +118,8 @@ RecordingLyricsUsage, синхронный машинный перевод, по
 Recording и выдуманные credits/classification ради заполнения UI.
 
 ## TASK-005: Song list/detail API и контракт
+
+Tracker: [#46](https://github.com/K-Mickey/roots-of-rhythm/issues/46).
 
 ### Результат
 
@@ -137,6 +147,8 @@ Recording summaries, genre facets и frontend.
 
 ## TASK-006: `/songs`, `/songs/{id}` и выбор текста
 
+Tracker: [#47](https://github.com/K-Mickey/roots-of-rhythm/issues/47).
+
 ### Результат
 
 Visitor из header открывает SSR-каталог и страницу Work, переключает опубликованные версии текста без полной перезагрузки.
@@ -163,6 +175,8 @@ SSR HTML, keyboard selection, query restore, invalid text fallback, empty sectio
 Recording, genre facets, player и global localization.
 
 ## TASK-007: приёмка STORY-007
+
+Tracker: [#48](https://github.com/K-Mickey/roots-of-rhythm/issues/48).
 
 ### Результат
 

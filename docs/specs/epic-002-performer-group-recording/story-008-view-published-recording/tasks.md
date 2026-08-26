@@ -9,6 +9,8 @@ Story: [STORY-008](README.md).
 
 ## TASK-001: Recording, credits и Work usages
 
+Tracker: [#49](https://github.com/K-Mickey/roots-of-rhythm/issues/49).
+
 ### Результат
 
 Music Catalog хранит Recording с metadata, ISRC, credits и одним или несколькими Work usages. Публикация требует published Work usage и primary credit.
@@ -36,6 +38,8 @@ Release/Track migration, Session/Take/Master, Recording relations и HTTP.
 
 ## TASK-002: RecordingLyricsUsage и переводы
 
+Tracker: [#50](https://github.com/K-Mickey/roots-of-rhythm/issues/50).
+
 ### Результат
 
 Recording ссылается на фактически звучащие texts, а reading translations находятся без копирования ссылок в каждую Recording.
@@ -61,6 +65,8 @@ Recording ссылается на фактически звучащие texts, �
 Автоматическая транскрипция и временные коды строк текста.
 
 ## TASK-003: Recording API и отдельная страница
+
+Tracker: [#51](https://github.com/K-Mickey/roots-of-rhythm/issues/51).
 
 ### Результат
 
@@ -89,6 +95,8 @@ Song page projection, player и Release appearances до STORY-009.
 
 ## TASK-004: жанровые фасеты и хронология Work
 
+Tracker: [#52](https://github.com/K-Mickey/roots-of-rhythm/issues/52).
+
 ### Результат
 
 Song overview аддитивно возвращает компактную хронологию Recording и независимые genre facets с distinct counts.
@@ -116,6 +124,8 @@ Distinct counts, duplicate assignments, medley exclusion, unknown dates, several
 
 ## TASK-005: origin Claims и публичные бейджи
 
+Tracker: [#53](https://github.com/K-Mickey/roots-of-rhythm/issues/53).
+
 ### Результат
 
 Historical Knowledge описывает разные виды первенства Recording без `is_original`; публичный overview показывает только supported badges.
@@ -141,6 +151,8 @@ Historical Knowledge описывает разные виды первенств
 RecordingRelation remix/edit, автоматический cover detection и ranking значимости.
 
 ## TASK-006: объединённая Song page
+
+Tracker: [#54](https://github.com/K-Mickey/roots-of-rhythm/issues/54).
 
 ### Результат
 
@@ -169,6 +181,8 @@ Keyboard navigation, no full reload, direct query URLs, invalid IDs, mobile layo
 Player, global Recording catalog, pagination и persisted user preferences.
 
 ## TASK-007: seed и приёмка STORY-008
+
+Tracker: [#55](https://github.com/K-Mickey/roots-of-rhythm/issues/55).
 
 ### Результат
 
