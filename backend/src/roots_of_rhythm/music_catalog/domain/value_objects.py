@@ -35,6 +35,21 @@ class TemporalBound(msgspec.Struct, frozen=True):
     precision: TemporalPrecision
 
 
+class ExistencePeriod(msgspec.Struct, frozen=True):
+    start: TemporalBound | None = None
+    end: TemporalBound | None = None
+
+    @classmethod
+    def create(
+        cls,
+        start: TemporalBound | None = None,
+        end: TemporalBound | None = None,
+    ) -> "ExistencePeriod":
+        if start is not None and end is not None and start.year > end.year:
+            raise MusicCatalogDomainError("period start must not be later than period end")
+        return cls(start=start, end=end)
+
+
 class HistoricalPeriod(msgspec.Struct, frozen=True):
     label: str
     start: TemporalBound | None = None
@@ -118,4 +133,59 @@ class ClassificationContent(msgspec.Struct, frozen=True):
                 max_length=SHORT_TEXT_MAX_LENGTH,
             ),
             primary_image_id=primary_image_id,
+        )
+
+
+class GroupContent(msgspec.Struct, frozen=True):
+    canonical_name: str
+    aliases: tuple[str, ...] = ()
+    description: str | None = None
+    period: ExistencePeriod | None = None
+
+    @classmethod
+    def create(
+        cls,
+        canonical_name: str,
+        *,
+        aliases: tuple[str, ...] = (),
+        description: str | None = None,
+        period: ExistencePeriod | None = None,
+    ) -> "GroupContent":
+        normalized_name = _required_text(
+            canonical_name,
+            "canonical name",
+            max_length=SHORT_TEXT_MAX_LENGTH,
+        )
+        normalized_aliases = _unique_texts(aliases, "aliases", max_length=SHORT_TEXT_MAX_LENGTH)
+        if normalized_name.casefold() in {alias.casefold() for alias in normalized_aliases}:
+            raise MusicCatalogDomainError("aliases must not duplicate the canonical name")
+        return cls(
+            canonical_name=normalized_name,
+            aliases=normalized_aliases,
+            description=optional_text(description, "description", max_length=LONG_TEXT_MAX_LENGTH),
+            period=period,
+        )
+
+
+class GroupMembershipContent(msgspec.Struct, frozen=True):
+    period: ExistencePeriod | None = None
+    roles_or_instruments: tuple[str, ...] = ()
+    provenance: str | None = None
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        period: ExistencePeriod | None = None,
+        roles_or_instruments: tuple[str, ...] = (),
+        provenance: str | None = None,
+    ) -> "GroupMembershipContent":
+        return cls(
+            period=period,
+            roles_or_instruments=_unique_texts(
+                roles_or_instruments,
+                "roles or instruments",
+                max_length=SHORT_TEXT_MAX_LENGTH,
+            ),
+            provenance=optional_text(provenance, "provenance", max_length=LONG_TEXT_MAX_LENGTH),
         )

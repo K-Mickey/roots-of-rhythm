@@ -41,6 +41,29 @@ class ClassificationAssignment(msgspec.Struct, frozen=True):
             evidence_status=evidence_status,
         )
 
+    @classmethod
+    def create_for_group(
+        cls,
+        assignment_id: UUID,
+        group_id: UUID,
+        concept_id: UUID,
+        *,
+        explanation: str | None = None,
+        claim_id: UUID | None = None,
+        provenance: str | None = None,
+        evidence_status: EvidenceStatus = EvidenceStatus.UNVERIFIED,
+    ) -> "ClassificationAssignment":
+        return cls(
+            id=assignment_id,
+            target_kind=ClassificationTargetKind.GROUP,
+            target_id=group_id,
+            concept_id=concept_id,
+            explanation=optional_text(explanation, "explanation", max_length=LONG_TEXT_MAX_LENGTH),
+            claim_id=claim_id,
+            provenance=optional_text(provenance, "provenance", max_length=LONG_TEXT_MAX_LENGTH),
+            evidence_status=evidence_status,
+        )
+
     def replace_content(
         self,
         *,

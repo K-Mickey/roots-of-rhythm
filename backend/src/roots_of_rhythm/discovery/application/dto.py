@@ -88,6 +88,38 @@ class PerformerListResponse(msgspec.Struct, frozen=True):
     items: list[PerformerSummary]
 
 
+class GroupSummary(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+
+
+class GroupListResponse(msgspec.Struct, frozen=True):
+    items: list[GroupSummary]
+
+
+class GroupPeriodView(msgspec.Struct, frozen=True):
+    start: TemporalBoundView | None
+    end: TemporalBoundView | None
+
+
+class GroupMemberView(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+    period: GroupPeriodView
+    roles_or_instruments: list[str]
+
+
+class GroupOverviewResponse(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+    aliases: list[str]
+    description: str | None
+    period: GroupPeriodView
+    primary_image: PublicImageView | None
+    genres: list[GenreSummary]
+    members: list[GroupMemberView]
+
+
 class PersonDateView(msgspec.Struct, frozen=True):
     year: int
     precision: PersonTemporalPrecision

@@ -5,6 +5,7 @@ from uuid import UUID, uuid7
 from roots_of_rhythm.music_catalog.application.errors import (
     ClassificationAssignmentConflict,
     ClassificationAssignmentGenreNotPublished,
+    ClassificationAssignmentGroupNotPublished,
     ClassificationAssignmentNotFound,
     ClassificationAssignmentPersonNotPublished,
     ClassificationAssignmentTargetUnsupported,
@@ -53,6 +54,31 @@ class ClassificationAssignmentService:
             await self._commit(music)
             return assignment
 
+    async def create_for_group(
+        self,
+        group_id: UUID,
+        concept_id: UUID,
+        *,
+        explanation: str | None = None,
+        claim_id: UUID | None = None,
+        provenance: str | None = None,
+        evidence_status: EvidenceStatus = EvidenceStatus.UNVERIFIED,
+        assignment_id: UUID | None = None,
+    ) -> ClassificationAssignment:
+        async with self._catalogs() as (music, _people):
+            assignment = ClassificationAssignment.create_for_group(
+                assignment_id or uuid7(),
+                group_id,
+                concept_id=concept_id,
+                explanation=explanation,
+                claim_id=claim_id,
+                provenance=provenance,
+                evidence_status=evidence_status,
+            )
+            await music.assignments.add(assignment)
+            await self._commit(music)
+            return assignment
+
     async def replace_content(
         self,
         assignment_id: UUID,
@@ -85,9 +111,7 @@ class ClassificationAssignmentService:
             if assignment is None:
                 raise ClassificationAssignmentNotFound(str(assignment_id))
             updated = assignment.publish()
-            await self._ensure_target_published(assignment, people)
-            if await music.genres.get_published(assignment.concept_id, for_update=True) is None:
-                raise ClassificationAssignmentGenreNotPublished(str(assignment.concept_id))
+            await self._ensure_endpoints_published(music, people, assignment)
             try:
                 await music.assignments.save(updated)
             except LookupError as error:
@@ -96,21 +120,31 @@ class ClassificationAssignmentService:
             return updated
 
     @staticmethod
-    async def _ensure_target_published(
-        assignment: ClassificationAssignment,
+    async def _ensure_endpoints_published(
+        music: MusicCatalogUnitOfWork,
         people: PeopleCatalogUnitOfWork,
+        assignment: ClassificationAssignment,
     ) -> None:
-        match assignment.target_kind:
-            case ClassificationTargetKind.PERSON:
-                if await people.persons.get_published(assignment.target_id, for_update=True) is None:
-                    raise ClassificationAssignmentPersonNotPublished(str(assignment.target_id))
-            case (
-                ClassificationTargetKind.GROUP
-                | ClassificationTargetKind.MUSICAL_WORK
-                | ClassificationTargetKind.RECORDING
-                | ClassificationTargetKind.RELEASE
-            ):
-                raise ClassificationAssignmentTargetUnsupported(assignment.target_kind.value)
+        target_id = assignment.target_id
+        concept_id = assignment.concept_id
+        for endpoint_id in sorted((target_id, concept_id)):
+            if endpoint_id == concept_id:
+                if await music.genres.get_published(concept_id, for_update=True) is None:
+                    raise ClassificationAssignmentGenreNotPublished(str(concept_id))
+                continue
+            match assignment.target_kind:
+                case ClassificationTargetKind.PERSON:
+                    if await people.persons.get_published(target_id, for_update=True) is None:
+                        raise ClassificationAssignmentPersonNotPublished(str(target_id))
+                case ClassificationTargetKind.GROUP:
+                    if await music.groups.get_published(target_id, for_update=True) is None:
+                        raise ClassificationAssignmentGroupNotPublished(str(target_id))
+                case (
+                    ClassificationTargetKind.MUSICAL_WORK
+                    | ClassificationTargetKind.RECORDING
+                    | ClassificationTargetKind.RELEASE
+                ):
+                    raise ClassificationAssignmentTargetUnsupported(assignment.target_kind.value)
 
     @staticmethod
     async def _commit(music: MusicCatalogUnitOfWork) -> None:

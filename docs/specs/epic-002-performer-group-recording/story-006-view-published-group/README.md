@@ -1,6 +1,6 @@
 # STORY-006: открыть опубликованную группу
 
-Статус: `accepted`
+Статус: `done`
 
 Tracker: [GitHub issue #32](https://github.com/K-Mickey/roots-of-rhythm/issues/32).
 
@@ -94,5 +94,6 @@ STORY-005 `done`.
 
 ## История изменений
 
+- 2026-08-26: Product Owner закрыл приёмку; STORY-006 переведена в `done` ([#32](https://github.com/K-Mickey/roots-of-rhythm/issues/32)).
 - 2026-08-20: принята; поля Group/Membership сверены с workshop; seed 4 групп; декомпозиция TASK-001–004.
 - 2026-08-19: draft; каталог и header сразу.

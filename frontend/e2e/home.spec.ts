@@ -13,6 +13,7 @@ test('home shows product identity and not-found returns to it', async ({
   ).toBeVisible();
   await expect(page.locator('a[href*="/genres/"]')).toHaveCount(0);
   await expect(page.locator('a[href*="/performers/"]')).toHaveCount(0);
+  await expect(page.locator('a[href*="/groups/"]')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Жанры' })).toHaveAttribute(
     'href',
     '/genres',
@@ -20,6 +21,10 @@ test('home shows product identity and not-found returns to it', async ({
   await expect(page.getByRole('link', { name: 'Исполнители' })).toHaveAttribute(
     'href',
     '/performers',
+  );
+  await expect(page.getByRole('link', { name: 'Группы' })).toHaveAttribute(
+    'href',
+    '/groups',
   );
 
   await expect(

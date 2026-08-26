@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from roots_of_rhythm.config import Settings
 from roots_of_rhythm.config import settings as default_settings
 from roots_of_rhythm.discovery.presentation.genres import create_genres_router
+from roots_of_rhythm.discovery.presentation.groups import create_groups_router
 from roots_of_rhythm.discovery.presentation.performers import create_performers_router
 from roots_of_rhythm.entrypoints.dependencies import DependencyProviders, create_api_dependencies
 from roots_of_rhythm.infrastructure.database import (
@@ -45,6 +46,7 @@ def create_app(
             create_health_router(readiness_probe),
             create_genres_router(),
             create_performers_router(),
+            create_groups_router(),
         ],
         dependencies=create_api_dependencies(session_factory, dependency_overrides),
         lifespan=[database_lifespan],

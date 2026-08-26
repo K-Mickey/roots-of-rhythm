@@ -9,7 +9,7 @@
 - [STORY-002: перейти между опубликованными Genre](epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`.
 - [EPIC-002: исполнители, песни, записи и релизы](epic-002-performer-group-recording/README.md) — `draft`.
 - [STORY-005: открыть опубликованного исполнителя](epic-002-performer-group-recording/story-005-view-published-performer/README.md) — `done`.
-- [STORY-006: открыть опубликованную группу](epic-002-performer-group-recording/story-006-view-published-group/README.md) — `accepted`.
+- [STORY-006: открыть опубликованную группу](epic-002-performer-group-recording/story-006-view-published-group/README.md) — `done`.
 - [STORY-007: открыть опубликованную песню](epic-002-performer-group-recording/story-007-view-published-song/README.md) — `draft`.
 - [STORY-008: открыть опубликованную запись](epic-002-performer-group-recording/story-008-view-published-recording/README.md) — `draft`.
 - [STORY-009: открыть опубликованный релиз](epic-002-performer-group-recording/story-009-view-published-release/README.md) — `draft`.

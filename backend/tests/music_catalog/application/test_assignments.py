@@ -7,6 +7,7 @@ from tests.support.scopes import pair_scope
 
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentGenreNotPublished,
+    ClassificationAssignmentGroupNotPublished,
     ClassificationAssignmentNotFound,
     ClassificationAssignmentPersonNotPublished,
     ClassificationAssignmentService,
@@ -14,9 +15,12 @@ from roots_of_rhythm.music_catalog.application import (
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationAssignment,
     ClassificationContent,
+    ClassificationTargetKind,
     EditorialStatus,
     EvidenceStatus,
     Genre,
+    Group,
+    GroupContent,
 )
 from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
@@ -40,15 +44,34 @@ def _published_person(person_id: UUID) -> Person:
     )
 
 
+def _group_assignment(group_id: UUID, genre_id: UUID) -> ClassificationAssignment:
+    return ClassificationAssignment.create_for_group(
+        uuid7(),
+        group_id,
+        genre_id,
+        explanation="A Jazz group.",
+        provenance="Editorial review.",
+    )
+
+
+def _published_group(group_id: UUID) -> Group:
+    return Group.create(
+        group_id,
+        GroupContent.create("Count Basie Orchestra"),
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+
+
 def _service(
     *,
     genres: dict[UUID, Genre],
     assignments: dict[UUID, ClassificationAssignment],
     persons: dict[UUID, Person] | None = None,
+    groups: dict[UUID, Group] | None = None,
 ) -> ClassificationAssignmentService:
     return ClassificationAssignmentService(
         pair_scope(
-            lambda: FakeMusicCatalogUnitOfWork(genres, assignments),
+            lambda: FakeMusicCatalogUnitOfWork(genres, assignments, groups=groups or {}),
             lambda: FakePeopleCatalogUnitOfWork(persons or {}),
         )
     )
@@ -151,3 +174,54 @@ async def test_assignment_service_replace_content_reports_missing_assignment() -
             provenance="Editorial review.",
             evidence_status=EvidenceStatus.UNVERIFIED,
         )
+
+
+@pytest.mark.asyncio
+async def test_assignment_service_publishes_group_assignment_with_published_group_and_genre() -> None:
+    group_id = uuid7()
+    genre = Genre(
+        id=uuid7(),
+        content=ClassificationContent.create("Jazz", definition="A genre."),
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    assignment = _group_assignment(group_id, genre.id)
+    assignments = {assignment.id: assignment}
+    service = _service(
+        genres={genre.id: genre},
+        assignments=assignments,
+        groups={group_id: _published_group(group_id)},
+    )
+
+    published = await service.publish(assignment.id)
+
+    assert published.target_kind is ClassificationTargetKind.GROUP
+    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert assignments[assignment.id] == published
+
+
+@pytest.mark.asyncio
+async def test_assignment_service_rejects_unpublished_group_endpoint() -> None:
+    genre = Genre(
+        id=uuid7(),
+        content=ClassificationContent.create("Swing", definition="A genre."),
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    assignment = _group_assignment(uuid7(), genre.id)
+    service = _service(genres={genre.id: genre}, assignments={assignment.id: assignment})
+
+    with pytest.raises(ClassificationAssignmentGroupNotPublished):
+        await service.publish(assignment.id)
+
+
+@pytest.mark.asyncio
+async def test_assignment_service_rejects_unpublished_genre_for_group_assignment() -> None:
+    group_id = uuid7()
+    assignment = _group_assignment(group_id, uuid7())
+    service = _service(
+        genres={},
+        assignments={assignment.id: assignment},
+        groups={group_id: _published_group(group_id)},
+    )
+
+    with pytest.raises(ClassificationAssignmentGenreNotPublished):
+        await service.publish(assignment.id)

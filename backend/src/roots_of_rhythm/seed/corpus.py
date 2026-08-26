@@ -1,7 +1,6 @@
-"""Controlled corpus seed data (Jazz, Swing, Jump Blues and published Performers).
+"""Controlled corpus seed data (Jazz, Swing, Jump Blues, Performers and Groups).
 
-Stable identities are fixed UUID7 literals. Re-running seed is a no-op for existing rows
-and never invents Group/Recording entities.
+Stable identities are fixed UUID7 literals. Re-running seed is a no-op for existing rows.
 """
 
 from uuid import UUID
@@ -17,7 +16,18 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.music_catalog.domain import ClassificationContent
+from roots_of_rhythm.music_catalog.domain import (
+    ClassificationContent,
+    ExistencePeriod,
+    GroupContent,
+    GroupMembershipContent,
+)
+from roots_of_rhythm.music_catalog.domain import (
+    TemporalBound as MusicTemporalBound,
+)
+from roots_of_rhythm.music_catalog.domain import (
+    TemporalPrecision as MusicTemporalPrecision,
+)
 
 # --- Genres -----------------------------------------------------------------
 JAZZ_ID = UUID("01a0147a-8508-74b7-9689-e7c079b95327")
@@ -224,6 +234,102 @@ SEED_PERSON_GENRE_ASSIGNMENTS: tuple[tuple[UUID, UUID, UUID, str, str], ...] = (
         LOUIS_ARMSTRONG_ID,
         SWING_ID,
         "Louis Armstrong is classified as a Swing performer.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+)
+
+# --- Groups ---------------------------------------------------------------
+BENNY_GOODMAN_ORCHESTRA_ID = UUID("01a01a72-2c01-7000-8000-000000000001")
+CHARLIE_PARKER_QUINTET_ID = UUID("01a01a72-2c01-7000-8000-000000000002")
+COUNT_BASIE_ORCHESTRA_ID = UUID("01a01a72-2c01-7000-8000-000000000003")
+TYMPANY_FIVE_ID = UUID("01a01a72-2c01-7000-8000-000000000004")
+
+CHARLIE_PARKER_QUINTET_MEMBERSHIP_ID = UUID("01a01a72-2c01-7000-8000-000000000011")
+COUNT_BASIE_ORCHESTRA_MEMBERSHIP_ID = UUID("01a01a72-2c01-7000-8000-000000000012")
+BENNY_GOODMAN_ORCHESTRA_MEMBERSHIP_ID = UUID("01a01a72-2c01-7000-8000-000000000013")
+TYMPANY_FIVE_MEMBERSHIP_ID = UUID("01a01a72-2c01-7000-8000-000000000014")
+
+CHARLIE_PARKER_QUINTET_JAZZ_ASSIGNMENT_ID = UUID("01a01a72-2c01-7000-8000-000000000021")
+COUNT_BASIE_ORCHESTRA_SWING_ASSIGNMENT_ID = UUID("01a01a72-2c01-7000-8000-000000000022")
+BENNY_GOODMAN_ORCHESTRA_SWING_ASSIGNMENT_ID = UUID("01a01a72-2c01-7000-8000-000000000023")
+TYMPANY_FIVE_JUMP_ASSIGNMENT_ID = UUID("01a01a72-2c01-7000-8000-000000000024")
+
+SEED_GROUPS: tuple[tuple[UUID, GroupContent], ...] = (
+    (CHARLIE_PARKER_QUINTET_ID, GroupContent.create("Charlie Parker Quintet")),
+    (COUNT_BASIE_ORCHESTRA_ID, GroupContent.create("Count Basie Orchestra")),
+    (BENNY_GOODMAN_ORCHESTRA_ID, GroupContent.create("Benny Goodman Orchestra")),
+    (TYMPANY_FIVE_ID, GroupContent.create("Tympany Five")),
+)
+
+SEED_GROUP_MEMBERSHIPS: tuple[tuple[UUID, UUID, UUID, GroupMembershipContent], ...] = (
+    (
+        CHARLIE_PARKER_QUINTET_MEMBERSHIP_ID,
+        CHARLIE_PARKER_ID,
+        CHARLIE_PARKER_QUINTET_ID,
+        GroupMembershipContent.create(
+            period=ExistencePeriod.create(
+                start=MusicTemporalBound(1945, MusicTemporalPrecision.EXACT_YEAR),
+                end=MusicTemporalBound(1948, MusicTemporalPrecision.EXACT_YEAR),
+            ),
+            roles_or_instruments=("alto saxophone", "leader"),
+        ),
+    ),
+    (
+        COUNT_BASIE_ORCHESTRA_MEMBERSHIP_ID,
+        COUNT_BASIE_ID,
+        COUNT_BASIE_ORCHESTRA_ID,
+        GroupMembershipContent.create(
+            period=ExistencePeriod.create(
+                start=MusicTemporalBound(1935, MusicTemporalPrecision.EXACT_YEAR),
+                end=MusicTemporalBound(1950, MusicTemporalPrecision.CIRCA_YEAR),
+            ),
+            roles_or_instruments=("piano", "bandleader"),
+        ),
+    ),
+    (
+        BENNY_GOODMAN_ORCHESTRA_MEMBERSHIP_ID,
+        BENNY_GOODMAN_ID,
+        BENNY_GOODMAN_ORCHESTRA_ID,
+        GroupMembershipContent.create(roles_or_instruments=("clarinet",)),
+    ),
+    (
+        TYMPANY_FIVE_MEMBERSHIP_ID,
+        LOUIS_JORDAN_ID,
+        TYMPANY_FIVE_ID,
+        GroupMembershipContent.create(
+            period=ExistencePeriod.create(start=MusicTemporalBound(1941, MusicTemporalPrecision.EXACT_YEAR)),
+            roles_or_instruments=("vocals", "saxophone"),
+        ),
+    ),
+)
+
+SEED_GROUP_GENRE_ASSIGNMENTS: tuple[tuple[UUID, UUID, UUID, str, str], ...] = (
+    (
+        CHARLIE_PARKER_QUINTET_JAZZ_ASSIGNMENT_ID,
+        CHARLIE_PARKER_QUINTET_ID,
+        JAZZ_ID,
+        "Charlie Parker Quintet is classified as a Jazz group.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        COUNT_BASIE_ORCHESTRA_SWING_ASSIGNMENT_ID,
+        COUNT_BASIE_ORCHESTRA_ID,
+        SWING_ID,
+        "Count Basie Orchestra is classified as a Swing group.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        BENNY_GOODMAN_ORCHESTRA_SWING_ASSIGNMENT_ID,
+        BENNY_GOODMAN_ORCHESTRA_ID,
+        SWING_ID,
+        "Benny Goodman Orchestra is classified as a Swing group.",
+        SEED_ASSIGNMENT_PROVENANCE,
+    ),
+    (
+        TYMPANY_FIVE_JUMP_ASSIGNMENT_ID,
+        TYMPANY_FIVE_ID,
+        JUMP_BLUES_ID,
+        "Tympany Five is classified as a Jump Blues group.",
         SEED_ASSIGNMENT_PROVENANCE,
     ),
 )

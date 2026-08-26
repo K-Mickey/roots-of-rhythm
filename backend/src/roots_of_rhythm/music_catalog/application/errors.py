@@ -29,9 +29,21 @@ class ClassificationAssignmentPersonNotPublished(ValueError):
     pass
 
 
+class ClassificationAssignmentGroupNotPublished(ValueError):
+    pass
+
+
 class ClassificationAssignmentGenreNotPublished(ValueError):
     pass
 
 
 class ClassificationAssignmentTargetUnsupported(ValueError):
+    pass
+
+
+class GroupNotFound(LookupError):
+    pass
+
+
+class GroupMembershipNotFound(LookupError):
     pass

@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from types import TracebackType
     from uuid import UUID
 
-    from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, Genre
+    from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, Genre, Group, GroupMembership
 
 
 class GenreRepository(Protocol):
@@ -35,12 +35,44 @@ class ClassificationAssignmentRepository(Protocol):
 
     async def list_published_for_person(self, person_id: UUID) -> list[ClassificationAssignment]: ...
 
+    async def list_published_for_group(self, group_id: UUID) -> list[ClassificationAssignment]: ...
+
     async def save(self, assignment: ClassificationAssignment) -> None: ...
+
+
+class GroupRepository(Protocol):
+    async def add(self, group: Group) -> None: ...
+
+    async def get(self, group_id: UUID, *, for_update: bool = False) -> Group | None: ...
+
+    async def get_published(self, group_id: UUID, *, for_update: bool = False) -> Group | None: ...
+
+    async def list_published(self) -> list[Group]: ...
+
+    async def save(self, group: Group) -> None: ...
+
+    async def mark_deleted(self, group_id: UUID) -> None: ...
+
+
+class GroupMembershipRepository(Protocol):
+    async def add(self, membership: GroupMembership) -> None: ...
+
+    async def get(self, membership_id: UUID, *, for_update: bool = False) -> GroupMembership | None: ...
+
+    async def get_published(self, membership_id: UUID, *, for_update: bool = False) -> GroupMembership | None: ...
+
+    async def list_published_by_group(self, group_id: UUID) -> list[GroupMembership]: ...
+
+    async def save(self, membership: GroupMembership) -> None: ...
+
+    async def mark_deleted(self, membership_id: UUID) -> None: ...
 
 
 class MusicCatalogUnitOfWork(Protocol):
     genres: GenreRepository
     assignments: ClassificationAssignmentRepository
+    groups: GroupRepository
+    group_memberships: GroupMembershipRepository
 
     async def __aenter__(self) -> Self: ...
 
