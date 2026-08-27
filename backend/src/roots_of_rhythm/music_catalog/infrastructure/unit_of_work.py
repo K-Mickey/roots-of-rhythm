@@ -11,11 +11,26 @@ from roots_of_rhythm.music_catalog.infrastructure.group_membership_repository im
     SqlAlchemyGroupMembershipRepository,
 )
 from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_credit_repository import (
+    SqlAlchemyLyricsVersionCreditRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_relation_repository import (
+    SqlAlchemyLyricsVersionRelationRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_repository import SqlAlchemyLyricsVersionRepository
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
     CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
+    LYRICS_VERSION_CREDIT_UNIQUE_CONSTRAINT,
+    LYRICS_VERSION_RELATION_UNIQUE_CONSTRAINT,
+    LYRICS_VERSION_UNIQUE_CONSTRAINT,
+    WORK_CREDIT_UNIQUE_CONSTRAINT,
+    WORK_RELATION_UNIQUE_CONSTRAINT,
 )
+from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
 from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
+from roots_of_rhythm.music_catalog.infrastructure.work_credit_repository import SqlAlchemyWorkCreditRepository
+from roots_of_rhythm.music_catalog.infrastructure.work_relation_repository import SqlAlchemyWorkRelationRepository
 
 if TYPE_CHECKING:
     from types import TracebackType
@@ -27,6 +42,12 @@ if TYPE_CHECKING:
         GenreRepository,
         GroupMembershipRepository,
         GroupRepository,
+        LyricsVersionCreditRepository,
+        LyricsVersionRelationRepository,
+        LyricsVersionRepository,
+        MusicalWorkRepository,
+        WorkCreditRepository,
+        WorkRelationRepository,
     )
 
 
@@ -47,6 +68,14 @@ class SqlAlchemyMusicCatalogUnitOfWork:
         self.assignments: ClassificationAssignmentRepository = SqlAlchemyClassificationAssignmentRepository(session)
         self.groups: GroupRepository = SqlAlchemyGroupRepository(session)
         self.group_memberships: GroupMembershipRepository = SqlAlchemyGroupMembershipRepository(session)
+        self.works: MusicalWorkRepository = SqlAlchemyMusicalWorkRepository(session)
+        self.work_credits: WorkCreditRepository = SqlAlchemyWorkCreditRepository(session)
+        self.work_relations: WorkRelationRepository = SqlAlchemyWorkRelationRepository(session)
+        self.lyrics_versions: LyricsVersionRepository = SqlAlchemyLyricsVersionRepository(session)
+        self.lyrics_version_credits: LyricsVersionCreditRepository = SqlAlchemyLyricsVersionCreditRepository(session)
+        self.lyrics_version_relations: LyricsVersionRelationRepository = SqlAlchemyLyricsVersionRelationRepository(
+            session
+        )
 
     async def __aenter__(self) -> Self:
         return self
@@ -67,19 +96,22 @@ class SqlAlchemyMusicCatalogUnitOfWork:
             await self._session.commit()
         except IntegrityError as error:
             await self.rollback()
-            name = _constraint_name(error)
+
+            name = None
+            if isinstance(error.orig, psycopg_errors.UniqueViolation):
+                name = error.orig.diag.constraint_name
+
             if name in {
                 CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
                 CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
+                WORK_CREDIT_UNIQUE_CONSTRAINT,
+                WORK_RELATION_UNIQUE_CONSTRAINT,
+                LYRICS_VERSION_UNIQUE_CONSTRAINT,
+                LYRICS_VERSION_CREDIT_UNIQUE_CONSTRAINT,
+                LYRICS_VERSION_RELATION_UNIQUE_CONSTRAINT,
             }:
                 raise UniqueConstraintViolation(name) from error
             raise
 
     async def rollback(self) -> None:
         await self._session.rollback()
-
-
-def _constraint_name(error: IntegrityError) -> str | None:
-    if isinstance(error.orig, psycopg_errors.UniqueViolation):
-        return error.orig.diag.constraint_name
-    return None

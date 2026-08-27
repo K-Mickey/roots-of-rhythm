@@ -12,6 +12,7 @@ from roots_of_rhythm.historical_knowledge.domain import (
     HistoricalPeriod,
     RelationType,
     Source,
+    SourceAccessPolicy,
     SourceFragment,
     SourceVersion,
     TemporalBound,
@@ -35,6 +36,7 @@ def source_from_record(record: SourceRecord) -> Source:
         publication=record.publication,
         publication_date=record.publication_date,
         external_url=record.external_url,
+        access_policy=SourceAccessPolicy(record.access_policy),
     )
 
 
@@ -47,6 +49,7 @@ def record_from_source(source: Source) -> SourceRecord:
         publication=source.publication,
         publication_date=source.publication_date,
         external_url=source.external_url,
+        access_policy=source.access_policy.value,
     )
 
 

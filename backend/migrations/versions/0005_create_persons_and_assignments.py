@@ -14,11 +14,11 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     EDITORIAL_STATUS_CHECK,
     TARGET_KIND_CHECK,
 )
-from roots_of_rhythm.people_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
 from roots_of_rhythm.people_catalog.infrastructure.models import (
     EDITORIAL_STATUS_CHECK as PERSON_EDITORIAL_STATUS_CHECK,
 )
 from roots_of_rhythm.people_catalog.infrastructure.models import PERSON_NAME_UNIQUE_CONSTRAINT
+from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 revision: str = "0005"
 down_revision: str | None = "0004"
@@ -43,9 +43,9 @@ def upgrade() -> None:
     op.create_table(
         "persons",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("editorial_status", sa.String(length=32), nullable=False),
-        sa.Column("canonical_name", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=False),
-        sa.Column("biography", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("editorial_status", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("canonical_name", sa.String(length=TEXT_64), nullable=False),
+        sa.Column("biography", sa.String(length=TEXT_1024), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("deleted", sa.Boolean(), server_default=sa.text("false"), nullable=False),
@@ -65,10 +65,10 @@ def upgrade() -> None:
     op.create_table(
         "classification_assignments",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("target_kind", sa.String(length=32), nullable=False),
+        sa.Column("target_kind", sa.String(length=TEXT_32), nullable=False),
         sa.Column("target_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("concept_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("editorial_status", sa.String(length=32), nullable=False),
+        sa.Column("editorial_status", sa.String(length=TEXT_32), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("deleted", sa.Boolean(), server_default=sa.text("false"), nullable=False),

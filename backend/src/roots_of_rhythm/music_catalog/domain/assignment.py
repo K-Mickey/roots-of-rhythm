@@ -4,7 +4,8 @@ import msgspec
 
 from roots_of_rhythm.music_catalog.domain.enums import ClassificationTargetKind, EditorialStatus, EvidenceStatus
 from roots_of_rhythm.music_catalog.domain.errors import ClassificationAssignmentPublicationError
-from roots_of_rhythm.music_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, optional_text
+from roots_of_rhythm.music_catalog.domain.value_objects import optional_text
+from roots_of_rhythm.text_lengths import TEXT_1024
 
 
 class ClassificationAssignment(msgspec.Struct, frozen=True):
@@ -35,9 +36,9 @@ class ClassificationAssignment(msgspec.Struct, frozen=True):
             target_kind=ClassificationTargetKind.PERSON,
             target_id=person_id,
             concept_id=concept_id,
-            explanation=optional_text(explanation, "explanation", max_length=LONG_TEXT_MAX_LENGTH),
+            explanation=optional_text(explanation, "explanation", max_length=TEXT_1024),
             claim_id=claim_id,
-            provenance=optional_text(provenance, "provenance", max_length=LONG_TEXT_MAX_LENGTH),
+            provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
             evidence_status=evidence_status,
         )
 
@@ -58,9 +59,9 @@ class ClassificationAssignment(msgspec.Struct, frozen=True):
             target_kind=ClassificationTargetKind.GROUP,
             target_id=group_id,
             concept_id=concept_id,
-            explanation=optional_text(explanation, "explanation", max_length=LONG_TEXT_MAX_LENGTH),
+            explanation=optional_text(explanation, "explanation", max_length=TEXT_1024),
             claim_id=claim_id,
-            provenance=optional_text(provenance, "provenance", max_length=LONG_TEXT_MAX_LENGTH),
+            provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
             evidence_status=evidence_status,
         )
 
@@ -77,9 +78,9 @@ class ClassificationAssignment(msgspec.Struct, frozen=True):
             target_kind=self.target_kind,
             target_id=self.target_id,
             concept_id=self.concept_id,
-            explanation=optional_text(explanation, "explanation", max_length=LONG_TEXT_MAX_LENGTH),
+            explanation=optional_text(explanation, "explanation", max_length=TEXT_1024),
             claim_id=claim_id,
-            provenance=optional_text(provenance, "provenance", max_length=LONG_TEXT_MAX_LENGTH),
+            provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
             evidence_status=evidence_status,
             editorial_status=self.editorial_status,
         )

@@ -4,10 +4,7 @@ import msgspec
 
 from roots_of_rhythm.people_catalog.domain.enums import TemporalPrecision
 from roots_of_rhythm.people_catalog.domain.errors import PeopleCatalogDomainError
-
-SHORT_TEXT_MAX_LENGTH = 64
-LONG_TEXT_MAX_LENGTH = 1024
-URL_MAX_LENGTH = 2048
+from roots_of_rhythm.text_lengths import TEXT_64, TEXT_1024, TEXT_2048
 
 
 def _required_text(value: str, field: str, *, max_length: int) -> str:
@@ -43,14 +40,14 @@ class ExternalIdentity(msgspec.Struct, frozen=True):
 
     @classmethod
     def create(cls, provider: str, identifier: str, *, url: str | None = None) -> "ExternalIdentity":
-        normalized_url = _optional_text(url, "external identity URL", max_length=URL_MAX_LENGTH)
+        normalized_url = _optional_text(url, "external identity URL", max_length=TEXT_2048)
         if normalized_url is not None:
             parsed = urlsplit(normalized_url)
             if parsed.scheme not in {"http", "https"} or not parsed.netloc:
                 raise PeopleCatalogDomainError("external identity URL must use http or https")
         return cls(
-            provider=_required_text(provider, "external identity provider", max_length=SHORT_TEXT_MAX_LENGTH),
-            identifier=_required_text(identifier, "external identity identifier", max_length=SHORT_TEXT_MAX_LENGTH),
+            provider=_required_text(provider, "external identity provider", max_length=TEXT_64),
+            identifier=_required_text(identifier, "external identity identifier", max_length=TEXT_64),
             url=normalized_url,
         )
 
@@ -74,8 +71,8 @@ class PersonContent(msgspec.Struct, frozen=True):
         death_date: PersonDate | None = None,
         external_identities: tuple[ExternalIdentity, ...] = (),
     ) -> "PersonContent":
-        normalized_name = _required_text(canonical_name, "canonical name", max_length=SHORT_TEXT_MAX_LENGTH)
-        normalized_aliases = _unique_texts(aliases, "aliases", max_length=SHORT_TEXT_MAX_LENGTH)
+        normalized_name = _required_text(canonical_name, "canonical name", max_length=TEXT_64)
+        normalized_aliases = _unique_texts(aliases, "aliases", max_length=TEXT_64)
         if normalized_name.casefold() in {alias.casefold() for alias in normalized_aliases}:
             raise PeopleCatalogDomainError("aliases must not duplicate the canonical name")
         normalized_identities = tuple(
@@ -92,7 +89,7 @@ class PersonContent(msgspec.Struct, frozen=True):
         return cls(
             canonical_name=normalized_name,
             aliases=normalized_aliases,
-            biography=_optional_text(biography, "biography", max_length=LONG_TEXT_MAX_LENGTH),
+            biography=_optional_text(biography, "biography", max_length=TEXT_1024),
             birth_date=birth_date,
             death_date=death_date,
             external_identities=normalized_identities,

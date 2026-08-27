@@ -4,26 +4,51 @@ from roots_of_rhythm.music_catalog.domain.enums import (
     ClassificationTargetKind,
     EditorialStatus,
     EvidenceStatus,
+    LyricsCreationMethod,
+    LyricsUsageKind,
+    LyricsVersionRelationType,
     TemporalPrecision,
+    WorkCreditRole,
+    WorkRelationType,
 )
 from roots_of_rhythm.music_catalog.domain.errors import (
     ClassificationAssignmentPublicationError,
     GenrePublicationError,
     GroupPublicationError,
+    LyricsVersionInvalidCombinationError,
+    LyricsVersionPublicationError,
+    LyricsVersionRelationPublicationError,
+    LyricsVersionRelationSelfReferenceError,
+    MusicalWorkPublicationError,
     MusicCatalogDomainError,
+    WorkRelationPublicationError,
+    WorkRelationSelfReferenceError,
 )
 from roots_of_rhythm.music_catalog.domain.genre import ClassificationConcept, Genre
 from roots_of_rhythm.music_catalog.domain.group import Group
 from roots_of_rhythm.music_catalog.domain.group_membership import GroupMembership
+from roots_of_rhythm.music_catalog.domain.lyrics_version import LyricsVersion
+from roots_of_rhythm.music_catalog.domain.lyrics_version_credit import LyricsVersionCredit
+from roots_of_rhythm.music_catalog.domain.lyrics_version_relation import LyricsVersionRelation
+from roots_of_rhythm.music_catalog.domain.musical_work import MusicalWork
 from roots_of_rhythm.music_catalog.domain.value_objects import (
     ClassificationContent,
     ExistencePeriod,
+    ExternalIdentity,
     GeographicContext,
     GroupContent,
     GroupMembershipContent,
     HistoricalPeriod,
+    LyricsVersionContent,
+    LyricsVersionCreditContent,
+    LyricsVersionRelationContent,
     TemporalBound,
+    WorkContent,
+    WorkCreditContent,
+    WorkRelationContent,
 )
+from roots_of_rhythm.music_catalog.domain.work_credit import WorkCredit
+from roots_of_rhythm.music_catalog.domain.work_relation import WorkRelation
 
 __all__ = [
     "ClassificationAssignment",
@@ -44,7 +69,32 @@ __all__ = [
     "GroupMembershipContent",
     "GroupPublicationError",
     "HistoricalPeriod",
+    "LyricsCreationMethod",
+    "LyricsUsageKind",
+    "LyricsVersion",
+    "LyricsVersionContent",
+    "LyricsVersionCredit",
+    "LyricsVersionCreditContent",
+    "LyricsVersionInvalidCombinationError",
+    "LyricsVersionPublicationError",
+    "LyricsVersionRelation",
+    "LyricsVersionRelationContent",
+    "LyricsVersionRelationPublicationError",
+    "LyricsVersionRelationSelfReferenceError",
+    "LyricsVersionRelationType",
+    "MusicalWork",
+    "MusicalWorkPublicationError",
     "MusicCatalogDomainError",
+    "ExternalIdentity",
     "TemporalBound",
     "TemporalPrecision",
+    "WorkContent",
+    "WorkCredit",
+    "WorkCreditContent",
+    "WorkCreditRole",
+    "WorkRelation",
+    "WorkRelationContent",
+    "WorkRelationPublicationError",
+    "WorkRelationSelfReferenceError",
+    "WorkRelationType",
 ]

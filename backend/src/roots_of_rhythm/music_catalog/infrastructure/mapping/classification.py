@@ -4,22 +4,14 @@ from roots_of_rhythm.music_catalog.domain import (
     ClassificationTargetKind,
     EditorialStatus,
     EvidenceStatus,
-    ExistencePeriod,
     Genre,
     GeographicContext,
-    Group,
-    GroupContent,
-    GroupMembership,
-    GroupMembershipContent,
     HistoricalPeriod,
-    TemporalBound,
-    TemporalPrecision,
 )
+from roots_of_rhythm.music_catalog.infrastructure.mapping._temporal import temporal_bound
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     ClassificationAssignmentRecord,
     ClassificationConceptRecord,
-    GroupMembershipRecord,
-    GroupRecord,
 )
 
 
@@ -49,8 +41,8 @@ def record_from_genre(genre: Genre) -> ClassificationConceptRecord:
 
 
 def genre_from_record(record: ClassificationConceptRecord) -> Genre:
-    start = _temporal_bound(record.period_start_year, record.period_start_precision)
-    end = _temporal_bound(record.period_end_year, record.period_end_precision)
+    start = temporal_bound(record.period_start_year, record.period_start_precision)
+    end = temporal_bound(record.period_end_year, record.period_end_precision)
     period = (
         HistoricalPeriod(label=record.period_label, start=start, end=end) if record.period_label is not None else None
     )
@@ -71,7 +63,6 @@ def genre_from_record(record: ClassificationConceptRecord) -> Genre:
 
 
 def update_record(record: ClassificationConceptRecord, genre: Genre) -> None:
-    # Leave created_at / updated_at / deleted alone (DB trigger + soft-delete path).
     period = genre.content.period
     start = period.start if period is not None else None
     end = period.end if period is not None else None
@@ -130,111 +121,3 @@ def update_assignment_record(record: ClassificationAssignmentRecord, assignment:
     record.provenance = assignment.provenance
     record.evidence_status = assignment.evidence_status.value
     record.editorial_status = assignment.editorial_status.value
-
-
-def _temporal_bound(year: int | None, precision: str | None) -> TemporalBound | None:
-    if year is None or precision is None:
-        return None
-    return TemporalBound(year=year, precision=TemporalPrecision(precision))
-
-
-def _existence_period_from_columns(
-    start_year: int | None,
-    start_precision: str | None,
-    end_year: int | None,
-    end_precision: str | None,
-) -> ExistencePeriod | None:
-    start = _temporal_bound(start_year, start_precision)
-    end = _temporal_bound(end_year, end_precision)
-    if start is None and end is None:
-        return None
-    return ExistencePeriod(start=start, end=end)
-
-
-def _apply_existence_period_columns(
-    record: GroupRecord | GroupMembershipRecord,
-    period: ExistencePeriod | None,
-) -> None:
-    start = period.start if period is not None else None
-    end = period.end if period is not None else None
-    record.period_start_year = start.year if start is not None else None
-    record.period_start_precision = start.precision.value if start is not None else None
-    record.period_end_year = end.year if end is not None else None
-    record.period_end_precision = end.precision.value if end is not None else None
-
-
-def record_from_group(group: Group) -> GroupRecord:
-    record = GroupRecord(
-        id=group.id,
-        editorial_status=group.editorial_status.value,
-        canonical_name=group.canonical_name,
-        aliases=list(group.aliases),
-        description=group.description,
-    )
-    _apply_existence_period_columns(record, group.period)
-    return record
-
-
-def group_from_record(record: GroupRecord) -> Group:
-    return Group.create(
-        record.id,
-        GroupContent.create(
-            record.canonical_name,
-            aliases=tuple(record.aliases),
-            description=record.description,
-            period=_existence_period_from_columns(
-                record.period_start_year,
-                record.period_start_precision,
-                record.period_end_year,
-                record.period_end_precision,
-            ),
-        ),
-        editorial_status=EditorialStatus(record.editorial_status),
-    )
-
-
-def update_group_record(record: GroupRecord, group: Group) -> None:
-    record.editorial_status = group.editorial_status.value
-    record.canonical_name = group.canonical_name
-    record.aliases = list(group.aliases)
-    record.description = group.description
-    _apply_existence_period_columns(record, group.period)
-
-
-def record_from_group_membership(membership: GroupMembership) -> GroupMembershipRecord:
-    record = GroupMembershipRecord(
-        id=membership.id,
-        person_id=membership.person_id,
-        group_id=membership.group_id,
-        editorial_status=membership.editorial_status.value,
-        roles_or_instruments=list(membership.roles_or_instruments),
-        provenance=membership.provenance,
-    )
-    _apply_existence_period_columns(record, membership.period)
-    return record
-
-
-def group_membership_from_record(record: GroupMembershipRecord) -> GroupMembership:
-    return GroupMembership.create(
-        record.id,
-        record.person_id,
-        record.group_id,
-        GroupMembershipContent.create(
-            period=_existence_period_from_columns(
-                record.period_start_year,
-                record.period_start_precision,
-                record.period_end_year,
-                record.period_end_precision,
-            ),
-            roles_or_instruments=tuple(record.roles_or_instruments),
-            provenance=record.provenance,
-        ),
-        editorial_status=EditorialStatus(record.editorial_status),
-    )
-
-
-def update_group_membership_record(record: GroupMembershipRecord, membership: GroupMembership) -> None:
-    record.editorial_status = membership.editorial_status.value
-    record.roles_or_instruments = list(membership.roles_or_instruments)
-    record.provenance = membership.provenance
-    _apply_existence_period_columns(record, membership.period)

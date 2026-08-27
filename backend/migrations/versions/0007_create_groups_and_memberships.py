@@ -9,7 +9,6 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-from roots_of_rhythm.music_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     EDITORIAL_STATUS_CHECK,
     PERIOD_END_PRECISION_COLUMN,
@@ -18,6 +17,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     PERIOD_START_YEAR_COLUMN,
     TEMPORAL_PRECISION_CHECK,
 )
+from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 revision: str = "0007"
 down_revision: str | None = "0006"
@@ -42,19 +42,19 @@ def upgrade() -> None:
     op.create_table(
         "groups",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("editorial_status", sa.String(length=32), nullable=False),
-        sa.Column("canonical_name", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=False),
+        sa.Column("editorial_status", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("canonical_name", sa.String(length=TEXT_64), nullable=False),
         sa.Column(
             "aliases",
-            postgresql.ARRAY(sa.String(length=SHORT_TEXT_MAX_LENGTH)),
+            postgresql.ARRAY(sa.String(length=TEXT_64)),
             server_default=sa.text("'{}'"),
             nullable=False,
         ),
-        sa.Column("description", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("description", sa.String(length=TEXT_1024), nullable=True),
         sa.Column(PERIOD_START_YEAR_COLUMN, sa.Integer(), nullable=True),
-        sa.Column(PERIOD_START_PRECISION_COLUMN, sa.String(length=32), nullable=True),
+        sa.Column(PERIOD_START_PRECISION_COLUMN, sa.String(length=TEXT_32), nullable=True),
         sa.Column(PERIOD_END_YEAR_COLUMN, sa.Integer(), nullable=True),
-        sa.Column(PERIOD_END_PRECISION_COLUMN, sa.String(length=32), nullable=True),
+        sa.Column(PERIOD_END_PRECISION_COLUMN, sa.String(length=TEXT_32), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("deleted", sa.Boolean(), server_default=sa.text("false"), nullable=False),
@@ -87,18 +87,18 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("person_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("group_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("editorial_status", sa.String(length=32), nullable=False),
+        sa.Column("editorial_status", sa.String(length=TEXT_32), nullable=False),
         sa.Column(PERIOD_START_YEAR_COLUMN, sa.Integer(), nullable=True),
-        sa.Column(PERIOD_START_PRECISION_COLUMN, sa.String(length=32), nullable=True),
+        sa.Column(PERIOD_START_PRECISION_COLUMN, sa.String(length=TEXT_32), nullable=True),
         sa.Column(PERIOD_END_YEAR_COLUMN, sa.Integer(), nullable=True),
-        sa.Column(PERIOD_END_PRECISION_COLUMN, sa.String(length=32), nullable=True),
+        sa.Column(PERIOD_END_PRECISION_COLUMN, sa.String(length=TEXT_32), nullable=True),
         sa.Column(
             "roles_or_instruments",
-            postgresql.ARRAY(sa.String(length=SHORT_TEXT_MAX_LENGTH)),
+            postgresql.ARRAY(sa.String(length=TEXT_64)),
             server_default=sa.text("'{}'"),
             nullable=False,
         ),
-        sa.Column("provenance", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("provenance", sa.String(length=TEXT_1024), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("deleted", sa.Boolean(), server_default=sa.text("false"), nullable=False),
