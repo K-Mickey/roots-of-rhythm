@@ -27,6 +27,7 @@ dev = [
     "mypy>=1.17,<2",
     "pytest>=8.4,<10",
     "pytest-asyncio>=1.1,<2",
+    "pytest-cov>=7.1.0,<8",
     "pytest-env>=1.1,<2",
     "ruff>=0.12,<1",
 ]
@@ -49,6 +50,15 @@ markers = ["integration: requires a running PostgreSQL database"]
 env = [
     "D:TEST_DATABASE_URL=postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm_test",
 ]
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+source = ["roots_of_rhythm"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
 
 [tool.ruff]
 line-length = 120

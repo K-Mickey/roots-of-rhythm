@@ -17,6 +17,7 @@ __pycache__/
 .ruff_cache/
 .coverage
 .coverage.*
+backend/coverage.xml
 htmlcov/
 build/
 dist/

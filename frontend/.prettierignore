@@ -1,3 +1,4 @@
 .next/
+coverage/
 test-results/
 src/api/schema.d.ts

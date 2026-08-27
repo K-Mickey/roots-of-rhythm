@@ -22,6 +22,12 @@ Tracker: [GitHub issue #8](https://github.com/K-Mickey/roots-of-rhythm/issues/8)
 
 EPIC не блокирует scaffolding и локальную реализацию STORY-001.
 
+До обязательного pull request workflow нужны:
+
+- воспроизводимые lock, format, lint, type, test, contract и build checks;
+- проверка утечек секретов;
+- coverage нового кода и SonarQube Cloud quality gate.
+
 До staging нужны:
 
 - structured logs, correlation/request ID и release/environment labels;
@@ -76,6 +82,14 @@ EPIC не блокирует scaffolding и локальную реализац�
 
 Включает migrations, application rollback, automated off-host backups, restore drill и эксплуатационные runbooks.
 
+### OPS-004: CI quality gate
+
+Статус: `accepted`. Подробная спецификация: [CI quality gate](ci-quality-gate.md).
+
+Результат: pull request получает воспроизводимые required checks качества, тестов, собираемости, секретов и Sonar Way до merge; CodeQL, Dependency Review и E2E дают отдельный сигнал без расписания.
+
+OPS-004 не включает deployment, Sentry или telemetry и может выполняться независимо от остальных work items EPIC-012.
+
 ## Вне epic
 
 - Kubernetes без отдельного доказанного требования;
@@ -88,6 +102,7 @@ EPIC не блокирует scaffolding и локальную реализац�
 
 - [ADR-0004: application stack](../../decisions/0004-application-stack.md)
 - [Operations research](../../research/development-deployment-operations-stack.md)
+- [OPS-004: CI quality gate](ci-quality-gate.md)
 - отдельный deployment/security/observability ADR перед реализацией обязательных production work items.
 
 ## Открытые вопросы

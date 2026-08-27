@@ -1,13 +1,13 @@
 SHELL := /bin/sh
 
-.PHONY: help setup lock db-up test-db-setup up down ps logs backend-dev frontend-dev migrate seed \
-	format format-check lint typecheck test-unit test-integration test-e2e contract-check build check
+.PHONY: help setup lock lock-check db-up test-db-setup up down ps logs backend-dev frontend-dev migrate seed \
+	format format-check lint typecheck test-unit test-integration test-coverage test-e2e contract-check build check
 
 POSTGRES_USER ?= roots
 DATABASE_URL ?= postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm
 TEST_POSTGRES_DB ?= roots_of_rhythm_test
 TEST_DATABASE_URL ?= postgresql+psycopg://roots:roots@127.0.0.1:5432/$(TEST_POSTGRES_DB)
-PNPM_VERSION := 11.19.0
+PNPM_VERSION := 11.24.0
 PNPM := $(shell \
 	if command -v pnpm >/dev/null 2>&1; then command -v pnpm; \
 	elif command -v corepack >/dev/null 2>&1; then echo "corepack pnpm"; \
@@ -23,6 +23,10 @@ setup: ## Install locked backend and frontend dependencies
 lock: ## Refresh dependency lockfiles from manifests
 	cd backend && uv lock
 	$(PNPM) --dir frontend install --lockfile-only
+
+lock-check: ## Verify manifests and lockfiles are synchronized
+	cd backend && uv lock --check
+	$(PNPM) --dir frontend install --frozen-lockfile --lockfile-only
 
 db-up: ## Start PostgreSQL and wait until it is ready
 	docker compose up -d --wait postgres
@@ -79,6 +83,11 @@ test-unit: ## Run backend and frontend unit tests
 
 test-integration: test-db-setup ## Run PostgreSQL integration tests against the isolated database
 	cd backend && TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run pytest -m integration
+
+test-coverage: test-db-setup ## Run backend and frontend tests and produce Sonar coverage reports
+	cd backend && TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run pytest \
+		--cov=roots_of_rhythm --cov-report=term-missing --cov-report=xml:coverage.xml
+	$(PNPM) --dir frontend test:coverage
 
 test-e2e: ## Run Playwright smoke tests against a running stack
 	$(PNPM) --dir frontend test:e2e
