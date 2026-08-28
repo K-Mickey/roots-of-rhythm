@@ -204,6 +204,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recordings/{recording_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a published Recording overview */
+        get: operations["getPublishedRecordingOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -316,6 +333,57 @@ export interface components {
         LyricsUsageKind: "performable" | "reading_translation";
         /** @enum {string} */
         LyricsCreationMethod: "original" | "human_translation" | "machine_translation";
+        RecordingOverviewResponse: {
+            id: components["schemas"]["PublicId"];
+            title: string;
+            period: components["schemas"]["SongPeriodView"];
+            description: components["schemas"]["NullableText"];
+            isrc: components["schemas"]["NullableText"];
+            first_release_date: null;
+            works: components["schemas"]["RecordingWorkView"][];
+            credits: components["schemas"]["RecordingCreditView"][];
+            genres: components["schemas"]["GenreSummary"][];
+            lyrics: components["schemas"]["RecordingLyricsVersionView"][];
+            listening_guide: components["schemas"]["ListeningGuideView"] | null;
+            origin_badges: string[];
+        };
+        RecordingWorkView: {
+            work: components["schemas"]["SongSummary"];
+            /** @enum {string} */
+            usage_kind: "complete" | "partial" | "medley_component";
+            position: number | null;
+        };
+        RecordingCreditView: {
+            /** @enum {string} */
+            target_kind: "person" | "group";
+            target: components["schemas"]["PerformerSummary"] | components["schemas"]["GroupSummary"];
+            /** @enum {string} */
+            billing_role: "primary" | "featured" | "additional" | "unbilled" | "unknown";
+            contribution_kind: string | null;
+            instrument: components["schemas"]["NullableText"];
+            credited_as: components["schemas"]["NullableText"];
+        };
+        RecordingLyricsVersionView: {
+            id: components["schemas"]["PublicId"];
+            language_tag: string;
+            label: components["schemas"]["NullableText"];
+            creation_method: components["schemas"]["LyricsCreationMethod"];
+            body: components["schemas"]["NullableText"];
+            body_unavailable_reason: components["schemas"]["NullableText"];
+            position: number | null;
+            confirmed_for_recording: boolean;
+        };
+        ListeningGuideView: {
+            observations: components["schemas"]["ListeningObservationView"][];
+        };
+        ListeningObservationView: {
+            feature: string;
+            explanation: string;
+            context: components["schemas"]["NullableText"];
+            position: number;
+            start_seconds: number | null;
+            end_seconds: number | null;
+        };
         /** @enum {string} */
         LyricsVersionRelationType: "translation_of" | "adaptation_of";
         PerformerListResponse: {
@@ -780,6 +848,38 @@ export interface operations {
                 };
             };
             404: components["responses"]["SongNotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getPublishedRecordingOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recording_id: components["schemas"]["PublicId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public Recording overview. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingOverviewResponse"];
+                };
+            };
+            /** @description Recording is absent or not publicly visible. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             500: components["responses"]["InternalError"];
         };
     };

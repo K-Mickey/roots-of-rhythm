@@ -32,3 +32,7 @@ class GroupOverviewNotFound(Exception):
 
 class SongOverviewNotFound(Exception):
     """Published Song overview is absent or not publicly visible."""
+
+
+class RecordingOverviewNotFound(Exception):
+    """Published Recording overview is absent or not publicly visible."""

@@ -11,9 +11,13 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalPrecision as HkTemporalPrecision,
 )
 from roots_of_rhythm.music_catalog.domain import (
+    BillingRole,
     LyricsCreationMethod,
     LyricsUsageKind,
     LyricsVersionRelationType,
+    RecordingContributionKind,
+    RecordingCreditTargetKind,
+    RecordingWorkUsageKind,
     WorkCreditRole,
     WorkRelationType,
 )
@@ -197,6 +201,60 @@ class SongOverviewResponse(msgspec.Struct, frozen=True):
     classifications: list[GenreSummary]
     related_works: list[RelatedWorkView]
     lyrics_versions: list[SongLyricsVersionView]
+
+
+class RecordingWorkView(msgspec.Struct, frozen=True):
+    work: SongSummary
+    usage_kind: RecordingWorkUsageKind
+    position: int | None
+
+
+class RecordingCreditView(msgspec.Struct, frozen=True):
+    target_kind: RecordingCreditTargetKind
+    target: PerformerSummary | GroupSummary
+    billing_role: BillingRole
+    contribution_kind: RecordingContributionKind | None
+    instrument: str | None
+    credited_as: str | None
+
+
+class RecordingLyricsVersionView(msgspec.Struct, frozen=True):
+    id: str
+    language_tag: str
+    label: str | None
+    creation_method: LyricsCreationMethod
+    body: str | None
+    body_unavailable_reason: str | None
+    position: int | None
+    confirmed_for_recording: bool
+
+
+class ListeningObservationView(msgspec.Struct, frozen=True):
+    feature: str
+    explanation: str
+    context: str | None
+    position: int
+    start_seconds: int | None
+    end_seconds: int | None
+
+
+class ListeningGuideView(msgspec.Struct, frozen=True):
+    observations: list[ListeningObservationView]
+
+
+class RecordingOverviewResponse(msgspec.Struct, frozen=True):
+    id: str
+    title: str
+    period: SongPeriodView
+    description: str | None
+    isrc: str | None
+    first_release_date: None
+    works: list[RecordingWorkView]
+    credits: list[RecordingCreditView]
+    genres: list[GenreSummary]
+    lyrics: list[RecordingLyricsVersionView]
+    listening_guide: ListeningGuideView | None
+    origin_badges: list[str]
 
 
 class PerformerOverviewResponse(msgspec.Struct, frozen=True):

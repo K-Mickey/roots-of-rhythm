@@ -11,6 +11,8 @@ from sqlalchemy import delete
 from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     ClaimEvidenceReferenceRecord,
     GenreRelationClaimRecord,
+    ListeningGuideRecord,
+    ListeningObservationRecord,
     SourceFragmentRecord,
     SourceRecord,
     SourceVersionRecord,
@@ -40,6 +42,8 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
 _CORPUS_TABLES = (
+    ListeningObservationRecord,
+    ListeningGuideRecord,
     ClaimEvidenceReferenceRecord,
     GenreRelationClaimRecord,
     SourceFragmentRecord,

@@ -9,6 +9,7 @@ from roots_of_rhythm.historical_knowledge.domain.enums import (
     TemporalPrecision,
 )
 from roots_of_rhythm.historical_knowledge.domain.errors import ClaimPublicationError, HistoricalKnowledgeDomainError
+from roots_of_rhythm.historical_knowledge.domain.listening_guide import ListeningGuide, ListeningObservation
 from roots_of_rhythm.historical_knowledge.domain.source import Source, SourceFragment, SourceVersion
 from roots_of_rhythm.historical_knowledge.domain.value_objects import (
     ClaimEvidenceReference,
@@ -30,6 +31,8 @@ __all__ = [
     "GenreRelationClaim",
     "GeographicContext",
     "HistoricalKnowledgeDomainError",
+    "ListeningGuide",
+    "ListeningObservation",
     "HistoricalPeriod",
     "RelationType",
     "SourceAccessPolicy",

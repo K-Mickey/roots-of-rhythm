@@ -78,6 +78,17 @@ class FakeClassificationAssignmentRepository:
             and assignment.editorial_status is EditorialStatus.PUBLISHED
         ]
 
+    async def list_published_for_recording(self, recording_id: UUID) -> list[ClassificationAssignment]:
+        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
+
+        return [
+            assignment
+            for assignment in self._assignments.values()
+            if assignment.target_kind is ClassificationTargetKind.RECORDING
+            and assignment.target_id == recording_id
+            and assignment.editorial_status is EditorialStatus.PUBLISHED
+        ]
+
     async def save(self, assignment: ClassificationAssignment) -> None:
         if assignment.id not in self._assignments:
             raise LookupError(str(assignment.id))
@@ -144,6 +155,14 @@ class FakeGroupRepository:
     async def get_published(self, group_id: UUID, *, for_update: bool = False) -> Group | None:
         group = self._groups.get(group_id)
         return group if group is not None and group.editorial_status is EditorialStatus.PUBLISHED else None
+
+    async def get_published_by_ids(self, group_ids: Collection[UUID]) -> dict[UUID, Group]:
+        return {
+            group_id: group
+            for group_id in set(group_ids)
+            if (group := self._groups.get(group_id)) is not None
+            and group.editorial_status is EditorialStatus.PUBLISHED
+        }
 
     async def list_published(self) -> list[Group]:
         return sorted(

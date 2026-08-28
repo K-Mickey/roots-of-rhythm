@@ -4,6 +4,9 @@ from psycopg import errors as psycopg_errors
 from sqlalchemy.exc import IntegrityError
 
 from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstraintViolation
+from roots_of_rhythm.historical_knowledge.infrastructure.listening_guide_repository import (
+    SqlAlchemyListeningGuideRepository,
+)
 from roots_of_rhythm.historical_knowledge.infrastructure.repositories import (
     SqlAlchemyClaimRepository,
     SqlAlchemySourceRepository,
@@ -14,7 +17,11 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from roots_of_rhythm.historical_knowledge.application.ports import ClaimRepository, SourceRepository
+    from roots_of_rhythm.historical_knowledge.application.ports import (
+        ClaimRepository,
+        ListeningGuideRepository,
+        SourceRepository,
+    )
 
 
 class SqlAlchemyHistoricalKnowledgeUnitOfWork:
@@ -31,6 +38,7 @@ class SqlAlchemyHistoricalKnowledgeUnitOfWork:
         self._session = session
         self._owns_session = owns_session
         self.claims: ClaimRepository = SqlAlchemyClaimRepository(session)
+        self.listening_guides: ListeningGuideRepository = SqlAlchemyListeningGuideRepository(session)
         self.sources: SourceRepository = SqlAlchemySourceRepository(session)
 
     async def __aenter__(self) -> Self:

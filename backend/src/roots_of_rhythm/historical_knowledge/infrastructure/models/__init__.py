@@ -12,6 +12,10 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models.claims import (
     ClaimEvidenceReferenceRecord,
     GenreRelationClaimRecord,
 )
+from roots_of_rhythm.historical_knowledge.infrastructure.models.listening_guides import (
+    ListeningGuideRecord,
+    ListeningObservationRecord,
+)
 from roots_of_rhythm.historical_knowledge.infrastructure.models.sources import (
     SourceFragmentRecord,
     SourceRecord,
@@ -27,6 +31,8 @@ __all__ = [
     "FRAGMENT_REVIEW_CHECK",
     "GenreRelationClaimRecord",
     "HistoricalKnowledgeBase",
+    "ListeningGuideRecord",
+    "ListeningObservationRecord",
     "RELATION_TYPE_CHECK",
     "SOURCE_ACCESS_POLICY_CHECK",
     "SourceFragmentRecord",

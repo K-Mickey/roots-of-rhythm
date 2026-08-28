@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.7.0
+  version: 0.8.0
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
@@ -13,6 +13,8 @@ tags:
     description: Published Group read models.
   - name: Songs
     description: Published Song (MusicalWork) read models.
+  - name: Recordings
+    description: Published Recording read models.
 paths:
   /api/v1/genres:
     get:
@@ -401,6 +403,29 @@ paths:
           $ref: "#/components/responses/SongNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/recordings/{recording_id}:
+    get:
+      tags: [Recordings]
+      operationId: getPublishedRecordingOverview
+      summary: Get a published Recording overview
+      security: []
+      parameters:
+        - name: recording_id
+          in: path
+          required: true
+          schema: {$ref: "#/components/schemas/PublicId"}
+      responses:
+        "200":
+          description: Public Recording overview.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/RecordingOverviewResponse"}
+        "404":
+          description: Recording is absent or not publicly visible.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+        "500": {$ref: "#/components/responses/InternalError"}
 components:
   parameters:
     GenreId:
@@ -726,6 +751,91 @@ components:
     LyricsCreationMethod:
       type: string
       enum: [original, human_translation, machine_translation]
+    RecordingOverviewResponse:
+      type: object
+      additionalProperties: false
+      required: [id, title, period, description, isrc, first_release_date, works, credits, genres, lyrics, listening_guide, origin_badges]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        title: {type: string, minLength: 1}
+        period: {$ref: "#/components/schemas/SongPeriodView"}
+        description: {$ref: "#/components/schemas/NullableText"}
+        isrc: {$ref: "#/components/schemas/NullableText"}
+        first_release_date: {type: "null"}
+        works:
+          type: array
+          items: {$ref: "#/components/schemas/RecordingWorkView"}
+        credits:
+          type: array
+          items: {$ref: "#/components/schemas/RecordingCreditView"}
+        genres:
+          type: array
+          items: {$ref: "#/components/schemas/GenreSummary"}
+        lyrics:
+          type: array
+          items: {$ref: "#/components/schemas/RecordingLyricsVersionView"}
+        listening_guide:
+          oneOf:
+            - {$ref: "#/components/schemas/ListeningGuideView"}
+            - {type: "null"}
+        origin_badges:
+          type: array
+          items: {type: string}
+    RecordingWorkView:
+      type: object
+      additionalProperties: false
+      required: [work, usage_kind, position]
+      properties:
+        work: {$ref: "#/components/schemas/SongSummary"}
+        usage_kind: {type: string, enum: [complete, partial, medley_component]}
+        position: {oneOf: [{type: integer, minimum: 1}, {type: "null"}]}
+    RecordingCreditView:
+      type: object
+      additionalProperties: false
+      required: [target_kind, target, billing_role, contribution_kind, instrument, credited_as]
+      properties:
+        target_kind: {type: string, enum: [person, group]}
+        target:
+          oneOf:
+            - {$ref: "#/components/schemas/PerformerSummary"}
+            - {$ref: "#/components/schemas/GroupSummary"}
+        billing_role: {type: string, enum: [primary, featured, additional, unbilled, unknown]}
+        contribution_kind: {oneOf: [{type: string}, {type: "null"}]}
+        instrument: {$ref: "#/components/schemas/NullableText"}
+        credited_as: {$ref: "#/components/schemas/NullableText"}
+    RecordingLyricsVersionView:
+      type: object
+      additionalProperties: false
+      required: [id, language_tag, label, creation_method, body, body_unavailable_reason, position, confirmed_for_recording]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        language_tag: {type: string, minLength: 1}
+        label: {$ref: "#/components/schemas/NullableText"}
+        creation_method: {$ref: "#/components/schemas/LyricsCreationMethod"}
+        body: {$ref: "#/components/schemas/NullableText"}
+        body_unavailable_reason: {$ref: "#/components/schemas/NullableText"}
+        position: {oneOf: [{type: integer, minimum: 1}, {type: "null"}]}
+        confirmed_for_recording: {type: boolean}
+    ListeningGuideView:
+      type: object
+      additionalProperties: false
+      required: [observations]
+      properties:
+        observations:
+          type: array
+          minItems: 1
+          items: {$ref: "#/components/schemas/ListeningObservationView"}
+    ListeningObservationView:
+      type: object
+      additionalProperties: false
+      required: [feature, explanation, context, position, start_seconds, end_seconds]
+      properties:
+        feature: {type: string, minLength: 1}
+        explanation: {type: string, minLength: 1}
+        context: {$ref: "#/components/schemas/NullableText"}
+        position: {type: integer, minimum: 1}
+        start_seconds: {oneOf: [{type: integer, minimum: 0}, {type: "null"}]}
+        end_seconds: {oneOf: [{type: integer, minimum: 1}, {type: "null"}]}
     LyricsVersionRelationType:
       type: string
       enum: [translation_of, adaptation_of]

@@ -7,10 +7,19 @@ if TYPE_CHECKING:
 
     from roots_of_rhythm.historical_knowledge.domain import (
         GenreRelationClaim,
+        ListeningGuide,
         Source,
         SourceFragment,
         SourceVersion,
     )
+
+
+class ListeningGuideRepository(Protocol):
+    async def add(self, guide: ListeningGuide) -> None: ...
+    async def get(self, guide_id: UUID, *, for_update: bool = False) -> ListeningGuide | None: ...
+    async def get_published_for_recording(self, recording_id: UUID) -> ListeningGuide | None: ...
+    async def save(self, guide: ListeningGuide) -> None: ...
+    async def mark_deleted(self, guide_id: UUID) -> None: ...
 
 
 class ClaimRepository(Protocol):
@@ -55,6 +64,7 @@ class SourceRepository(Protocol):
 
 class HistoricalKnowledgeUnitOfWork(Protocol):
     claims: ClaimRepository
+    listening_guides: ListeningGuideRepository
     sources: SourceRepository
 
     async def __aenter__(self) -> Self: ...

@@ -10,6 +10,11 @@ from roots_of_rhythm.historical_knowledge.application.errors import (
     SourceNotFound,
     UniqueConstraintViolation,
 )
+from roots_of_rhythm.historical_knowledge.application.listening_guide_service import (
+    ListeningGuideNotFound,
+    ListeningGuideRecordingNotPublished,
+    ListeningGuideService,
+)
 from roots_of_rhythm.historical_knowledge.application.ports import (
     ClaimRepository,
     HistoricalKnowledgeUnitOfWork,
@@ -25,6 +30,9 @@ __all__ = [
     "EndpointGenreNotPublished",
     "EvidenceFragmentNotReviewed",
     "HistoricalKnowledgeUnitOfWork",
+    "ListeningGuideNotFound",
+    "ListeningGuideRecordingNotPublished",
+    "ListeningGuideService",
     "PublicEvidenceReference",
     "SourceNotFound",
     "SourceRepository",

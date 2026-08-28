@@ -1,5 +1,15 @@
 # API changelog
 
+## 0.8.0 — 2026-08-28
+
+STORY-008 published Recording overview:
+
+- added `GET /api/v1/recordings/{recording_id}` with published Works, visible credits, Genres, rights-aware lyrics and optional ListeningGuide;
+- non-public Recording and Recording without a published primary Person/Group return `RECORDING_NOT_FOUND`;
+- `first_release_date` is `null` until STORY-009 and `origin_badges` is empty until TASK-005.
+
+Breaking changes: none; additive.
+
 ## 0.7.0 — 2026-08-28
 
 STORY-007 published Song catalog and overview:
