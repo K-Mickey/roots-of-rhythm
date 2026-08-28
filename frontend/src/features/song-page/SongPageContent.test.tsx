@@ -181,13 +181,13 @@ describe('SongPageContent', () => {
     renderWithProviders(<SongPageContent song={populatedOverview} />);
 
     expect(screen.getByRole('heading', { name: 'Текст' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /en · Original/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: /en · Original/ }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: /ru · машинный перевод/ }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('Текст недоступен по правам.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Текст недоступен по правам.')).toBeInTheDocument();
   });
 
   it('falls back to the first lyrics version for an invalid text query', () => {
@@ -195,10 +195,9 @@ describe('SongPageContent', () => {
     renderWithProviders(<SongPageContent song={populatedOverview} />);
 
     expect(screen.getByText('First line')).toBeInTheDocument();
-    expect(replaceMock).toHaveBeenCalledWith(
-      '/songs/song-1?text=lyrics-1',
-      { scroll: false },
-    );
+    expect(replaceMock).toHaveBeenCalledWith('/songs/song-1?text=lyrics-1', {
+      scroll: false,
+    });
 
     fireEvent.click(screen.getByRole('tab', { name: /ru · машинный перевод/ }));
     expect(replaceMock).toHaveBeenLastCalledWith(

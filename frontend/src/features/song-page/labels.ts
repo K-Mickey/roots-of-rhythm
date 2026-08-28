@@ -91,7 +91,10 @@ export function isMachineTranslation(
 }
 
 export function formatLyricsVersionTabLabel(
-  version: Pick<SongLyricsVersionView, 'language_tag' | 'label' | 'creation_method'>,
+  version: Pick<
+    SongLyricsVersionView,
+    'language_tag' | 'label' | 'creation_method'
+  >,
 ): string {
   const parts = [version.language_tag];
   if (version.label !== null) {
@@ -110,7 +113,10 @@ export function resolveSelectedLyricsVersionId(
   if (versions.length === 0) {
     return null;
   }
-  if (textParam !== null && versions.some((version) => version.id === textParam)) {
+  if (
+    textParam !== null &&
+    versions.some((version) => version.id === textParam)
+  ) {
     return textParam;
   }
   return versions[0].id;

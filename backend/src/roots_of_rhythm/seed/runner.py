@@ -361,10 +361,7 @@ class CorpusSeedRunner:
             await self._work_credits.create(work_id, person_id, role, content, credit_id=credit_id)
             await self._work_credits.publish(credit_id)
             return
-        if (
-            existing.credited_as != content.credited_as
-            or existing.provenance != content.provenance
-        ):
+        if existing.credited_as != content.credited_as or existing.provenance != content.provenance:
             await self._work_credits.replace_content(credit_id, content)
         if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
             await self._work_credits.publish(credit_id)

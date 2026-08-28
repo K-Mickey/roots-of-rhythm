@@ -62,6 +62,7 @@
 - [Приёмка STORY-002 (TASK-003)](specs/epic-001-genre-exploration/story-002-navigate-published-genres/acceptance.md) — `accepted`
 - [Приёмка STORY-003 (TASK-002)](specs/epic-010-home-search-catalog/story-003-minimal-home/acceptance.md) — `accepted`
 - [Приёмка STORY-005](specs/epic-002-performer-group-recording/story-005-view-published-performer/acceptance.md) — `accepted`
+- [Приёмка STORY-007 (TASK-007)](specs/epic-002-performer-group-recording/story-007-view-published-song/acceptance.md) — `draft`
 - [STORY-002: перейти между опубликованными Genre](specs/epic-001-genre-exploration/story-002-navigate-published-genres/README.md) — `done`
 - [STORY-003: открыть минимальную главную](specs/epic-010-home-search-catalog/story-003-minimal-home/README.md) — `done`
 - [STORY-004: открыть каталог опубликованных Genre](specs/epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`
@@ -73,7 +74,7 @@
 - [UI/Data/API/декомпозиция STORY-008](specs/epic-002-performer-group-recording/story-008-view-published-recording/tasks.md) — `accepted`
 - [STORY-009: открыть опубликованный релиз](specs/epic-002-performer-group-recording/story-009-view-published-release/README.md) — `draft`
 - [STORY-010: показать связанные сущности на Genre](specs/epic-002-performer-group-recording/story-010-genre-related-entities/README.md) — `draft`
-- [OpenAPI contract](api/openapi.yaml) — `0.6.0`
+- [OpenAPI contract](api/openapi.yaml) — `0.7.0`
 - [API-контракты](api/README.md)
 - [ADR](decisions/README.md)
 - [ADR-0004: application stack первой вертикали](decisions/0004-application-stack.md) — `accepted`

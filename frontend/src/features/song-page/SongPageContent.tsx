@@ -110,7 +110,9 @@ export function SongPageContent({ song }: { song: SongOverview }) {
                     : '';
 
                 return (
-                  <li key={`${credit.person.id}:${credit.role}:${credit.credited_as ?? ''}`}>
+                  <li
+                    key={`${credit.person.id}:${credit.role}:${credit.credited_as ?? ''}`}
+                  >
                     <Anchor
                       component={Link}
                       href={`/performers/${encodeURIComponent(credit.person.id)}`}
@@ -224,13 +226,7 @@ function SongLyricsSection({
     const params = new URLSearchParams(searchParams.toString());
     params.set('text', selectedVersionId);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [
-    pathname,
-    router,
-    searchParams,
-    selectedVersionId,
-    textParam,
-  ]);
+  }, [pathname, router, searchParams, selectedVersionId, textParam]);
 
   const handleTabChange = (versionId: string | null) => {
     if (versionId === null) {

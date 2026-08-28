@@ -375,10 +375,7 @@ class FakeLyricsVersionCreditRepository:
         lyrics_version_ids: Collection[UUID],
     ) -> dict[UUID, list[LyricsVersionCredit]]:
         ids = set(lyrics_version_ids)
-        return {
-            version_id: await self.list_published_for_version(version_id)
-            for version_id in ids
-        }
+        return {version_id: await self.list_published_for_version(version_id) for version_id in ids}
 
     async def save(self, credit: LyricsVersionCredit) -> None:
         if credit.id not in self._credits:
@@ -424,10 +421,7 @@ class FakeLyricsVersionRelationRepository:
         lyrics_version_ids: Collection[UUID],
     ) -> dict[UUID, list[LyricsVersionRelation]]:
         ids = set(lyrics_version_ids)
-        return {
-            version_id: await self.list_published_for_version(version_id)
-            for version_id in ids
-        }
+        return {version_id: await self.list_published_for_version(version_id) for version_id in ids}
 
     async def save(self, relation: LyricsVersionRelation) -> None:
         if relation.id not in self._relations:

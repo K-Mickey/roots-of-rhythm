@@ -20,7 +20,7 @@
 - [STORY-004: открыть каталог опубликованных Genre](epic-010-home-search-catalog/story-004-published-genre-catalog/README.md) — `done`.
 - [UI contract публичной страницы Genre](epic-001-genre-exploration/story-001-view-published-genre/ui.md) — `accepted`.
 - [Data/API workshop публичной Genre page](epic-001-genre-exploration/story-001-view-published-genre/data-api-workshop.md) — `accepted`.
-- [OpenAPI contract](../api/openapi.yaml) — `0.6.0`.
+- [OpenAPI contract](../api/openapi.yaml) — `0.7.0`.
 - [Декомпозиция STORY-001](epic-001-genre-exploration/story-001-view-published-genre/tasks.md) — `accepted`.
 - [Декомпозиция STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/tasks.md) — `accepted`.
 - [Декомпозиция STORY-003](epic-010-home-search-catalog/story-003-minimal-home/tasks.md) — `accepted`.
@@ -31,6 +31,7 @@
 - [Приёмка STORY-001](epic-001-genre-exploration/story-001-view-published-genre/acceptance.md) — `accepted`.
 - [Приёмка STORY-002](epic-001-genre-exploration/story-002-navigate-published-genres/acceptance.md) — `accepted`.
 - [Приёмка STORY-005](epic-002-performer-group-recording/story-005-view-published-performer/acceptance.md) — `accepted`.
+- [Приёмка STORY-007 (TASK-007)](epic-002-performer-group-recording/story-007-view-published-song/acceptance.md) — `draft`.
 - [EPIC-012: production readiness](epic-012-production-readiness/README.md) — `draft`; не блокирует локальную реализацию, обязательные work items блокируют публичный трафик.
 
 Каждая story хранится в отдельной директории и содержит цель, контекст, FR, NFR, критерии приёмки, границы, ошибки, зависимости и открытые вопросы.

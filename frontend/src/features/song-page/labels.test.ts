@@ -53,7 +53,9 @@ describe('song page labels', () => {
     expect(resolveSelectedLyricsVersionId(versions, 'lyrics-2')).toBe(
       'lyrics-2',
     );
-    expect(resolveSelectedLyricsVersionId(versions, 'invalid')).toBe('lyrics-1');
+    expect(resolveSelectedLyricsVersionId(versions, 'invalid')).toBe(
+      'lyrics-1',
+    );
     expect(resolveSelectedLyricsVersionId(versions, null)).toBe('lyrics-1');
     expect(resolveSelectedLyricsVersionId([], 'lyrics-1')).toBeNull();
   });

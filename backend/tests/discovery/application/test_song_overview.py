@@ -11,6 +11,8 @@ from roots_of_rhythm.music_catalog.domain import (
     ClassificationTargetKind,
     EditorialStatus,
     ExistencePeriod,
+    Genre,
+    LyricsVersion,
     MusicalWork,
     TemporalBound,
     TemporalPrecision,
@@ -31,11 +33,11 @@ from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
 
 
 class StubLyricsProjection:
-    async def disclose_bodies_for_versions(self, versions) -> list[LyricsBodyDisclosure]:
-        return [
-            LyricsBodyDisclosure(body=version.body, body_unavailable_reason=None)
-            for version in versions
-        ]
+    async def disclose_bodies_for_versions(
+        self,
+        versions: tuple[LyricsVersion, ...],
+    ) -> list[LyricsBodyDisclosure]:
+        return [LyricsBodyDisclosure(body=version.body, body_unavailable_reason=None) for version in versions]
 
 
 @pytest.mark.asyncio
@@ -132,7 +134,7 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
         lambda: FakePeopleCatalogUnitOfWork(
             {merle_travis_id: merle_travis, hidden_person.id: hidden_person},
         ),
-        StubLyricsProjection(),
+        StubLyricsProjection(),  # type: ignore[arg-type]
     )
 
     response = await query.get(work_id)
@@ -177,7 +179,7 @@ async def test_song_overview_hides_missing_and_non_public_works(status: Editoria
     query = SongOverviewQuery(
         lambda: FakeMusicCatalogUnitOfWork({}, works=works),
         lambda: FakePeopleCatalogUnitOfWork({}),
-        StubLyricsProjection(),
+        StubLyricsProjection(),  # type: ignore[arg-type]
     )
 
     with pytest.raises(SongOverviewNotFound):
@@ -233,7 +235,7 @@ async def test_song_overview_related_works_include_only_outbound_source_relation
             work_relations={outbound.id: outbound, inbound.id: inbound},
         ),
         lambda: FakePeopleCatalogUnitOfWork({}),
-        StubLyricsProjection(),
+        StubLyricsProjection(),  # type: ignore[arg-type]
     )
 
     response = await query.get(song_id)
@@ -243,9 +245,7 @@ async def test_song_overview_related_works_include_only_outbound_source_relation
     ]
 
 
-def _genre(name: str, status: EditorialStatus):
-    from roots_of_rhythm.music_catalog.domain import Genre
-
+def _genre(name: str, status: EditorialStatus) -> Genre:
     return Genre(
         id=uuid7(),
         content=ClassificationContent.create(name, definition="Published definition."),
@@ -253,7 +253,7 @@ def _genre(name: str, status: EditorialStatus):
     )
 
 
-def _assignment(work_id: UUID, genre, status: EditorialStatus) -> ClassificationAssignment:
+def _assignment(work_id: UUID, genre: Genre, status: EditorialStatus) -> ClassificationAssignment:
     return ClassificationAssignment(
         id=uuid7(),
         target_kind=ClassificationTargetKind.MUSICAL_WORK,

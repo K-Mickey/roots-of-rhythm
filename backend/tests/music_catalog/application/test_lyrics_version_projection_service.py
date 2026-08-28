@@ -1,4 +1,4 @@
-from uuid import uuid7
+from uuid import UUID, uuid7
 
 import pytest
 from tests.historical_knowledge.fakes import FakeHistoricalKnowledgeUnitOfWork, FakeSourceRepository
@@ -35,7 +35,10 @@ async def test_disclose_bodies_for_versions_uses_one_hk_uow_and_preserves_order(
         hk_entries.append(uow)
         return uow
 
-    projection = LyricsVersionProjectionService(lambda: FakeMusicCatalogUnitOfWork({}), hk_factory)
+    projection = LyricsVersionProjectionService(
+        lambda: FakeMusicCatalogUnitOfWork({}),
+        hk_factory,  # type: ignore[arg-type]
+    )
     work_id = uuid7()
     first = _lyrics_version(work_id, allowed_version.id, "First body")
     second = _lyrics_version(work_id, withheld_version.id, "Second body")
@@ -62,13 +65,16 @@ async def test_disclose_bodies_for_versions_empty_skips_uow() -> None:
         hk_entries.append(uow)
         return uow
 
-    projection = LyricsVersionProjectionService(lambda: FakeMusicCatalogUnitOfWork({}), hk_factory)
+    projection = LyricsVersionProjectionService(
+        lambda: FakeMusicCatalogUnitOfWork({}),
+        hk_factory,  # type: ignore[arg-type]
+    )
 
     assert await projection.disclose_bodies_for_versions(()) == []
     assert hk_entries == []
 
 
-def _lyrics_version(work_id, source_version_id, body: str) -> LyricsVersion:
+def _lyrics_version(work_id: UUID, source_version_id: UUID, body: str) -> LyricsVersion:
     return LyricsVersion.create(
         uuid7(),
         work_id,

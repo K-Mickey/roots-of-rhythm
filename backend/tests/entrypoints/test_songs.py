@@ -6,12 +6,12 @@ from litestar.testing import TestClient
 from roots_of_rhythm.config import Settings
 from roots_of_rhythm.discovery.application.dto import (
     GenreSummary,
+    PerformerSummary,
     SongListResponse,
     SongOverviewResponse,
     SongPeriodView,
     SongSummary,
     SongWorkCreditView,
-    PerformerSummary,
 )
 from roots_of_rhythm.discovery.application.errors import SongOverviewNotFound
 from roots_of_rhythm.entrypoints.api import create_app

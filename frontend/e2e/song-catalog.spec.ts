@@ -45,9 +45,7 @@ test('song catalog lists seed songs and opens Sixteen Tons with authors', async 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Sixteen Tons' }),
   ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Авторы' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Авторы' })).toBeVisible();
   await expect(
     page.getByRole('link', { name: 'Merle Travis' }).first(),
   ).toHaveAttribute('href', `/performers/${MERLE_TRAVIS_ID}`);
@@ -62,7 +60,5 @@ test('song catalog lists seed songs and opens Sixteen Tons with authors', async 
     'href',
     `/performers/${COUNT_BASIE_ID}`,
   );
-  await expect(
-    page.getByRole('heading', { name: 'Текст' }),
-  ).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Текст' })).not.toBeVisible();
 });

@@ -303,7 +303,7 @@ export interface components {
             credits: components["schemas"]["SongWorkCreditView"][];
             /** @description Published Genre summaries assigned to the Work, ordered by canonical name. */
             classifications: components["schemas"]["GenreSummary"][];
-            /** @description Published directed WorkRelations to other published Works; may be empty. */
+            /** @description Published directed WorkRelations where this song is the source (for example translation_of pointing at the original Work); may be empty. */
             related_works: components["schemas"]["RelatedWorkView"][];
             /** @description Published LyricsVersions ordered performable before reading_translation, then language_tag, label, and id. Body is rights-aware. */
             lyrics_versions: components["schemas"]["SongLyricsVersionView"][];

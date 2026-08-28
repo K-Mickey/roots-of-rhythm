@@ -62,9 +62,7 @@ class FakeSourceRepository:
 
     async def get_versions_by_ids(self, version_ids: Collection[UUID]) -> dict[UUID, SourceVersion]:
         return {
-            version_id: version
-            for version_id in version_ids
-            if (version := self.versions.get(version_id)) is not None
+            version_id: version for version_id in version_ids if (version := self.versions.get(version_id)) is not None
         }
 
     async def get_fragment(self, fragment_id: UUID, *, for_update: bool = False) -> SourceFragment | None:

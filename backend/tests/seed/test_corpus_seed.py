@@ -95,18 +95,14 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         published_works = await uow.works.list_published()
-        work_credits = [
-            await uow.work_credits.get(credit_id) for credit_id, *_ in data.SEED_WORK_CREDITS
-        ]
+        work_credits = [await uow.work_credits.get(credit_id) for credit_id, *_ in data.SEED_WORK_CREDITS]
 
     assert [work.canonical_title for work in published_works] == sorted(
         content.canonical_title for _, content in data.SEED_MUSICAL_WORKS
     )
     assert all(work.editorial_status is GenreEditorialStatus.PUBLISHED for work in published_works)
     assert [
-        None
-        if credit is None
-        else (credit.editorial_status, credit.role, credit.credited_as, credit.provenance)
+        None if credit is None else (credit.editorial_status, credit.role, credit.credited_as, credit.provenance)
         for credit in work_credits
     ] == [
         (GenreEditorialStatus.PUBLISHED, role, credited_as, data.SEED_ASSIGNMENT_PROVENANCE)

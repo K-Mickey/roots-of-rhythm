@@ -75,9 +75,7 @@ class SongOverviewQuery:
             lyrics_relations_by_version = await music_uow.lyrics_version_relations.list_published_for_versions(
                 version_ids,
             )
-            outbound_relations = [
-                relation for relation in work_relations if relation.source_work_id == song_id
-            ]
+            outbound_relations = [relation for relation in work_relations if relation.source_work_id == song_id]
             related_works = await music_uow.works.get_published_by_ids(
                 [relation.target_work_id for relation in outbound_relations],
             )
