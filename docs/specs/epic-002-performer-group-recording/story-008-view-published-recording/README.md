@@ -20,7 +20,7 @@ Epic: [EPIC-002](../README.md).
 
 ## Functional requirements
 
-- `FR-001` `/recordings/{id}` без авторизации. Нет `/recordings` каталога и нет пункта header «Записи».
+- `FR-001` `/recordings` и `/recordings/{id}` доступны без авторизации; header содержит пункт «Записи».
 - `FR-002` Recording нельзя опубликовать без хотя бы одного published Work usage. Страница записи содержит ссылки на все её published Works.
 - `FR-003` Primary credits — ссылки на published Performer/Group.
 - `FR-004` Поля обзора по [mvp-scope Recording](../../../product/mvp-scope.md): период, значение, жанры; пустые скрыты. Провайдеры не обязательны.
@@ -40,7 +40,7 @@ Epic: [EPIC-002](../README.md).
 ## Non-functional requirements
 
 - `NFR-001` SSR.
-- `NFR-002` Нет глобального list endpoint записей. Song overview может вернуть компактные summaries всех Recording текущего MVP; пагинация добавляется только после измеренного роста ответа.
+- `NFR-002` Глобальный list endpoint возвращает компактные summaries без pagination в текущем controlled corpus; пагинация добавляется только после измеренного роста ответа.
 - `NFR-003` Плеер/MediaReference — EPIC-009.
 - `NFR-004` Переключатели Recording, Genre и LyricsVersion доступны с клавиатуры, отражают выбранное состояние и поддерживают back/forward.
 - `NFR-005` На мобильном список Recording располагается над содержимым; правая колонка не создаёт горизонтальный overflow страницы.
@@ -56,7 +56,7 @@ Epic: [EPIC-002](../README.md).
 7. Given самая ранняя Recording без origin Claim, then UI не называет её original.
 8. Given разные supported origin Claims, then Recording получают разные точные бейджи.
 9. Given несколько LyricsVersion, then язык меняет центральный текст без reload; machine translation не считается исполняемым.
-10. Given `/`, then нет каталога записей и нет header «Записи».
+10. Given `/`, then header содержит ссылку «Записи», а `/recordings` показывает публичный каталог.
 11. Given неизвестный id, then безопасный not-found.
 
 ## Данные и контракты
@@ -69,7 +69,7 @@ Recording, RecordingCredit, RecordingWorkUsage, RecordingLyricsUsage, Classifica
 
 ## Out of scope
 
-Глобальный каталог Recording, плеер, страница Track, Session/Take/Master aggregates, автоматическое распознавание covers, обязательное дерево Recording relations и pagination без измеренной необходимости.
+Плеер, страница Track, Session/Take/Master aggregates, автоматическое распознавание covers, обязательное дерево Recording relations и pagination без измеренной необходимости.
 
 ## Ошибки и права
 
@@ -87,3 +87,4 @@ STORY-007; STORY-005/006 для credits; EPIC-001 для Genre assignments; Hist
 
 - 2026-08-19: draft; Work обязателен; каталога нет.
 - 2026-08-27: story принята; добавлены Work/Lyrics usages, жанровые фасеты, хронология без featured/original, origin Claims и интерактивное переключение на странице песни.
+- 2026-08-28: по решению Product Owner добавлены глобальный каталог Recording и пункт header «Записи».

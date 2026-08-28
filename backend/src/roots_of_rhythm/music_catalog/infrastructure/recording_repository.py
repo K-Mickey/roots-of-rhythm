@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -38,6 +39,33 @@ class SqlAlchemyRecordingRepository:
 
     async def get_published(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None:
         return await self._get(recording_id, status=EditorialStatus.PUBLISHED, for_update=for_update)
+
+    async def list_published(self) -> list[Recording]:
+        records = list(
+            await self._session.scalars(
+                select(RecordingRecord)
+                .where(
+                    RecordingRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                    RecordingRecord.deleted.is_(False),
+                )
+                .order_by(RecordingRecord.title, RecordingRecord.id)
+            )
+        )
+        if not records:
+            return []
+        ids = [record.id for record in records]
+        credits = await self._active_children(RecordingCreditRecord, ids)
+        work_usages = await self._active_children(RecordingWorkUsageRecord, ids)
+        lyrics_usages = await self._active_children(RecordingLyricsUsageRecord, ids)
+        return [
+            recording_from_records(
+                record,
+                credits[record.id],
+                sorted(work_usages[record.id], key=lambda item: (item.position is None, item.position, item.id)),
+                sorted(lyrics_usages[record.id], key=lambda item: (item.position, item.id)),
+            )
+            for record in records
+        ]
 
     async def save(self, recording: Recording) -> None:
         record = await self._get_record(recording.id, for_update=True)
@@ -109,6 +137,15 @@ class SqlAlchemyRecordingRepository:
             statement = statement.where(RecordingRecord.editorial_status == status.value)
         result = await self._session.execute(apply_write_lock(statement, for_update=for_update))
         return result.scalar_one_or_none()
+
+    async def _active_children(self, model: type, recording_ids: list[UUID]) -> defaultdict[UUID, list]:
+        grouped: defaultdict[UUID, list] = defaultdict(list)
+        rows = await self._session.scalars(
+            select(model).where(model.recording_id.in_(recording_ids), model.deleted.is_(False))
+        )
+        for row in rows:
+            grouped[row.recording_id].append(row)
+        return grouped
 
     async def _replace_children(self, recording: Recording) -> None:
         stored_credits = list(

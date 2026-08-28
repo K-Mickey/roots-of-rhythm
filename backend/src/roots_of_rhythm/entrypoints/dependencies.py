@@ -11,6 +11,7 @@ from roots_of_rhythm.discovery.application.group_list import GroupListQuery
 from roots_of_rhythm.discovery.application.group_overview import GroupOverviewQuery
 from roots_of_rhythm.discovery.application.performer_list import PerformerListQuery
 from roots_of_rhythm.discovery.application.performer_overview import PerformerOverviewQuery
+from roots_of_rhythm.discovery.application.recording_list import RecordingListQuery
 from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery
 from roots_of_rhythm.discovery.application.song_list import SongListQuery
 from roots_of_rhythm.discovery.application.song_overview import SongOverviewQuery
@@ -37,6 +38,7 @@ GROUP_LIST_READER_DEPENDENCY = "group_list_reader"
 GROUP_OVERVIEW_READER_DEPENDENCY = "group_overview_reader"
 SONG_LIST_READER_DEPENDENCY = "song_list_reader"
 SONG_OVERVIEW_READER_DEPENDENCY = "song_overview_reader"
+RECORDING_LIST_READER_DEPENDENCY = "recording_list_reader"
 RECORDING_OVERVIEW_READER_DEPENDENCY = "recording_overview_reader"
 GROUP_SERVICE_DEPENDENCY = "group_service"
 GROUP_MEMBERSHIP_SERVICE_DEPENDENCY = "group_membership_service"
@@ -66,6 +68,7 @@ def create_api_dependencies(
     lyrics_projection = LyricsVersionProjectionService(music_uow_factory, hk_uow_factory)
     song_list_query = SongListQuery(music_uow_factory)
     song_overview_query = SongOverviewQuery(music_uow_factory, people_uow_factory, lyrics_projection)
+    recording_list_query = RecordingListQuery(music_uow_factory, people_uow_factory)
     recording_overview_query = RecordingOverviewQuery(
         music_uow_factory, people_uow_factory, hk_uow_factory, lyrics_projection
     )
@@ -87,6 +90,7 @@ def create_api_dependencies(
         GROUP_OVERVIEW_READER_DEPENDENCY: Provide(lambda: group_overview_query, sync_to_thread=False),
         SONG_LIST_READER_DEPENDENCY: Provide(lambda: song_list_query, sync_to_thread=False),
         SONG_OVERVIEW_READER_DEPENDENCY: Provide(lambda: song_overview_query, sync_to_thread=False),
+        RECORDING_LIST_READER_DEPENDENCY: Provide(lambda: recording_list_query, sync_to_thread=False),
         RECORDING_OVERVIEW_READER_DEPENDENCY: Provide(lambda: recording_overview_query, sync_to_thread=False),
         GROUP_SERVICE_DEPENDENCY: Provide(lambda: group_service, sync_to_thread=False),
         GROUP_MEMBERSHIP_SERVICE_DEPENDENCY: Provide(lambda: group_membership_service, sync_to_thread=False),

@@ -33,5 +33,9 @@ describe('SiteHeader', () => {
       'href',
       '/songs',
     );
+    expect(screen.getByRole('link', { name: 'Записи' })).toHaveAttribute(
+      'href',
+      '/recordings',
+    );
   });
 });

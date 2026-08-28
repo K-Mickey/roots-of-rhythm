@@ -89,6 +89,14 @@ class FakeClassificationAssignmentRepository:
             and assignment.editorial_status is EditorialStatus.PUBLISHED
         ]
 
+    async def list_published_for_recordings(
+        self, recording_ids: Collection[UUID]
+    ) -> dict[UUID, list[ClassificationAssignment]]:
+        return {
+            recording_id: await self.list_published_for_recording(recording_id)
+            for recording_id in recording_ids
+        }
+
     async def save(self, assignment: ClassificationAssignment) -> None:
         if assignment.id not in self._assignments:
             raise LookupError(str(assignment.id))
@@ -474,6 +482,16 @@ class FakeRecordingRepository:
         if recording is None or recording.editorial_status is not EditorialStatus.PUBLISHED:
             return None
         return recording
+
+    async def list_published(self) -> list[Recording]:
+        return sorted(
+            (
+                recording
+                for recording in self._recordings.values()
+                if recording.editorial_status is EditorialStatus.PUBLISHED
+            ),
+            key=lambda recording: (recording.title.casefold(), str(recording.id)),
+        )
 
     async def save(self, recording: Recording) -> None:
         if recording.id not in self._recordings:

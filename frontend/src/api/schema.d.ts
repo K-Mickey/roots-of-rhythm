@@ -204,6 +204,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recordings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published Recordings
+         * @description Returns compact summaries of published Recordings with primary credits and Genre assignments. Recordings without a published primary Person or Group are omitted. An empty list is a successful result.
+         */
+        get: operations["listPublishedRecordings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/recordings/{recording_id}": {
         parameters: {
             query?: never;
@@ -333,6 +353,21 @@ export interface components {
         LyricsUsageKind: "performable" | "reading_translation";
         /** @enum {string} */
         LyricsCreationMethod: "original" | "human_translation" | "machine_translation";
+        RecordingListResponse: {
+            items: components["schemas"]["RecordingListItem"][];
+        };
+        RecordingListItem: {
+            id: components["schemas"]["PublicId"];
+            title: string;
+            period: components["schemas"]["SongPeriodView"];
+            primary_credits: components["schemas"]["RecordingPrimaryCreditView"][];
+            genres: components["schemas"]["GenreSummary"][];
+        };
+        RecordingPrimaryCreditView: {
+            /** @enum {string} */
+            target_kind: "person" | "group";
+            target: components["schemas"]["PerformerSummary"] | components["schemas"]["GroupSummary"];
+        };
         RecordingOverviewResponse: {
             id: components["schemas"]["PublicId"];
             title: string;
@@ -848,6 +883,27 @@ export interface operations {
                 };
             };
             404: components["responses"]["SongNotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listPublishedRecordings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ordered published Recording summaries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordingListResponse"];
+                };
+            };
             500: components["responses"]["InternalError"];
         };
     };

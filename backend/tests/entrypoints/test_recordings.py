@@ -5,16 +5,23 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import RecordingOverviewResponse, SongPeriodView
+from roots_of_rhythm.discovery.application.dto import (
+    RecordingListResponse,
+    RecordingOverviewResponse,
+    SongPeriodView,
+)
 from roots_of_rhythm.discovery.application.errors import RecordingOverviewNotFound
 from roots_of_rhythm.entrypoints.api import create_app
-from roots_of_rhythm.entrypoints.dependencies import RECORDING_OVERVIEW_READER_DEPENDENCY
+from roots_of_rhythm.entrypoints.dependencies import (
+    RECORDING_LIST_READER_DEPENDENCY,
+    RECORDING_OVERVIEW_READER_DEPENDENCY,
+)
 
 if TYPE_CHECKING:
     from litestar import Litestar
 
 
-class StubReader:
+class StubOverviewReader:
     def __init__(self, result: RecordingOverviewResponse | Exception) -> None:
         self.result = result
 
@@ -24,25 +31,48 @@ class StubReader:
         return self.result
 
 
-def _client(reader: StubReader) -> "TestClient[Litestar]":
+class StubListReader:
+    def __init__(self, result: RecordingListResponse | Exception) -> None:
+        self.result = result
+
+    async def list(self) -> RecordingListResponse:
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+
+
+def _client(
+    overview: StubOverviewReader | None = None,
+    listing: StubListReader | None = None,
+) -> "TestClient[Litestar]":
+    overrides = {}
+    if overview is not None:
+        overrides[RECORDING_OVERVIEW_READER_DEPENDENCY] = Provide(lambda: overview, sync_to_thread=False)
+    if listing is not None:
+        overrides[RECORDING_LIST_READER_DEPENDENCY] = Provide(lambda: listing, sync_to_thread=False)
     return TestClient(
         app=create_app(
             Settings(database_url="postgresql+psycopg://roots:roots@127.0.0.1:1/missing?connect_timeout=1"),
-            dependency_overrides={
-                RECORDING_OVERVIEW_READER_DEPENDENCY: Provide(lambda: reader, sync_to_thread=False),
-            },
+            dependency_overrides=overrides,
         )
     )
+
+
+def test_recording_list_http_returns_public_shape() -> None:
+    with _client(listing=StubListReader(RecordingListResponse([]))) as client:
+        response = client.get("/api/v1/recordings")
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
 
 
 def test_recording_overview_http_returns_public_shape() -> None:
     recording_id = uuid7()
-    reader = StubReader(
+    reader = StubOverviewReader(
         RecordingOverviewResponse(
             str(recording_id), "Take Five", SongPeriodView(None, None), None, None, None, [], [], [], [], None, []
         )
     )
-    with _client(reader) as client:
+    with _client(overview=reader) as client:
         response = client.get(f"/api/v1/recordings/{recording_id}")
     assert response.status_code == 200
     assert response.json()["title"] == "Take Five"
@@ -50,7 +80,7 @@ def test_recording_overview_http_returns_public_shape() -> None:
 
 
 def test_recording_overview_http_hides_malformed_and_nonpublic_ids() -> None:
-    with _client(StubReader(RecordingOverviewNotFound("missing"))) as client:
+    with _client(overview=StubOverviewReader(RecordingOverviewNotFound("missing"))) as client:
         malformed = client.get("/api/v1/recordings/nope")
         missing = client.get(f"/api/v1/recordings/{uuid7()}")
     assert malformed.status_code == missing.status_code == 404
@@ -58,7 +88,7 @@ def test_recording_overview_http_hides_malformed_and_nonpublic_ids() -> None:
 
 
 def test_recording_overview_http_maps_assembly_failure() -> None:
-    with _client(StubReader(RuntimeError("boom"))) as client:
+    with _client(overview=StubOverviewReader(RuntimeError("boom"))) as client:
         response = client.get(f"/api/v1/recordings/{uuid7()}")
     assert response.status_code == 500
     assert response.json()["code"] == "INTERNAL_ERROR"

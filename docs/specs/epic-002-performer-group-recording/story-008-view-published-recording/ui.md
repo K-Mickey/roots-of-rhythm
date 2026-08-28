@@ -19,6 +19,10 @@ Story: [STORY-008](README.md).
 
 Пустые опциональные секции скрыты. Нельзя показывать общий badge «Оригинал».
 
+## Каталог `/recordings`
+
+Header содержит ссылку «Записи». Каталог показывает title Recording как ссылку на detail page, опубликованные primary Person/Group, известный период записи и опубликованные Genre. Recording без публичного primary target не показывается; период и Genre могут отсутствовать. Порядок алфавитный по title, затем primary credits. Pagination, поиск и фильтры не добавляются для текущего controlled corpus.
+
 ## Расширение `/songs/{id}`
 
 Шапка, авторы, классификация Work и WorkRelation из STORY-007 остаются постоянными.
@@ -62,4 +66,4 @@ Recording выбрана автоматически и показана в це�
 
 ## Не входит
 
-Плеер, глобальный каталог Recording, Session/Take/Master UI, дерево covers, автоматическое определение оригинала, обязательные Recording relations и pagination.
+Плеер, Session/Take/Master UI, дерево covers, автоматическое определение оригинала, обязательные Recording relations и pagination.

@@ -1,5 +1,15 @@
 # API changelog
 
+## 0.9.0 — 2026-08-28
+
+STORY-008 published Recording catalog:
+
+- added `GET /api/v1/recordings` returning `RecordingListResponse` with title, period, primary credits and Genres;
+- Recordings without a published primary Person/Group are omitted from the list;
+- list failures use `INTERNAL_ERROR`.
+
+Breaking changes: none; additive.
+
 ## 0.8.0 — 2026-08-28
 
 STORY-008 published Recording overview:

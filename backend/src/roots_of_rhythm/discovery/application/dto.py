@@ -242,6 +242,23 @@ class ListeningGuideView(msgspec.Struct, frozen=True):
     observations: list[ListeningObservationView]
 
 
+class RecordingPrimaryCreditView(msgspec.Struct, frozen=True):
+    target_kind: RecordingCreditTargetKind
+    target: PerformerSummary | GroupSummary
+
+
+class RecordingListItem(msgspec.Struct, frozen=True):
+    id: str
+    title: str
+    period: SongPeriodView
+    primary_credits: list[RecordingPrimaryCreditView]
+    genres: list[GenreSummary]
+
+
+class RecordingListResponse(msgspec.Struct, frozen=True):
+    items: list[RecordingListItem]
+
+
 class RecordingOverviewResponse(msgspec.Struct, frozen=True):
     id: str
     title: str

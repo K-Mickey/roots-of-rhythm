@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.8.0
+  version: 0.9.0
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
@@ -403,6 +403,23 @@ paths:
           $ref: "#/components/responses/SongNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/recordings:
+    get:
+      tags: [Recordings]
+      operationId: listPublishedRecordings
+      summary: List published Recordings
+      description: >-
+        Returns compact summaries of published Recordings with primary credits and
+        Genre assignments. Recordings without a published primary Person or Group are
+        omitted. An empty list is a successful result.
+      security: []
+      responses:
+        "200":
+          description: Ordered published Recording summaries.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/RecordingListResponse"}
+        "500": {$ref: "#/components/responses/InternalError"}
   /api/v1/recordings/{recording_id}:
     get:
       tags: [Recordings]
@@ -751,6 +768,39 @@ components:
     LyricsCreationMethod:
       type: string
       enum: [original, human_translation, machine_translation]
+    RecordingListResponse:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/RecordingListItem"}
+    RecordingListItem:
+      type: object
+      additionalProperties: false
+      required: [id, title, period, primary_credits, genres]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        title: {type: string, minLength: 1}
+        period: {$ref: "#/components/schemas/SongPeriodView"}
+        primary_credits:
+          type: array
+          minItems: 1
+          items: {$ref: "#/components/schemas/RecordingPrimaryCreditView"}
+        genres:
+          type: array
+          items: {$ref: "#/components/schemas/GenreSummary"}
+    RecordingPrimaryCreditView:
+      type: object
+      additionalProperties: false
+      required: [target_kind, target]
+      properties:
+        target_kind: {type: string, enum: [person, group]}
+        target:
+          oneOf:
+            - {$ref: "#/components/schemas/PerformerSummary"}
+            - {$ref: "#/components/schemas/GroupSummary"}
     RecordingOverviewResponse:
       type: object
       additionalProperties: false

@@ -27,6 +27,9 @@ export function SiteHeader() {
             <Anchor href="/songs" c="pastel.9" underline="hover">
               Песни
             </Anchor>
+            <Anchor href="/recordings" c="pastel.9" underline="hover">
+              Записи
+            </Anchor>
           </Group>
         </Group>
       </Container>
