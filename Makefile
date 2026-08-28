@@ -85,8 +85,9 @@ test-integration: test-db-setup ## Run PostgreSQL integration tests against the 
 	cd backend && TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run pytest -m integration
 
 test-coverage: test-db-setup ## Run backend and frontend tests and produce Sonar coverage reports
-	cd backend && TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run pytest \
-		--cov=roots_of_rhythm --cov-report=term-missing --cov-report=xml:coverage.xml
+	TEST_DATABASE_URL=$(TEST_DATABASE_URL) uv run --project backend pytest backend/tests \
+		--cov=backend/src/roots_of_rhythm --cov-config=backend/pyproject.toml \
+		--cov-report=term-missing --cov-report=xml:backend/coverage.xml
 	$(PNPM) --dir frontend test:coverage
 
 test-e2e: ## Run Playwright smoke tests against a running stack
