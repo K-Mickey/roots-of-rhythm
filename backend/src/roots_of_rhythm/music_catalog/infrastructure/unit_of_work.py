@@ -28,6 +28,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     WORK_RELATION_UNIQUE_CONSTRAINT,
 )
 from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
+from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
 from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.work_credit_repository import SqlAlchemyWorkCreditRepository
 from roots_of_rhythm.music_catalog.infrastructure.work_relation_repository import SqlAlchemyWorkRelationRepository
@@ -46,6 +47,7 @@ if TYPE_CHECKING:
         LyricsVersionRelationRepository,
         LyricsVersionRepository,
         MusicalWorkRepository,
+        RecordingRepository,
         WorkCreditRepository,
         WorkRelationRepository,
     )
@@ -76,6 +78,7 @@ class SqlAlchemyMusicCatalogUnitOfWork:
         self.lyrics_version_relations: LyricsVersionRelationRepository = SqlAlchemyLyricsVersionRelationRepository(
             session
         )
+        self.recordings: RecordingRepository = SqlAlchemyRecordingRepository(session)
 
     async def __aenter__(self) -> Self:
         return self

@@ -69,3 +69,35 @@ class LyricsCreationMethod(StrEnum):
 class LyricsVersionRelationType(StrEnum):
     TRANSLATION_OF = "translation_of"
     ADAPTATION_OF = "adaptation_of"
+
+
+class RecordingCreditTargetKind(StrEnum):
+    PERSON = "person"
+    GROUP = "group"
+
+
+class BillingRole(StrEnum):
+    PRIMARY = "primary"
+    FEATURED = "featured"
+    ADDITIONAL = "additional"
+    UNBILLED = "unbilled"
+    UNKNOWN = "unknown"
+
+
+class RecordingContributionKind(StrEnum):
+    VOCAL = "vocal"
+    INSTRUMENTAL = "instrumental"
+    BANDLEADER = "bandleader"
+    CONDUCTOR = "conductor"
+    ARRANGER = "arranger"
+    COMPOSER = "composer"
+    LYRICIST = "lyricist"
+    PRODUCER = "producer"
+    OTHER = "other"
+    UNKNOWN = "unknown"
+
+
+class RecordingWorkUsageKind(StrEnum):
+    COMPLETE = "complete"
+    PARTIAL = "partial"
+    MEDLEY_COMPONENT = "medley_component"

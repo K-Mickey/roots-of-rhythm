@@ -1,4 +1,5 @@
 from roots_of_rhythm.music_catalog.infrastructure.models.base import (
+    BILLING_ROLE_CHECK,
     CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
     CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
     EDITORIAL_STATUS_CHECK,
@@ -14,6 +15,10 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
     PERIOD_END_YEAR_COLUMN,
     PERIOD_START_PRECISION_COLUMN,
     PERIOD_START_YEAR_COLUMN,
+    RECORDING_CONTRIBUTION_KIND_CHECK,
+    RECORDING_CREDIT_TARGET_KIND_CHECK,
+    RECORDING_WORK_USAGE_KIND_CHECK,
+    RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT,
     TARGET_KIND_CHECK,
     TEMPORAL_PRECISION_CHECK,
     WORK_CREDIT_ROLE_CHECK,
@@ -32,6 +37,11 @@ from roots_of_rhythm.music_catalog.infrastructure.models.lyrics import (
     LyricsVersionRecord,
     LyricsVersionRelationRecord,
 )
+from roots_of_rhythm.music_catalog.infrastructure.models.recordings import (
+    RecordingCreditRecord,
+    RecordingRecord,
+    RecordingWorkUsageRecord,
+)
 from roots_of_rhythm.music_catalog.infrastructure.models.works import (
     ExternalIdentityData,
     MusicalWorkRecord,
@@ -40,6 +50,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models.works import (
 )
 
 __all__ = [
+    "BILLING_ROLE_CHECK",
     "CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT",
     "CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT",
     "ClassificationAssignmentRecord",
@@ -65,6 +76,13 @@ __all__ = [
     "PERIOD_END_YEAR_COLUMN",
     "PERIOD_START_PRECISION_COLUMN",
     "PERIOD_START_YEAR_COLUMN",
+    "RECORDING_CONTRIBUTION_KIND_CHECK",
+    "RECORDING_CREDIT_TARGET_KIND_CHECK",
+    "RECORDING_WORK_USAGE_KIND_CHECK",
+    "RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT",
+    "RecordingCreditRecord",
+    "RecordingRecord",
+    "RecordingWorkUsageRecord",
     "TARGET_KIND_CHECK",
     "TEMPORAL_PRECISION_CHECK",
     "WORK_CREDIT_ROLE_CHECK",

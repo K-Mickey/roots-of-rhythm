@@ -14,6 +14,7 @@ if TYPE_CHECKING:
         LyricsVersionCredit,
         LyricsVersionRelation,
         MusicalWork,
+        Recording,
         WorkCredit,
         WorkRelation,
     )
@@ -179,6 +180,20 @@ class LyricsVersionRelationRepository(Protocol):
     async def mark_deleted(self, relation_id: UUID) -> None: ...
 
 
+class RecordingRepository(Protocol):
+    async def add(self, recording: Recording) -> None: ...
+
+    async def get(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None: ...
+
+    async def get_published(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None: ...
+
+    async def save(self, recording: Recording) -> None: ...
+
+    async def save_status(self, recording: Recording) -> None: ...
+
+    async def mark_deleted(self, recording_id: UUID) -> None: ...
+
+
 class MusicCatalogUnitOfWork(Protocol):
     genres: GenreRepository
     assignments: ClassificationAssignmentRepository
@@ -203,3 +218,7 @@ class MusicCatalogUnitOfWork(Protocol):
     async def commit(self) -> None: ...
 
     async def rollback(self) -> None: ...
+
+
+class RecordingUnitOfWork(MusicCatalogUnitOfWork, Protocol):
+    recordings: RecordingRepository

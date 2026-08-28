@@ -99,3 +99,15 @@ class LyricsVersionRelationConflict(ValueError):
 
 class LyricsVersionEndpointNotPublished(ValueError):
     pass
+
+
+class RecordingNotFound(LookupError):
+    pass
+
+
+class RecordingWorkNotPublished(ValueError):
+    pass
+
+
+class RecordingPrimaryTargetNotPublished(ValueError):
+    pass

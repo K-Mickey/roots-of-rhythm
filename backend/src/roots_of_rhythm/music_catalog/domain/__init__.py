@@ -1,5 +1,6 @@
 from roots_of_rhythm.music_catalog.domain.assignment import ClassificationAssignment
 from roots_of_rhythm.music_catalog.domain.enums import (
+    BillingRole,
     ClassificationKind,
     ClassificationTargetKind,
     EditorialStatus,
@@ -7,6 +8,9 @@ from roots_of_rhythm.music_catalog.domain.enums import (
     LyricsCreationMethod,
     LyricsUsageKind,
     LyricsVersionRelationType,
+    RecordingContributionKind,
+    RecordingCreditTargetKind,
+    RecordingWorkUsageKind,
     TemporalPrecision,
     WorkCreditRole,
     WorkRelationType,
@@ -21,6 +25,7 @@ from roots_of_rhythm.music_catalog.domain.errors import (
     LyricsVersionRelationSelfReferenceError,
     MusicalWorkPublicationError,
     MusicCatalogDomainError,
+    RecordingPublicationError,
     WorkRelationPublicationError,
     WorkRelationSelfReferenceError,
 )
@@ -31,6 +36,7 @@ from roots_of_rhythm.music_catalog.domain.lyrics_version import LyricsVersion
 from roots_of_rhythm.music_catalog.domain.lyrics_version_credit import LyricsVersionCredit
 from roots_of_rhythm.music_catalog.domain.lyrics_version_relation import LyricsVersionRelation
 from roots_of_rhythm.music_catalog.domain.musical_work import MusicalWork
+from roots_of_rhythm.music_catalog.domain.recording import Recording
 from roots_of_rhythm.music_catalog.domain.value_objects import (
     ClassificationContent,
     ExistencePeriod,
@@ -42,6 +48,9 @@ from roots_of_rhythm.music_catalog.domain.value_objects import (
     LyricsVersionContent,
     LyricsVersionCreditContent,
     LyricsVersionRelationContent,
+    RecordingContent,
+    RecordingCredit,
+    RecordingWorkUsage,
     TemporalBound,
     WorkContent,
     WorkCreditContent,
@@ -51,6 +60,7 @@ from roots_of_rhythm.music_catalog.domain.work_credit import WorkCredit
 from roots_of_rhythm.music_catalog.domain.work_relation import WorkRelation
 
 __all__ = [
+    "BillingRole",
     "ClassificationAssignment",
     "ClassificationAssignmentPublicationError",
     "ClassificationConcept",
@@ -85,6 +95,14 @@ __all__ = [
     "MusicalWork",
     "MusicalWorkPublicationError",
     "MusicCatalogDomainError",
+    "Recording",
+    "RecordingContent",
+    "RecordingContributionKind",
+    "RecordingCredit",
+    "RecordingCreditTargetKind",
+    "RecordingPublicationError",
+    "RecordingWorkUsage",
+    "RecordingWorkUsageKind",
     "ExternalIdentity",
     "TemporalBound",
     "TemporalPrecision",

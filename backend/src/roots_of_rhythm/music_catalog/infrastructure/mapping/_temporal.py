@@ -7,6 +7,7 @@ if TYPE_CHECKING:
         GroupMembershipRecord,
         GroupRecord,
         MusicalWorkRecord,
+        RecordingRecord,
     )
 
 
@@ -30,7 +31,7 @@ def existence_period_from_columns(
 
 
 def apply_existence_period_columns(
-    record: GroupRecord | GroupMembershipRecord | MusicalWorkRecord,
+    record: GroupRecord | GroupMembershipRecord | MusicalWorkRecord | RecordingRecord,
     period: ExistencePeriod | None,
 ) -> None:
     start = period.start if period is not None else None
