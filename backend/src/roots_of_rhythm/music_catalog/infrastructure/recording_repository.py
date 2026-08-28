@@ -67,6 +67,40 @@ class SqlAlchemyRecordingRepository:
             for record in records
         ]
 
+    async def list_published_for_work(self, work_id: UUID) -> list[Recording]:
+        records = list(
+            await self._session.scalars(
+                select(RecordingRecord)
+                .join(
+                    RecordingWorkUsageRecord,
+                    RecordingWorkUsageRecord.recording_id == RecordingRecord.id,
+                )
+                .where(
+                    RecordingWorkUsageRecord.work_id == work_id,
+                    RecordingWorkUsageRecord.deleted.is_(False),
+                    RecordingRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                    RecordingRecord.deleted.is_(False),
+                )
+                .distinct()
+                .order_by(RecordingRecord.title, RecordingRecord.id)
+            )
+        )
+        if not records:
+            return []
+        ids = [record.id for record in records]
+        credits = await self._active_children(RecordingCreditRecord, ids)
+        work_usages = await self._active_children(RecordingWorkUsageRecord, ids)
+        lyrics_usages = await self._active_children(RecordingLyricsUsageRecord, ids)
+        return [
+            recording_from_records(
+                record,
+                credits[record.id],
+                sorted(work_usages[record.id], key=lambda item: (item.position is None, item.position, item.id)),
+                sorted(lyrics_usages[record.id], key=lambda item: (item.position, item.id)),
+            )
+            for record in records
+        ]
+
     async def save(self, recording: Recording) -> None:
         record = await self._get_record(recording.id, for_update=True)
         if record is None:

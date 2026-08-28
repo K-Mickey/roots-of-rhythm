@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.9.0
+  version: 0.10.0
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
@@ -723,6 +723,8 @@ components:
         - classifications
         - related_works
         - lyrics_versions
+        - recording_genres
+        - recordings
       properties:
         id: {$ref: "#/components/schemas/PublicId"}
         name: {type: string, minLength: 1}
@@ -756,6 +758,53 @@ components:
             Published LyricsVersions ordered performable before reading_translation,
             then language_tag, label, and id. Body is rights-aware.
           items: {$ref: "#/components/schemas/SongLyricsVersionView"}
+        recording_genres:
+          type: array
+          description: >-
+            Distinct Genre facets counting published Recordings with complete or partial
+            Work usage; medley_component is excluded. May be empty.
+          items: {$ref: "#/components/schemas/SongRecordingGenreFacet"}
+        recordings:
+          type: array
+          description: >-
+            Published Recording chronology for this Work, ordered by recorded date,
+            title, and id. Recordings without a published primary credit are omitted.
+          items: {$ref: "#/components/schemas/SongRecordingSummary"}
+    SongRecordingGenreFacet:
+      type: object
+      additionalProperties: false
+      required: [genre, recording_count]
+      properties:
+        genre: {$ref: "#/components/schemas/GenreSummary"}
+        recording_count: {type: integer, minimum: 1}
+    SongRecordingSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - title
+        - recorded_period
+        - first_release_date
+        - primary_credits
+        - genre_ids
+        - work_usage_kind
+        - origin_badges
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        title: {type: string, minLength: 1}
+        recorded_period: {$ref: "#/components/schemas/SongPeriodView"}
+        first_release_date: {type: "null"}
+        primary_credits:
+          type: array
+          minItems: 1
+          items: {$ref: "#/components/schemas/RecordingPrimaryCreditView"}
+        genre_ids:
+          type: array
+          items: {$ref: "#/components/schemas/PublicId"}
+        work_usage_kind: {type: string, enum: [complete, partial, medley_component]}
+        origin_badges:
+          type: array
+          items: {type: string}
     WorkCreditRole:
       type: string
       enum: [composer, lyricist, writer, translator, adapter, arranger, other]

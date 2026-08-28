@@ -1,5 +1,16 @@
 # API changelog
 
+## 0.10.0 — 2026-08-28
+
+STORY-008 Song overview recording chronology and genre facets:
+
+- extended `GET /api/v1/songs/{song_id}` with `recording_genres` and `recordings`;
+- facets count distinct published Recordings with `complete` or `partial` Work usage;
+- `medley_component` appears in chronology but not in facets;
+- `first_release_date` and `origin_badges` on recording summaries are `null`/`[]` until STORY-009 and TASK-005.
+
+Breaking changes: none; additive required fields on `SongOverviewResponse`.
+
 ## 0.9.0 — 2026-08-28
 
 STORY-008 published Recording catalog:

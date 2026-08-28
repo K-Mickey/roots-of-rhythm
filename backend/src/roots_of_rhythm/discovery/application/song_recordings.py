@@ -1,0 +1,107 @@
+from collections import defaultdict
+from typing import TYPE_CHECKING
+
+from roots_of_rhythm.discovery.application.dto import (
+    GenreSummary,
+    GroupSummary,
+    PerformerSummary,
+    RecordingPrimaryCreditView,
+    SongPeriodView,
+    SongRecordingGenreFacet,
+    SongRecordingSummary,
+)
+from roots_of_rhythm.music_catalog.domain import (
+    BillingRole,
+    RecordingCreditTargetKind,
+    RecordingWorkUsageKind,
+)
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from roots_of_rhythm.music_catalog.domain import Genre, Group, Recording
+    from roots_of_rhythm.people_catalog.domain import Person
+
+
+def project_song_recordings(
+    work_id: UUID,
+    recordings: list[Recording],
+    assignments_by_recording: dict[UUID, list],
+    genres: dict[UUID, Genre],
+    persons: dict[UUID, Person],
+    groups: dict[UUID, Group],
+) -> tuple[list[SongRecordingGenreFacet], list[SongRecordingSummary]]:
+    summaries: list[SongRecordingSummary] = []
+    facet_recording_ids: defaultdict[UUID, set[UUID]] = defaultdict(set)
+
+    for recording in recordings:
+        usage_kind = next(
+            (usage.usage_kind for usage in recording.work_usages if usage.work_id == work_id),
+            None,
+        )
+        if usage_kind is None:
+            continue
+
+        primary_credits: list[RecordingPrimaryCreditView] = []
+        for credit in recording.credits:
+            if credit.billing_role is not BillingRole.PRIMARY:
+                continue
+            target = (
+                persons.get(credit.target_id)
+                if credit.target_kind is RecordingCreditTargetKind.PERSON
+                else groups.get(credit.target_id)
+            )
+            if target is None:
+                continue
+            summary = (
+                PerformerSummary(str(target.id), target.canonical_name)
+                if credit.target_kind is RecordingCreditTargetKind.PERSON
+                else GroupSummary(str(target.id), target.canonical_name)
+            )
+            primary_credits.append(RecordingPrimaryCreditView(credit.target_kind, summary))
+        if not primary_credits:
+            continue
+
+        genre_concept_ids = {
+            assignment.concept_id
+            for assignment in assignments_by_recording.get(recording.id, ())
+            if assignment.concept_id in genres
+        }
+        summaries.append(
+            SongRecordingSummary(
+                id=str(recording.id),
+                title=recording.title,
+                recorded_period=SongPeriodView.from_period(recording.recorded_period),
+                first_release_date=None,
+                primary_credits=primary_credits,
+                genre_ids=sorted(str(concept_id) for concept_id in genre_concept_ids),
+                work_usage_kind=usage_kind,
+                origin_badges=[],
+            )
+        )
+        if usage_kind is RecordingWorkUsageKind.COMPLETE or usage_kind is RecordingWorkUsageKind.PARTIAL:
+            for concept_id in genre_concept_ids:
+                facet_recording_ids[concept_id].add(recording.id)
+
+    summaries.sort(
+        key=lambda item: (
+            item.recorded_period.start is None,
+            item.first_release_date is None,
+            item.recorded_period.start.year if item.recorded_period.start is not None else 0,
+            item.title.casefold(),
+            item.id,
+        )
+    )
+    return (
+        sorted(
+            (
+                SongRecordingGenreFacet(
+                    genre=GenreSummary(str(genre_id), genres[genre_id].content.canonical_name),
+                    recording_count=len(recording_ids),
+                )
+                for genre_id, recording_ids in facet_recording_ids.items()
+            ),
+            key=lambda item: item.genre.name,
+        ),
+        summaries,
+    )

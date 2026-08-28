@@ -493,6 +493,17 @@ class FakeRecordingRepository:
             key=lambda recording: (recording.title.casefold(), str(recording.id)),
         )
 
+    async def list_published_for_work(self, work_id: UUID) -> list[Recording]:
+        return sorted(
+            (
+                recording
+                for recording in self._recordings.values()
+                if recording.editorial_status is EditorialStatus.PUBLISHED
+                and any(usage.work_id == work_id for usage in recording.work_usages)
+            ),
+            key=lambda recording: (recording.title.casefold(), str(recording.id)),
+        )
+
     async def save(self, recording: Recording) -> None:
         if recording.id not in self._recordings:
             raise LookupError(str(recording.id))

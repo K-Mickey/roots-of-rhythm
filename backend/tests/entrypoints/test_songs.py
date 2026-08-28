@@ -81,6 +81,8 @@ def test_song_overview_http_returns_all_public_fields() -> None:
             classifications=[GenreSummary(id="genre-1", name="Country")],
             related_works=[],
             lyrics_versions=[],
+            recording_genres=[],
+            recordings=[],
         ),
     )
     with TestClient(
@@ -111,6 +113,8 @@ def test_song_overview_http_returns_all_public_fields() -> None:
         "classifications": [{"id": "genre-1", "name": "Country"}],
         "related_works": [],
         "lyrics_versions": [],
+        "recording_genres": [],
+        "recordings": [],
     }
 
 

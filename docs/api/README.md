@@ -6,7 +6,7 @@
 
 ## Каталог
 
-- [OpenAPI 3.1](openapi.yaml) — `0.9.0`;
+- [OpenAPI 3.1](openapi.yaml) — `0.10.0`;
 - [API changelog](CHANGELOG.md).
 
 Установленный contract-lint: Redocly (`make contract-check` / `pnpm --dir frontend api:lint`) и drift-check generated TypeScript (`api:check`) против [openapi.yaml](openapi.yaml).

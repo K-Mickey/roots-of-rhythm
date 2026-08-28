@@ -11,11 +11,11 @@ from roots_of_rhythm.discovery.application.dto import (
     RecordingLyricsVersionView,
     RecordingOverviewResponse,
     RecordingWorkView,
+    SongPeriodView,
     SongSummary,
 )
 from roots_of_rhythm.discovery.application.errors import RecordingOverviewNotFound
 from roots_of_rhythm.discovery.application.recording_lyrics import RecordingLyricsProjectionQuery
-from roots_of_rhythm.discovery.application.song_overview import _period_view
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
@@ -136,7 +136,7 @@ class RecordingOverviewQuery:
         return RecordingOverviewResponse(
             id=str(recording.id),
             title=recording.title,
-            period=_period_view(recording.recorded_period),
+            period=SongPeriodView.from_period(recording.recorded_period),
             description=recording.description,
             isrc=recording.isrc,
             first_release_date=None,

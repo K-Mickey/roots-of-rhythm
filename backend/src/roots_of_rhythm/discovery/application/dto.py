@@ -12,12 +12,14 @@ from roots_of_rhythm.historical_knowledge.domain import (
 )
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
+    ExistencePeriod,
     LyricsCreationMethod,
     LyricsUsageKind,
     LyricsVersionRelationType,
     RecordingContributionKind,
     RecordingCreditTargetKind,
     RecordingWorkUsageKind,
+    TemporalBound,
     WorkCreditRole,
     WorkRelationType,
 )
@@ -36,6 +38,12 @@ class RelationPerspective(StrEnum):
 class TemporalBoundView(msgspec.Struct, frozen=True):
     year: int
     precision: McTemporalPrecision
+
+    @classmethod
+    def from_bound(cls, bound: TemporalBound | None) -> "TemporalBoundView | None":
+        if bound is None:
+            return None
+        return cls(year=bound.year, precision=bound.precision)
 
 
 class HistoricalPeriodView(msgspec.Struct, frozen=True):
@@ -112,6 +120,15 @@ class GroupPeriodView(msgspec.Struct, frozen=True):
     start: TemporalBoundView | None
     end: TemporalBoundView | None
 
+    @classmethod
+    def from_period(cls, period: ExistencePeriod | None) -> "GroupPeriodView":
+        if period is None:
+            return cls(start=None, end=None)
+        return cls(
+            start=TemporalBoundView.from_bound(period.start),
+            end=TemporalBoundView.from_bound(period.end),
+        )
+
 
 class GroupMemberView(msgspec.Struct, frozen=True):
     id: str
@@ -143,6 +160,15 @@ class SongListResponse(msgspec.Struct, frozen=True):
 class SongPeriodView(msgspec.Struct, frozen=True):
     start: TemporalBoundView | None
     end: TemporalBoundView | None
+
+    @classmethod
+    def from_period(cls, period: ExistencePeriod | None) -> "SongPeriodView":
+        if period is None:
+            return cls(start=None, end=None)
+        return cls(
+            start=TemporalBoundView.from_bound(period.start),
+            end=TemporalBoundView.from_bound(period.end),
+        )
 
 
 class SongWorkCreditView(msgspec.Struct, frozen=True):
@@ -201,6 +227,24 @@ class SongOverviewResponse(msgspec.Struct, frozen=True):
     classifications: list[GenreSummary]
     related_works: list[RelatedWorkView]
     lyrics_versions: list[SongLyricsVersionView]
+    recording_genres: list["SongRecordingGenreFacet"]
+    recordings: list["SongRecordingSummary"]
+
+
+class SongRecordingGenreFacet(msgspec.Struct, frozen=True):
+    genre: GenreSummary
+    recording_count: int
+
+
+class SongRecordingSummary(msgspec.Struct, frozen=True):
+    id: str
+    title: str
+    recorded_period: SongPeriodView
+    first_release_date: None
+    primary_credits: list["RecordingPrimaryCreditView"]
+    genre_ids: list[str]
+    work_usage_kind: RecordingWorkUsageKind
+    origin_badges: list[str]
 
 
 class RecordingWorkView(msgspec.Struct, frozen=True):

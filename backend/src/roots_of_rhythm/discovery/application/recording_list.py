@@ -8,8 +8,8 @@ from roots_of_rhythm.discovery.application.dto import (
     RecordingListItem,
     RecordingListResponse,
     RecordingPrimaryCreditView,
+    SongPeriodView,
 )
-from roots_of_rhythm.discovery.application.song_overview import _period_view
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
@@ -98,16 +98,17 @@ class RecordingListQuery:
                 RecordingListItem(
                     id=str(recording.id),
                     title=recording.title,
-                    period=_period_view(recording.recorded_period),
+                    period=SongPeriodView.from_period(recording.recorded_period),
                     primary_credits=primary_credits,
                     genres=recording_genres,
                 )
             )
 
-        items.sort(key=_list_sort_key)
+        items.sort(
+            key=lambda item: (
+                item.title.casefold(),
+                tuple(sorted(credit.target.name.casefold() for credit in item.primary_credits)),
+                item.id,
+            )
+        )
         return RecordingListResponse(items=items)
-
-
-def _list_sort_key(item: RecordingListItem) -> tuple[str, tuple[str, ...], str]:
-    primary_names = tuple(sorted(credit.target.name.casefold() for credit in item.primary_credits))
-    return (item.title.casefold(), primary_names, item.id)

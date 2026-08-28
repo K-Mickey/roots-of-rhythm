@@ -344,6 +344,25 @@ export interface components {
             related_works: components["schemas"]["RelatedWorkView"][];
             /** @description Published LyricsVersions ordered performable before reading_translation, then language_tag, label, and id. Body is rights-aware. */
             lyrics_versions: components["schemas"]["SongLyricsVersionView"][];
+            /** @description Distinct Genre facets counting published Recordings with complete or partial Work usage; medley_component is excluded. May be empty. */
+            recording_genres: components["schemas"]["SongRecordingGenreFacet"][];
+            /** @description Published Recording chronology for this Work, ordered by recorded date, title, and id. Recordings without a published primary credit are omitted. */
+            recordings: components["schemas"]["SongRecordingSummary"][];
+        };
+        SongRecordingGenreFacet: {
+            genre: components["schemas"]["GenreSummary"];
+            recording_count: number;
+        };
+        SongRecordingSummary: {
+            id: components["schemas"]["PublicId"];
+            title: string;
+            recorded_period: components["schemas"]["SongPeriodView"];
+            first_release_date: null;
+            primary_credits: components["schemas"]["RecordingPrimaryCreditView"][];
+            genre_ids: components["schemas"]["PublicId"][];
+            /** @enum {string} */
+            work_usage_kind: "complete" | "partial" | "medley_component";
+            origin_badges: string[];
         };
         /** @enum {string} */
         WorkCreditRole: "composer" | "lyricist" | "writer" | "translator" | "adapter" | "arranger" | "other";

@@ -159,6 +159,8 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
         ("adaptation_of", str(related_work_id), "Related Song"),
     ]
     assert response.lyrics_versions == []
+    assert response.recording_genres == []
+    assert response.recordings == []
 
 
 @pytest.mark.asyncio

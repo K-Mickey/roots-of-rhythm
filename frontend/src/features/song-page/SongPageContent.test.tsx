@@ -51,6 +51,8 @@ const emptyOverview: SongOverview = {
   classifications: [],
   related_works: [],
   lyrics_versions: [],
+  recording_genres: [],
+  recordings: [],
 };
 
 const populatedOverview: SongOverview = {
@@ -107,6 +109,8 @@ const populatedOverview: SongOverview = {
       relations: [],
     },
   ],
+  recording_genres: [],
+  recordings: [],
 };
 
 describe('SongPageContent', () => {

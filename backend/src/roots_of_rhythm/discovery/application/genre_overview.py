@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
-    from roots_of_rhythm.music_catalog.domain import GeographicContext, HistoricalPeriod, TemporalBound
+    from roots_of_rhythm.music_catalog.domain import GeographicContext, HistoricalPeriod
 
 type UnitOfWorkFactory = Callable[[], MusicCatalogUnitOfWork]
 
@@ -57,15 +57,9 @@ def _map_period(period: HistoricalPeriod | None) -> HistoricalPeriodView | None:
         return None
     return HistoricalPeriodView(
         label=period.label,
-        start=_map_bound(period.start),
-        end=_map_bound(period.end),
+        start=TemporalBoundView.from_bound(period.start),
+        end=TemporalBoundView.from_bound(period.end),
     )
-
-
-def _map_bound(bound: TemporalBound | None) -> TemporalBoundView | None:
-    if bound is None:
-        return None
-    return TemporalBoundView(year=bound.year, precision=bound.precision)
 
 
 def _map_geography(geography: GeographicContext | None) -> GeographicContextView | None:
