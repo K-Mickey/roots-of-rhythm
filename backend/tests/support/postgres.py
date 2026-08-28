@@ -21,6 +21,12 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     ClassificationConceptRecord,
     GroupMembershipRecord,
     GroupRecord,
+    LyricsVersionCreditRecord,
+    LyricsVersionRecord,
+    LyricsVersionRelationRecord,
+    MusicalWorkRecord,
+    WorkCreditRecord,
+    WorkRelationRecord,
 )
 from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
 
@@ -36,8 +42,14 @@ _CORPUS_TABLES = (
     SourceVersionRecord,
     SourceRecord,
     ClassificationAssignmentRecord,
+    LyricsVersionRelationRecord,
+    LyricsVersionCreditRecord,
+    LyricsVersionRecord,
+    WorkRelationRecord,
+    WorkCreditRecord,
     GroupMembershipRecord,
     GroupRecord,
+    MusicalWorkRecord,
     ClassificationConceptRecord,
     PersonRecord,
 )

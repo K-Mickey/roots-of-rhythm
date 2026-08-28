@@ -8,7 +8,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
 from roots_of_rhythm.people_catalog.domain.enums import EditorialStatus, TemporalPrecision
-from roots_of_rhythm.people_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
+from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 # Retained for migration 0005 compatibility; current metadata no longer creates this index.
 PERSON_NAME_UNIQUE_CONSTRAINT = "uq_persons_canonical_name_ci"
@@ -55,14 +55,14 @@ class PersonRecord(ServiceColumnsMixin, PeopleCatalogBase):
     )
 
     id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
-    editorial_status: Mapped[str] = mapped_column(String(32), nullable=False)
-    canonical_name: Mapped[str] = mapped_column(String(SHORT_TEXT_MAX_LENGTH), nullable=False)
+    editorial_status: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)
+    canonical_name: Mapped[str] = mapped_column(String(TEXT_64), nullable=False)
     aliases: Mapped[list[str]] = mapped_column(JSONB, nullable=False, server_default="[]")
-    biography: Mapped[str | None] = mapped_column(String(LONG_TEXT_MAX_LENGTH))
+    biography: Mapped[str | None] = mapped_column(String(TEXT_1024))
     birth_year: Mapped[int | None]
-    birth_precision: Mapped[str | None] = mapped_column(String(32))
+    birth_precision: Mapped[str | None] = mapped_column(String(TEXT_32))
     death_year: Mapped[int | None]
-    death_precision: Mapped[str | None] = mapped_column(String(32))
+    death_precision: Mapped[str | None] = mapped_column(String(TEXT_32))
     external_identities: Mapped[list[ExternalIdentityData]] = mapped_column(
         JSONB,
         nullable=False,

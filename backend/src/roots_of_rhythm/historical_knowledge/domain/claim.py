@@ -11,7 +11,6 @@ from roots_of_rhythm.historical_knowledge.domain.enums import (
 )
 from roots_of_rhythm.historical_knowledge.domain.errors import ClaimPublicationError
 from roots_of_rhythm.historical_knowledge.domain.value_objects import (
-    LONG_TEXT_MAX_LENGTH,
     ClaimEvidenceReference,
     ClaimProvenance,
     GeographicContext,
@@ -19,6 +18,7 @@ from roots_of_rhythm.historical_knowledge.domain.value_objects import (
     _required_text,
     canonicalize_relation_endpoints,
 )
+from roots_of_rhythm.text_lengths import TEXT_1024
 
 
 class GenreRelationClaim(msgspec.Struct, frozen=True):
@@ -69,7 +69,7 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
         subject, target = canonicalize_relation_endpoints(self.subject_genre_id, self.target_genre_id, next_type)
         next_explanation = None if clear_explanation else (self.explanation if explanation is None else explanation)
         if next_explanation is not None:
-            next_explanation = _required_text(next_explanation, "explanation", max_length=LONG_TEXT_MAX_LENGTH)
+            next_explanation = _required_text(next_explanation, "explanation", max_length=TEXT_1024)
         next_temporal = None if clear_temporal else (self.temporal if temporal is None else temporal)
         next_geographic = None if clear_geographic else (self.geographic if geographic is None else geographic)
         next_provenance = None if clear_provenance else (self.provenance if provenance is None else provenance)

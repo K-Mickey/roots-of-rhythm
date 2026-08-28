@@ -2,9 +2,9 @@ from uuid import uuid7
 
 import pytest
 
-from roots_of_rhythm.historical_knowledge.domain import Source
+from roots_of_rhythm.historical_knowledge.domain import Source, SourceAccessPolicy
 from roots_of_rhythm.historical_knowledge.domain.errors import HistoricalKnowledgeDomainError
-from roots_of_rhythm.historical_knowledge.domain.value_objects import SHORT_TEXT_MAX_LENGTH, URL_MAX_LENGTH
+from roots_of_rhythm.text_lengths import TEXT_64, TEXT_2048
 
 
 def test_source_create_accepts_bibliographic_fields() -> None:
@@ -26,6 +26,7 @@ def test_source_create_accepts_bibliographic_fields() -> None:
     assert source.publication is None
     assert source.publication_date is None
     assert source.external_url == "https://music.si.edu/story/jazz"
+    assert source.access_policy is SourceAccessPolicy.WITHHOLD_PUBLIC_BODY
 
 
 def test_source_create_rejects_empty_title() -> None:
@@ -35,9 +36,9 @@ def test_source_create_rejects_empty_title() -> None:
 
 def test_source_create_rejects_overlong_url() -> None:
     with pytest.raises(HistoricalKnowledgeDomainError, match="external url"):
-        Source.create("Jazz", external_url="https://example.com/" + ("a" * URL_MAX_LENGTH))
+        Source.create("Jazz", external_url="https://example.com/" + ("a" * TEXT_2048))
 
 
 def test_source_create_rejects_overlong_optional_text() -> None:
     with pytest.raises(HistoricalKnowledgeDomainError, match="author"):
-        Source.create("Jazz", author="x" * (SHORT_TEXT_MAX_LENGTH + 1))
+        Source.create("Jazz", author="x" * (TEXT_64 + 1))

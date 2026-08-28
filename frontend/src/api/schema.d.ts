@@ -164,6 +164,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/songs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published Songs
+         * @description Returns identity summaries of all currently published MusicalWorks, ordered by canonical title. Draft, archived, and deleted Works are omitted. An empty list is a successful result.
+         */
+        get: operations["listPublishedSongs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/songs/{song_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a published Song overview
+         * @description Returns public MusicalWork content plus credits, classifications, related Works and rights-aware LyricsVersion projections. Editorial status, deleted flags, timestamps, evidence, and provenance are omitted. Unknown, malformed, draft, and archived identifiers are intentionally indistinguishable.
+         */
+        get: operations["getPublishedSongOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -207,6 +247,77 @@ export interface components {
             /** @description Published memberships of published Performers, ordered by person name. */
             members: components["schemas"]["GroupMemberView"][];
         };
+        SongListResponse: {
+            /** @description Published Song summaries ordered by canonical title. */
+            items: components["schemas"]["SongSummary"][];
+        };
+        SongSummary: {
+            id: components["schemas"]["PublicId"];
+            name: string;
+        };
+        SongPeriodView: {
+            start: components["schemas"]["TemporalBound"] | null;
+            end: components["schemas"]["TemporalBound"] | null;
+        };
+        SongWorkCreditView: {
+            person: components["schemas"]["PerformerSummary"];
+            role: components["schemas"]["WorkCreditRole"];
+            credited_as: components["schemas"]["NullableText"];
+        };
+        RelatedWorkView: {
+            relation_type: components["schemas"]["WorkRelationType"];
+            work: components["schemas"]["SongSummary"];
+        };
+        LyricsVersionSummary: {
+            id: components["schemas"]["PublicId"];
+            language_tag: string;
+            label: components["schemas"]["NullableText"];
+        };
+        LyricsVersionRelationView: {
+            relation_type: components["schemas"]["LyricsVersionRelationType"];
+            version: components["schemas"]["LyricsVersionSummary"];
+        };
+        SongLyricsVersionView: {
+            id: components["schemas"]["PublicId"];
+            language_tag: string;
+            label: components["schemas"]["NullableText"];
+            usage_kind: components["schemas"]["LyricsUsageKind"];
+            creation_method: components["schemas"]["LyricsCreationMethod"];
+            body: components["schemas"]["NullableText"];
+            body_unavailable_reason: components["schemas"]["NullableText"];
+            /** @description Published credits with published Performers; may be empty. */
+            credits: components["schemas"]["SongWorkCreditView"][];
+            /** @description Published relations to other LyricsVersions; may be empty. */
+            relations: components["schemas"]["LyricsVersionRelationView"][];
+        };
+        SongOverviewResponse: {
+            id: components["schemas"]["PublicId"];
+            name: string;
+            /** @description Alternate names; may be empty. Does not include the canonical title. */
+            aliases: string[];
+            description: components["schemas"]["NullableText"];
+            period: components["schemas"]["SongPeriodView"];
+            /** @description External catalog identifiers; may be empty. */
+            external_identities: components["schemas"]["ExternalIdentityView"][];
+            /** @description Published WorkCredits with published Performers; may be empty. */
+            credits: components["schemas"]["SongWorkCreditView"][];
+            /** @description Published Genre summaries assigned to the Work, ordered by canonical name. */
+            classifications: components["schemas"]["GenreSummary"][];
+            /** @description Published directed WorkRelations where this song is the source (for example translation_of pointing at the original Work); may be empty. */
+            related_works: components["schemas"]["RelatedWorkView"][];
+            /** @description Published LyricsVersions ordered performable before reading_translation, then language_tag, label, and id. Body is rights-aware. */
+            lyrics_versions: components["schemas"]["SongLyricsVersionView"][];
+        };
+        /** @enum {string} */
+        WorkCreditRole: "composer" | "lyricist" | "writer" | "translator" | "adapter" | "arranger" | "other";
+        /** @enum {string} */
+        WorkRelationType: "translation_of" | "adaptation_of" | "arrangement_of" | "medley_of";
+        /** @enum {string} */
+        LyricsUsageKind: "performable" | "reading_translation";
+        /** @enum {string} */
+        LyricsCreationMethod: "original" | "human_translation" | "machine_translation";
+        /** @enum {string} */
+        LyricsVersionRelationType: "translation_of" | "adaptation_of";
         PerformerListResponse: {
             /** @description Published Performer summaries ordered by canonical name. */
             items: components["schemas"]["PerformerSummary"][];
@@ -387,6 +498,23 @@ export interface components {
                 "application/json": components["schemas"]["ErrorResponse"];
             };
         };
+        /** @description Song is absent or not publicly visible. */
+        SongNotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "code": "SONG_NOT_FOUND",
+                 *       "message": "Материал не найден.",
+                 *       "details": null,
+                 *       "request_id": "01K2V3A5J2P9M3EVWQ3E7G4C6X"
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description The requested projection could not be assembled safely. */
         InternalError: {
             headers: {
@@ -412,6 +540,8 @@ export interface components {
         PerformerId: components["schemas"]["PublicId"];
         /** @description Stable opaque Group identifier. Clients must not derive meaning from it. */
         GroupId: components["schemas"]["PublicId"];
+        /** @description Stable opaque Song identifier (MusicalWork). Clients must not derive meaning from it. */
+        SongId: components["schemas"]["PublicId"];
     };
     requestBodies: never;
     headers: never;
@@ -604,6 +734,52 @@ export interface operations {
                 };
             };
             404: components["responses"]["GroupNotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listPublishedSongs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ordered published Song summaries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SongListResponse"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getPublishedSongOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Stable opaque Song identifier (MusicalWork). Clients must not derive meaning from it. */
+                song_id: components["parameters"]["SongId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public Song overview. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SongOverviewResponse"];
+                };
+            };
+            404: components["responses"]["SongNotFound"];
             500: components["responses"]["InternalError"];
         };
     };

@@ -77,5 +77,6 @@ STORY-005 и STORY-006 для публичных Person/Group links; EPIC-001 д
 
 ## История изменений
 
+- 2026-08-28: прогон TASK-007 записан в [acceptance.md](acceptance.md) (`draft` до утверждения Product Owner).
 - 2026-08-19: draft; текст на странице; записи появятся в STORY-008.
 - 2026-08-27: story принята; добавлены WorkCredit, производные Works и несколько rights-aware LyricsVersion; текст и Recording необязательны.

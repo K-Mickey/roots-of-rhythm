@@ -1,4 +1,4 @@
-"""Controlled corpus seed data (Jazz, Swing, Jump Blues, Performers and Groups).
+"""Controlled corpus seed data (genres, performers, groups, and musical works).
 
 Stable identities are fixed UUID7 literals. Re-running seed is a no-op for existing rows.
 """
@@ -21,6 +21,8 @@ from roots_of_rhythm.music_catalog.domain import (
     ExistencePeriod,
     GroupContent,
     GroupMembershipContent,
+    WorkContent,
+    WorkCreditRole,
 )
 from roots_of_rhythm.music_catalog.domain import (
     TemporalBound as MusicTemporalBound,
@@ -331,5 +333,116 @@ SEED_GROUP_GENRE_ASSIGNMENTS: tuple[tuple[UUID, UUID, UUID, str, str], ...] = (
         JUMP_BLUES_ID,
         "Tympany Five is classified as a Jump Blues group.",
         SEED_ASSIGNMENT_PROVENANCE,
+    ),
+)
+
+# --- Song authors (WorkCredit only; performers are RecordingCredit in STORY-008) ---
+MERLE_TRAVIS_ID = UUID("01a01a72-3b01-7000-8000-000000000001")
+LOUIS_PRIMA_ID = UUID("01a01a72-3b01-7000-8000-000000000002")
+JESSE_STONE_ID = UUID("01a01a72-3b01-7000-8000-000000000003")
+KING_OLIVER_ID = UUID("01a01a72-3b01-7000-8000-000000000004")
+
+SEED_SONG_AUTHORS: tuple[tuple[UUID, str], ...] = (
+    (MERLE_TRAVIS_ID, "Merle Travis"),
+    (LOUIS_PRIMA_ID, "Louis Prima"),
+    (JESSE_STONE_ID, "Jesse Stone"),
+    (KING_OLIVER_ID, "King Oliver"),
+)
+
+# --- Musical works ----------------------------------------------------------
+SIXTEEN_TONS_ID = UUID("01a01a72-3c01-7000-8000-000000000001")
+ONE_O_CLOCK_JUMP_ID = UUID("01a01a72-3c01-7000-8000-000000000002")
+ORNITHOLOGY_ID = UUID("01a01a72-3c01-7000-8000-000000000003")
+SING_SING_SING_ID = UUID("01a01a72-3c01-7000-8000-000000000004")
+SHAKE_RATTLE_AND_ROLL_ID = UUID("01a01a72-3c01-7000-8000-000000000005")
+WEST_END_BLUES_ID = UUID("01a01a72-3c01-7000-8000-000000000006")
+
+SEED_WORK_PROVENANCE = SEED_ASSIGNMENT_PROVENANCE
+
+SEED_MUSICAL_WORKS: tuple[tuple[UUID, WorkContent], ...] = (
+    (
+        SIXTEEN_TONS_ID,
+        WorkContent.create("Sixteen Tons", provenance=SEED_WORK_PROVENANCE),
+    ),
+    (
+        ONE_O_CLOCK_JUMP_ID,
+        WorkContent.create("One O'Clock Jump", provenance=SEED_WORK_PROVENANCE),
+    ),
+    (
+        ORNITHOLOGY_ID,
+        WorkContent.create("Ornithology", provenance=SEED_WORK_PROVENANCE),
+    ),
+    (
+        SING_SING_SING_ID,
+        WorkContent.create("Sing, Sing, Sing (With a Swing)", provenance=SEED_WORK_PROVENANCE),
+    ),
+    (
+        SHAKE_RATTLE_AND_ROLL_ID,
+        WorkContent.create("Shake, Rattle and Roll", provenance=SEED_WORK_PROVENANCE),
+    ),
+    (
+        WEST_END_BLUES_ID,
+        WorkContent.create("West End Blues", provenance=SEED_WORK_PROVENANCE),
+    ),
+)
+
+SIXTEEN_TONS_COMPOSER_CREDIT_ID = UUID("01a01a72-3c01-7000-8000-000000000011")
+SIXTEEN_TONS_LYRICIST_CREDIT_ID = UUID("01a01a72-3c01-7000-8000-000000000012")
+ONE_O_CLOCK_JUMP_COMPOSER_CREDIT_ID = UUID("01a01a72-3c01-7000-8000-000000000013")
+ORNITHOLOGY_COMPOSER_CREDIT_ID = UUID("01a01a72-3c01-7000-8000-000000000014")
+SING_SING_SING_COMPOSER_CREDIT_ID = UUID("01a01a72-3c01-7000-8000-000000000015")
+SHAKE_RATTLE_AND_ROLL_COMPOSER_CREDIT_ID = UUID("01a01a72-3c01-7000-8000-000000000016")
+WEST_END_BLUES_COMPOSER_CREDIT_ID = UUID("01a01a72-3c01-7000-8000-000000000017")
+
+# credit_id, work_id, person_id, role, credited_as
+SEED_WORK_CREDITS: tuple[tuple[UUID, UUID, UUID, WorkCreditRole, str | None], ...] = (
+    (
+        SIXTEEN_TONS_COMPOSER_CREDIT_ID,
+        SIXTEEN_TONS_ID,
+        MERLE_TRAVIS_ID,
+        WorkCreditRole.COMPOSER,
+        None,
+    ),
+    (
+        SIXTEEN_TONS_LYRICIST_CREDIT_ID,
+        SIXTEEN_TONS_ID,
+        MERLE_TRAVIS_ID,
+        WorkCreditRole.LYRICIST,
+        None,
+    ),
+    (
+        ONE_O_CLOCK_JUMP_COMPOSER_CREDIT_ID,
+        ONE_O_CLOCK_JUMP_ID,
+        COUNT_BASIE_ID,
+        WorkCreditRole.COMPOSER,
+        None,
+    ),
+    (
+        ORNITHOLOGY_COMPOSER_CREDIT_ID,
+        ORNITHOLOGY_ID,
+        CHARLIE_PARKER_ID,
+        WorkCreditRole.COMPOSER,
+        None,
+    ),
+    (
+        SING_SING_SING_COMPOSER_CREDIT_ID,
+        SING_SING_SING_ID,
+        LOUIS_PRIMA_ID,
+        WorkCreditRole.COMPOSER,
+        None,
+    ),
+    (
+        SHAKE_RATTLE_AND_ROLL_COMPOSER_CREDIT_ID,
+        SHAKE_RATTLE_AND_ROLL_ID,
+        JESSE_STONE_ID,
+        WorkCreditRole.COMPOSER,
+        "Charles Calhoun",
+    ),
+    (
+        WEST_END_BLUES_COMPOSER_CREDIT_ID,
+        WEST_END_BLUES_ID,
+        KING_OLIVER_ID,
+        WorkCreditRole.COMPOSER,
+        None,
     ),
 )

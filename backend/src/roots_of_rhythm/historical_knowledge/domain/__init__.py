@@ -5,6 +5,7 @@ from roots_of_rhythm.historical_knowledge.domain.enums import (
     EvidenceStatus,
     FragmentReviewStatus,
     RelationType,
+    SourceAccessPolicy,
     TemporalPrecision,
 )
 from roots_of_rhythm.historical_knowledge.domain.errors import ClaimPublicationError, HistoricalKnowledgeDomainError
@@ -31,6 +32,7 @@ __all__ = [
     "HistoricalKnowledgeDomainError",
     "HistoricalPeriod",
     "RelationType",
+    "SourceAccessPolicy",
     "Source",
     "SourceFragment",
     "SourceVersion",

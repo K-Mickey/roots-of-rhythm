@@ -9,6 +9,7 @@ from roots_of_rhythm.config import settings as default_settings
 from roots_of_rhythm.discovery.presentation.genres import create_genres_router
 from roots_of_rhythm.discovery.presentation.groups import create_groups_router
 from roots_of_rhythm.discovery.presentation.performers import create_performers_router
+from roots_of_rhythm.discovery.presentation.songs import create_songs_router
 from roots_of_rhythm.entrypoints.dependencies import DependencyProviders, create_api_dependencies
 from roots_of_rhythm.infrastructure.database import (
     check_database_readiness,
@@ -47,6 +48,7 @@ def create_app(
             create_genres_router(),
             create_performers_router(),
             create_groups_router(),
+            create_songs_router(),
         ],
         dependencies=create_api_dependencies(session_factory, dependency_overrides),
         lifespan=[database_lifespan],

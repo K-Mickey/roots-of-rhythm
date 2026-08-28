@@ -151,6 +151,17 @@ class SqlAlchemySourceRepository:
         record = result.scalar_one_or_none()
         return None if record is None else version_from_record(record)
 
+    async def get_versions_by_ids(self, version_ids: Collection[UUID]) -> dict[UUID, SourceVersion]:
+        ids = set(version_ids)
+        if not ids:
+            return {}
+        statement = select(SourceVersionRecord).where(
+            SourceVersionRecord.id.in_(ids),
+            SourceVersionRecord.deleted.is_(False),
+        )
+        result = await self._session.execute(statement)
+        return {record.id: version_from_record(record) for record in result.scalars()}
+
     async def get_fragment(self, fragment_id: UUID, *, for_update: bool = False) -> SourceFragment | None:
         statement = select(SourceFragmentRecord).where(
             SourceFragmentRecord.id == fragment_id,

@@ -9,11 +9,6 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-from roots_of_rhythm.historical_knowledge.domain.value_objects import (
-    LONG_TEXT_MAX_LENGTH,
-    SHORT_TEXT_MAX_LENGTH,
-    URL_MAX_LENGTH,
-)
 from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     EDITORIAL_STATUS_CHECK,
     EVIDENCE_ROLE_CHECK,
@@ -21,6 +16,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     FRAGMENT_REVIEW_CHECK,
     RELATION_TYPE_CHECK,
 )
+from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_2048
 
 revision: str = "0002"
 down_revision: str | None = "0001"
@@ -32,15 +28,15 @@ def upgrade() -> None:
     op.create_table(
         "sources",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("title", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=False),
-        sa.Column("institution_name", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("title", sa.String(length=TEXT_64), nullable=False),
+        sa.Column("institution_name", sa.String(length=TEXT_64), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "source_versions",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("source_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("label", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=False),
+        sa.Column("label", sa.String(length=TEXT_64), nullable=False),
         sa.ForeignKeyConstraint(["source_id"], ["sources.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -48,9 +44,9 @@ def upgrade() -> None:
         "source_fragments",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("source_version_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("review_status", sa.String(length=32), nullable=False),
-        sa.Column("locator_text", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("external_url", sa.String(length=URL_MAX_LENGTH), nullable=True),
+        sa.Column("review_status", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("locator_text", sa.String(length=TEXT_1024), nullable=True),
+        sa.Column("external_url", sa.String(length=TEXT_2048), nullable=True),
         sa.CheckConstraint(FRAGMENT_REVIEW_CHECK, name="ck_source_fragments_review_status"),
         sa.ForeignKeyConstraint(["source_version_id"], ["source_versions.id"]),
         sa.PrimaryKeyConstraint("id"),
@@ -60,17 +56,17 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("subject_genre_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("target_genre_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("relation_type", sa.String(length=64), nullable=False),
-        sa.Column("editorial_status", sa.String(length=32), nullable=False),
-        sa.Column("evidence_status", sa.String(length=32), nullable=False),
-        sa.Column("explanation", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("period_label", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("relation_type", sa.String(length=TEXT_64), nullable=False),
+        sa.Column("editorial_status", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("evidence_status", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("explanation", sa.String(length=TEXT_1024), nullable=True),
+        sa.Column("period_label", sa.String(length=TEXT_64), nullable=True),
         sa.Column("period_start_year", sa.Integer(), nullable=True),
-        sa.Column("period_start_precision", sa.String(length=32), nullable=True),
+        sa.Column("period_start_precision", sa.String(length=TEXT_32), nullable=True),
         sa.Column("period_end_year", sa.Integer(), nullable=True),
-        sa.Column("period_end_precision", sa.String(length=32), nullable=True),
-        sa.Column("geography_summary", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("provenance_summary", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("period_end_precision", sa.String(length=TEXT_32), nullable=True),
+        sa.Column("geography_summary", sa.String(length=TEXT_64), nullable=True),
+        sa.Column("provenance_summary", sa.String(length=TEXT_1024), nullable=True),
         sa.CheckConstraint(RELATION_TYPE_CHECK, name="ck_genre_relation_claims_relation_type"),
         sa.CheckConstraint(EDITORIAL_STATUS_CHECK, name="ck_genre_relation_claims_editorial_status"),
         sa.CheckConstraint(EVIDENCE_STATUS_CHECK, name="ck_genre_relation_claims_evidence_status"),
@@ -89,9 +85,9 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("claim_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("source_fragment_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("role", sa.String(length=32), nullable=False),
-        sa.Column("locator_text", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("external_url", sa.String(length=URL_MAX_LENGTH), nullable=True),
+        sa.Column("role", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("locator_text", sa.String(length=TEXT_1024), nullable=True),
+        sa.Column("external_url", sa.String(length=TEXT_2048), nullable=True),
         sa.CheckConstraint(EVIDENCE_ROLE_CHECK, name="ck_claim_evidence_references_role"),
         sa.ForeignKeyConstraint(["claim_id"], ["genre_relation_claims.id"]),
         sa.ForeignKeyConstraint(["source_fragment_id"], ["source_fragments.id"]),

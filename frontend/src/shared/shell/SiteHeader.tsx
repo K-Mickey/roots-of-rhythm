@@ -24,6 +24,9 @@ export function SiteHeader() {
             <Anchor href="/groups" c="pastel.9" underline="hover">
               Группы
             </Anchor>
+            <Anchor href="/songs" c="pastel.9" underline="hover">
+              Песни
+            </Anchor>
           </Group>
         </Group>
       </Container>

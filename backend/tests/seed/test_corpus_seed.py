@@ -30,6 +30,9 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     ClassificationConceptRecord,
     GroupMembershipRecord,
     GroupRecord,
+    LyricsVersionRecord,
+    MusicalWorkRecord,
+    WorkCreditRecord,
 )
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
@@ -44,7 +47,9 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.integration
 
 
-async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int, int, int, int, int]:
+async def _counts(
+    engine: AsyncEngine,
+) -> tuple[int, int, int, int, int, int, int, int, int, int, int, int, int]:
     async with engine.connect() as connection:
         genres = await connection.scalar(select(func.count()).select_from(ClassificationConceptRecord))
         persons = await connection.scalar(select(func.count()).select_from(PersonRecord))
@@ -56,6 +61,9 @@ async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int, in
         versions = await connection.scalar(select(func.count()).select_from(SourceVersionRecord))
         fragments = await connection.scalar(select(func.count()).select_from(SourceFragmentRecord))
         evidence = await connection.scalar(select(func.count()).select_from(ClaimEvidenceReferenceRecord))
+        works = await connection.scalar(select(func.count()).select_from(MusicalWorkRecord))
+        work_credits = await connection.scalar(select(func.count()).select_from(WorkCreditRecord))
+        lyrics_versions = await connection.scalar(select(func.count()).select_from(LyricsVersionRecord))
     return (
         int(genres or 0),
         int(persons or 0),
@@ -67,6 +75,9 @@ async def _counts(engine: AsyncEngine) -> tuple[int, int, int, int, int, int, in
         int(versions or 0),
         int(fragments or 0),
         int(evidence or 0),
+        int(works or 0),
+        int(work_credits or 0),
+        int(lyrics_versions or 0),
     )
 
 
@@ -80,7 +91,23 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     await runner.run()
     second = await _counts(engine)
 
-    assert first == second == (3, 6, 4, 4, 11, 2, 2, 2, 4, 4)
+    assert first == second == (3, 10, 4, 4, 11, 2, 2, 2, 4, 4, 6, 7, 0)
+
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        published_works = await uow.works.list_published()
+        work_credits = [await uow.work_credits.get(credit_id) for credit_id, *_ in data.SEED_WORK_CREDITS]
+
+    assert [work.canonical_title for work in published_works] == sorted(
+        content.canonical_title for _, content in data.SEED_MUSICAL_WORKS
+    )
+    assert all(work.editorial_status is GenreEditorialStatus.PUBLISHED for work in published_works)
+    assert [
+        None if credit is None else (credit.editorial_status, credit.role, credit.credited_as, credit.provenance)
+        for credit in work_credits
+    ] == [
+        (GenreEditorialStatus.PUBLISHED, role, credited_as, data.SEED_ASSIGNMENT_PROVENANCE)
+        for _, _, _, role, credited_as in data.SEED_WORK_CREDITS
+    ]
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         jazz = await uow.genres.get_published(data.JAZZ_ID)
@@ -93,9 +120,12 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     assert {jazz.editorial_status, swing.editorial_status, jump.editorial_status} == {GenreEditorialStatus.PUBLISHED}
 
     async with SqlAlchemyPeopleCatalogUnitOfWork(session_factory) as uow:
-        persons = [await uow.persons.get_published(person_id) for person_id, _ in data.SEED_PERFORMERS]
+        persons = [
+            await uow.persons.get_published(person_id)
+            for person_id, _ in (*data.SEED_PERFORMERS, *data.SEED_SONG_AUTHORS)
+        ]
     assert [person.canonical_name for person in persons if person is not None] == [
-        name for _, name in data.SEED_PERFORMERS
+        name for _, name in (*data.SEED_PERFORMERS, *data.SEED_SONG_AUTHORS)
     ]
     assert all(person is not None and person.editorial_status is PersonEditorialStatus.PUBLISHED for person in persons)
 
@@ -175,7 +205,8 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     async with engine.connect() as connection:
         tables = set(await connection.run_sync(lambda sync: sync.dialect.get_table_names(sync)))
     assert not {"performers", "recordings"} & tables
-    assert {"groups", "group_memberships"} <= tables
+    assert {"groups", "group_memberships", "musical_works", "work_credits"} <= tables
+    assert "lyrics_versions" in tables
 
 
 @pytest.mark.asyncio

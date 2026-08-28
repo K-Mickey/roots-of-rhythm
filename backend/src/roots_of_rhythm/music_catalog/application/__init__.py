@@ -12,18 +12,50 @@ from roots_of_rhythm.music_catalog.application.errors import (
     GenreNotFound,
     GroupMembershipNotFound,
     GroupNotFound,
+    LyricsVersionConflict,
+    LyricsVersionCreditConflict,
+    LyricsVersionCreditNotFound,
+    LyricsVersionEndpointNotPublished,
+    LyricsVersionNotFound,
+    LyricsVersionRelationConflict,
+    LyricsVersionRelationNotFound,
+    MusicalWorkNotFound,
     UniqueConstraintViolation,
+    WorkCreditConflict,
+    WorkCreditNotFound,
+    WorkRelationConflict,
+    WorkRelationNotFound,
+    WorkRelationWorkNotPublished,
 )
 from roots_of_rhythm.music_catalog.application.group_membership_service import GroupMembershipService
 from roots_of_rhythm.music_catalog.application.group_service import GroupService
+from roots_of_rhythm.music_catalog.application.lyrics_body_projection import (
+    RIGHTS_RESTRICTED_REASON,
+    LyricsBodyDisclosure,
+    disclose_lyrics_body,
+    project_lyrics_version_body,
+)
+from roots_of_rhythm.music_catalog.application.lyrics_version_credit_service import LyricsVersionCreditService
+from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import LyricsVersionProjectionService
+from roots_of_rhythm.music_catalog.application.lyrics_version_relation_service import LyricsVersionRelationService
+from roots_of_rhythm.music_catalog.application.lyrics_version_service import LyricsVersionService
+from roots_of_rhythm.music_catalog.application.musical_work_service import MusicalWorkService
 from roots_of_rhythm.music_catalog.application.ports import (
     ClassificationAssignmentRepository,
     GenreRepository,
     GroupMembershipRepository,
     GroupRepository,
+    LyricsVersionCreditRepository,
+    LyricsVersionRelationRepository,
+    LyricsVersionRepository,
+    MusicalWorkRepository,
     MusicCatalogUnitOfWork,
+    WorkCreditRepository,
+    WorkRelationRepository,
 )
 from roots_of_rhythm.music_catalog.application.service import GenreService, UnitOfWorkFactory
+from roots_of_rhythm.music_catalog.application.work_credit_service import WorkCreditService
+from roots_of_rhythm.music_catalog.application.work_relation_service import WorkRelationService
 
 __all__ = [
     "ClassificationAssignmentConflict",
@@ -44,7 +76,37 @@ __all__ = [
     "GroupNotFound",
     "GroupRepository",
     "GroupService",
+    "LyricsBodyDisclosure",
+    "LyricsVersionConflict",
+    "LyricsVersionCreditConflict",
+    "LyricsVersionCreditNotFound",
+    "LyricsVersionCreditRepository",
+    "LyricsVersionCreditService",
+    "LyricsVersionEndpointNotPublished",
+    "LyricsVersionNotFound",
+    "LyricsVersionProjectionService",
+    "LyricsVersionRelationConflict",
+    "LyricsVersionRelationNotFound",
+    "LyricsVersionRelationRepository",
+    "LyricsVersionRelationService",
+    "LyricsVersionRepository",
+    "LyricsVersionService",
+    "MusicalWorkNotFound",
+    "MusicalWorkRepository",
+    "MusicalWorkService",
     "MusicCatalogUnitOfWork",
+    "RIGHTS_RESTRICTED_REASON",
     "UniqueConstraintViolation",
     "UnitOfWorkFactory",
+    "WorkCreditConflict",
+    "WorkCreditNotFound",
+    "WorkCreditRepository",
+    "WorkCreditService",
+    "WorkRelationConflict",
+    "WorkRelationNotFound",
+    "WorkRelationRepository",
+    "WorkRelationService",
+    "WorkRelationWorkNotPublished",
+    "disclose_lyrics_body",
+    "project_lyrics_version_body",
 ]

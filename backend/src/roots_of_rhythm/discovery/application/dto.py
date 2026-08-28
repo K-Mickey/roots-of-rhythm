@@ -11,6 +11,13 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalPrecision as HkTemporalPrecision,
 )
 from roots_of_rhythm.music_catalog.domain import (
+    LyricsCreationMethod,
+    LyricsUsageKind,
+    LyricsVersionRelationType,
+    WorkCreditRole,
+    WorkRelationType,
+)
+from roots_of_rhythm.music_catalog.domain import (
     TemporalPrecision as McTemporalPrecision,
 )
 from roots_of_rhythm.people_catalog.domain import TemporalPrecision as PersonTemporalPrecision
@@ -120,6 +127,54 @@ class GroupOverviewResponse(msgspec.Struct, frozen=True):
     members: list[GroupMemberView]
 
 
+class SongSummary(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+
+
+class SongListResponse(msgspec.Struct, frozen=True):
+    items: list[SongSummary]
+
+
+class SongPeriodView(msgspec.Struct, frozen=True):
+    start: TemporalBoundView | None
+    end: TemporalBoundView | None
+
+
+class SongWorkCreditView(msgspec.Struct, frozen=True):
+    person: PerformerSummary
+    role: WorkCreditRole
+    credited_as: str | None
+
+
+class RelatedWorkView(msgspec.Struct, frozen=True):
+    relation_type: WorkRelationType
+    work: SongSummary
+
+
+class LyricsVersionSummary(msgspec.Struct, frozen=True):
+    id: str
+    language_tag: str
+    label: str | None
+
+
+class LyricsVersionRelationView(msgspec.Struct, frozen=True):
+    relation_type: LyricsVersionRelationType
+    version: LyricsVersionSummary
+
+
+class SongLyricsVersionView(msgspec.Struct, frozen=True):
+    id: str
+    language_tag: str
+    label: str | None
+    usage_kind: LyricsUsageKind
+    creation_method: LyricsCreationMethod
+    body: str | None
+    body_unavailable_reason: str | None
+    credits: list[SongWorkCreditView]
+    relations: list[LyricsVersionRelationView]
+
+
 class PersonDateView(msgspec.Struct, frozen=True):
     year: int
     precision: PersonTemporalPrecision
@@ -129,6 +184,19 @@ class ExternalIdentityView(msgspec.Struct, frozen=True):
     provider: str
     identifier: str
     url: str | None
+
+
+class SongOverviewResponse(msgspec.Struct, frozen=True):
+    id: str
+    name: str
+    aliases: list[str]
+    description: str | None
+    period: SongPeriodView
+    external_identities: list[ExternalIdentityView]
+    credits: list[SongWorkCreditView]
+    classifications: list[GenreSummary]
+    related_works: list[RelatedWorkView]
+    lyrics_versions: list[SongLyricsVersionView]
 
 
 class PerformerOverviewResponse(msgspec.Struct, frozen=True):

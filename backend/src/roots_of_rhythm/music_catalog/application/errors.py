@@ -47,3 +47,55 @@ class GroupNotFound(LookupError):
 
 class GroupMembershipNotFound(LookupError):
     pass
+
+
+class MusicalWorkNotFound(LookupError):
+    pass
+
+
+class WorkCreditNotFound(LookupError):
+    pass
+
+
+class WorkCreditConflict(ValueError):
+    pass
+
+
+class WorkRelationNotFound(LookupError):
+    pass
+
+
+class WorkRelationConflict(ValueError):
+    pass
+
+
+class WorkRelationWorkNotPublished(ValueError):
+    pass
+
+
+class LyricsVersionNotFound(LookupError):
+    pass
+
+
+class LyricsVersionConflict(ValueError):
+    pass
+
+
+class LyricsVersionCreditNotFound(LookupError):
+    pass
+
+
+class LyricsVersionCreditConflict(ValueError):
+    pass
+
+
+class LyricsVersionRelationNotFound(LookupError):
+    pass
+
+
+class LyricsVersionRelationConflict(ValueError):
+    pass
+
+
+class LyricsVersionEndpointNotPublished(ValueError):
+    pass

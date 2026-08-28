@@ -9,12 +9,12 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-from roots_of_rhythm.music_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH, SHORT_TEXT_MAX_LENGTH
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
     EDITORIAL_STATUS_CHECK,
     KIND_CHECK,
 )
+from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 revision: str = "0001"
 down_revision: str | None = None
@@ -26,23 +26,23 @@ def upgrade() -> None:
     op.create_table(
         "classification_concepts",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("kind", sa.String(length=32), nullable=False),
-        sa.Column("editorial_status", sa.String(length=32), nullable=False),
-        sa.Column("canonical_name", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=False),
-        sa.Column("aliases", postgresql.ARRAY(sa.String(length=SHORT_TEXT_MAX_LENGTH)), nullable=False),
-        sa.Column("definition", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("boundaries", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("period_label", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("kind", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("editorial_status", sa.String(length=TEXT_32), nullable=False),
+        sa.Column("canonical_name", sa.String(length=TEXT_64), nullable=False),
+        sa.Column("aliases", postgresql.ARRAY(sa.String(length=TEXT_64)), nullable=False),
+        sa.Column("definition", sa.String(length=TEXT_1024), nullable=True),
+        sa.Column("boundaries", sa.String(length=TEXT_1024), nullable=True),
+        sa.Column("period_label", sa.String(length=TEXT_64), nullable=True),
         sa.Column("period_start_year", sa.Integer(), nullable=True),
-        sa.Column("period_start_precision", sa.String(length=32), nullable=True),
+        sa.Column("period_start_precision", sa.String(length=TEXT_32), nullable=True),
         sa.Column("period_end_year", sa.Integer(), nullable=True),
-        sa.Column("period_end_precision", sa.String(length=32), nullable=True),
-        sa.Column("geography_summary", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("historical_context", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
-        sa.Column("formation", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("period_end_precision", sa.String(length=TEXT_32), nullable=True),
+        sa.Column("geography_summary", sa.String(length=TEXT_64), nullable=True),
+        sa.Column("historical_context", sa.String(length=TEXT_1024), nullable=True),
+        sa.Column("formation", sa.String(length=TEXT_1024), nullable=True),
         sa.Column(
             "characteristic_features",
-            postgresql.ARRAY(sa.String(length=SHORT_TEXT_MAX_LENGTH)),
+            postgresql.ARRAY(sa.String(length=TEXT_64)),
             nullable=False,
         ),
         sa.Column("primary_image_id", postgresql.UUID(as_uuid=True), nullable=True),

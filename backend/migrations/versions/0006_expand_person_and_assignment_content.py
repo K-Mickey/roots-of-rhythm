@@ -10,12 +10,12 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 from roots_of_rhythm.music_catalog.domain.enums import EvidenceStatus
-from roots_of_rhythm.music_catalog.domain.value_objects import LONG_TEXT_MAX_LENGTH
 from roots_of_rhythm.music_catalog.infrastructure.models import EVIDENCE_STATUS_CHECK
 from roots_of_rhythm.people_catalog.infrastructure.models import (
     PERSON_NAME_UNIQUE_CONSTRAINT,
     TEMPORAL_PRECISION_CHECK,
 )
+from roots_of_rhythm.text_lengths import TEXT_32, TEXT_1024
 
 revision: str = "0006"
 down_revision: str | None = "0005"
@@ -35,9 +35,9 @@ def upgrade() -> None:
         ),
     )
     op.add_column("persons", sa.Column("birth_year", sa.Integer(), nullable=True))
-    op.add_column("persons", sa.Column("birth_precision", sa.String(length=32), nullable=True))
+    op.add_column("persons", sa.Column("birth_precision", sa.String(length=TEXT_32), nullable=True))
     op.add_column("persons", sa.Column("death_year", sa.Integer(), nullable=True))
-    op.add_column("persons", sa.Column("death_precision", sa.String(length=32), nullable=True))
+    op.add_column("persons", sa.Column("death_precision", sa.String(length=TEXT_32), nullable=True))
     op.add_column(
         "persons",
         sa.Column(
@@ -65,7 +65,7 @@ def upgrade() -> None:
 
     op.add_column(
         "classification_assignments",
-        sa.Column("explanation", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("explanation", sa.String(length=TEXT_1024), nullable=True),
     )
     op.add_column(
         "classification_assignments",
@@ -73,13 +73,13 @@ def upgrade() -> None:
     )
     op.add_column(
         "classification_assignments",
-        sa.Column("provenance", sa.String(length=LONG_TEXT_MAX_LENGTH), nullable=True),
+        sa.Column("provenance", sa.String(length=TEXT_1024), nullable=True),
     )
     op.add_column(
         "classification_assignments",
         sa.Column(
             "evidence_status",
-            sa.String(length=32),
+            sa.String(length=TEXT_32),
             server_default=sa.text(f"'{EvidenceStatus.UNVERIFIED.value}'"),
             nullable=False,
         ),

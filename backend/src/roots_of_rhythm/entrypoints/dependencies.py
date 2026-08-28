@@ -11,12 +11,15 @@ from roots_of_rhythm.discovery.application.group_list import GroupListQuery
 from roots_of_rhythm.discovery.application.group_overview import GroupOverviewQuery
 from roots_of_rhythm.discovery.application.performer_list import PerformerListQuery
 from roots_of_rhythm.discovery.application.performer_overview import PerformerOverviewQuery
+from roots_of_rhythm.discovery.application.song_list import SongListQuery
+from roots_of_rhythm.discovery.application.song_overview import SongOverviewQuery
 from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import GroupMembershipService, GroupService
+from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import LyricsVersionProjectionService
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
@@ -31,6 +34,8 @@ PERFORMER_LIST_READER_DEPENDENCY = "performer_list_reader"
 PERFORMER_OVERVIEW_READER_DEPENDENCY = "performer_overview_reader"
 GROUP_LIST_READER_DEPENDENCY = "group_list_reader"
 GROUP_OVERVIEW_READER_DEPENDENCY = "group_overview_reader"
+SONG_LIST_READER_DEPENDENCY = "song_list_reader"
+SONG_OVERVIEW_READER_DEPENDENCY = "song_overview_reader"
 GROUP_SERVICE_DEPENDENCY = "group_service"
 GROUP_MEMBERSHIP_SERVICE_DEPENDENCY = "group_membership_service"
 
@@ -56,6 +61,9 @@ def create_api_dependencies(
     performer_overview_query = PerformerOverviewQuery(people_uow_factory, music_uow_factory)
     group_list_query = GroupListQuery(music_uow_factory)
     group_overview_query = GroupOverviewQuery(music_uow_factory, people_uow_factory)
+    lyrics_projection = LyricsVersionProjectionService(music_uow_factory, hk_uow_factory)
+    song_list_query = SongListQuery(music_uow_factory)
+    song_overview_query = SongOverviewQuery(music_uow_factory, people_uow_factory, lyrics_projection)
     claim_service = ClaimService(lambda: knowledge_music_scope(session_factory))
     source_service = SourceService(hk_uow_factory)
     group_service = GroupService(music_uow_factory)
@@ -72,6 +80,8 @@ def create_api_dependencies(
         PERFORMER_OVERVIEW_READER_DEPENDENCY: Provide(lambda: performer_overview_query, sync_to_thread=False),
         GROUP_LIST_READER_DEPENDENCY: Provide(lambda: group_list_query, sync_to_thread=False),
         GROUP_OVERVIEW_READER_DEPENDENCY: Provide(lambda: group_overview_query, sync_to_thread=False),
+        SONG_LIST_READER_DEPENDENCY: Provide(lambda: song_list_query, sync_to_thread=False),
+        SONG_OVERVIEW_READER_DEPENDENCY: Provide(lambda: song_overview_query, sync_to_thread=False),
         GROUP_SERVICE_DEPENDENCY: Provide(lambda: group_service, sync_to_thread=False),
         GROUP_MEMBERSHIP_SERVICE_DEPENDENCY: Provide(lambda: group_membership_service, sync_to_thread=False),
     }

@@ -33,6 +33,11 @@ class FragmentReviewStatus(StrEnum):
     REVIEWED = "reviewed"
 
 
+class SourceAccessPolicy(StrEnum):
+    ALLOW_PUBLIC_BODY = "allow_public_body"
+    WITHHOLD_PUBLIC_BODY = "withhold_public_body"
+
+
 class TemporalPrecision(StrEnum):
     EXACT_YEAR = "exact_year"
     CIRCA_YEAR = "circa_year"

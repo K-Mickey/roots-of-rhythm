@@ -8,7 +8,7 @@ Create Date: 2026-08-18
 import sqlalchemy as sa
 from alembic import op
 
-from roots_of_rhythm.historical_knowledge.domain.value_objects import SHORT_TEXT_MAX_LENGTH, URL_MAX_LENGTH
+from roots_of_rhythm.text_lengths import TEXT_64, TEXT_2048
 
 revision: str = "0004"
 down_revision: str | None = "0003"
@@ -21,13 +21,13 @@ def upgrade() -> None:
         "sources",
         "institution_name",
         new_column_name="responsible_organization",
-        existing_type=sa.String(length=SHORT_TEXT_MAX_LENGTH),
+        existing_type=sa.String(length=TEXT_64),
         existing_nullable=True,
     )
-    op.add_column("sources", sa.Column("author", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True))
-    op.add_column("sources", sa.Column("publication", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True))
-    op.add_column("sources", sa.Column("publication_date", sa.String(length=SHORT_TEXT_MAX_LENGTH), nullable=True))
-    op.add_column("sources", sa.Column("external_url", sa.String(length=URL_MAX_LENGTH), nullable=True))
+    op.add_column("sources", sa.Column("author", sa.String(length=TEXT_64), nullable=True))
+    op.add_column("sources", sa.Column("publication", sa.String(length=TEXT_64), nullable=True))
+    op.add_column("sources", sa.Column("publication_date", sa.String(length=TEXT_64), nullable=True))
+    op.add_column("sources", sa.Column("external_url", sa.String(length=TEXT_2048), nullable=True))
 
 
 def downgrade() -> None:
@@ -39,6 +39,6 @@ def downgrade() -> None:
         "sources",
         "responsible_organization",
         new_column_name="institution_name",
-        existing_type=sa.String(length=SHORT_TEXT_MAX_LENGTH),
+        existing_type=sa.String(length=TEXT_64),
         existing_nullable=True,
     )
