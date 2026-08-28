@@ -29,5 +29,9 @@ describe('SiteHeader', () => {
       'href',
       '/groups',
     );
+    expect(screen.getByRole('link', { name: 'Песни' })).toHaveAttribute(
+      'href',
+      '/songs',
+    );
   });
 });
