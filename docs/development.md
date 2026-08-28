@@ -5,7 +5,7 @@
 ## Предварительные требования
 
 - `uv` 0.11+ и доступный CPython 3.14;
-- Node.js 24 LTS и `pnpm` 11.19 (если `pnpm` нет в PATH, Makefile берёт Corepack или `npx --yes pnpm@11.19.0`);
+- Node.js 24 LTS и `pnpm` 11.24 (если `pnpm` нет в PATH, Makefile берёт Corepack или `npx --yes pnpm@11.24.0`);
 - Docker Desktop с Compose;
 - Chromium для E2E: `cd frontend && pnpm exec playwright install chromium`.
 
@@ -33,16 +33,28 @@
 | Команда | Требования | Результат |
 | --- | --- | --- |
 | `make format` | `make setup` | Форматирует Python и frontend-файлы. |
+| `make lock-check` | `make setup` | Проверяет согласованность manifests и lockfiles без обновления зависимостей. |
 | `make format-check` | `make setup` | Проверяет Ruff formatter и Prettier без записи. |
 | `make lint` | `make setup` | Запускает Ruff и ESLint. |
 | `make typecheck` | `make setup` | Запускает mypy и TypeScript compiler. |
 | `make test-unit` | `make setup` | Запускает backend unit tests и Vitest. |
 | `make test-db-setup` | Docker, `make setup` | Идемпотентно создаёт БД `roots_of_rhythm_test` через запущенный сервис `postgres` и применяет к ней Alembic migrations. |
 | `make test-integration` | Docker, `make setup` | Выполняет `make test-db-setup` и проверяет readiness и persistence на изолированной БД `roots_of_rhythm_test`. |
-| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: `/`, identity/not-found HOME-0, header «Жанры», «Исполнители», «Группы» и «Песни», каталоги `/genres`, `/performers`, `/groups` и `/songs`, seed Swing page, seed Louis Armstrong page, seed Count Basie Orchestra page, seed Sixteen Tons song page и переходы relation-имён Swing→Jazz и Swing→Jump Blues. |
+| `make test-coverage` | Docker, `make setup` | Запускает backend unit/integration и frontend tests; создаёт `backend/coverage.xml` и `frontend/coverage/lcov.info`. |
+| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: `/`, identity/not-found HOME-0, header «Жанры», «Исполнители» и «Группы», каталоги `/genres`, `/performers` и `/groups`, seed Swing page, seed Louis Armstrong page, seed Count Basie Orchestra page и переходы relation-имён Swing→Jazz и Swing→Jump Blues. |
 | `make contract-check` | `make setup` | Проверяет OpenAPI через Redocly и отсутствие drift в generated TypeScript contract. |
 | `make build` | Docker | Собирает production images backend и frontend. |
 | `make check` | Docker, `make setup` | Выполняет format-check, lint, typecheck, unit tests, contract-check и Docker build. |
+
+Coverage локально не имеет общего `fail-under`: Sonar Way проверяет покрытие нового кода и не заставляет одномоментно переписывать существующий baseline.
+
+## Continuous Integration
+
+GitHub Actions запускает required jobs `quality`, `tests`, `build`, `gitleaks` и `sonar` для pull request в `main`, push в `main` и вручную. CodeQL и Dependency Review дают отдельный advisory-сигнал. Playwright smoke запускается только после push в `main` или вручную, чтобы тяжёлый browser сценарий не задерживал pull request.
+
+SonarQube Cloud читает `backend/coverage.xml` и `frontend/coverage/lcov.info`. Для scan нужен repository secret `SONAR_TOKEN`; fork pull request без доступа к secrets выполняет остальные проверки и безопасно пропускает Sonar step.
+
+Решение и acceptance criteria: [OPS-004: CI quality gate](specs/epic-012-production-readiness/ci-quality-gate.md).
 
 ## Изоляция БД для integration tests
 

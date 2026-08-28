@@ -49,6 +49,7 @@
 - [EPIC-010: точка входа, каталоги и поиск](specs/epic-010-home-search-catalog/README.md) — `draft`
 - [Эволюция главной HOME-0/1/2](specs/epic-010-home-search-catalog/home-evolution.md) — `accepted`
 - [EPIC-012: production readiness](specs/epic-012-production-readiness/README.md)
+- [OPS-004: CI quality gate](specs/epic-012-production-readiness/ci-quality-gate.md) — `accepted`
 - [STORY-001: открыть опубликованную страницу Genre](specs/epic-001-genre-exploration/story-001-view-published-genre/README.md) — `done`
 - [UI contract публичной страницы Genre](specs/epic-001-genre-exploration/story-001-view-published-genre/ui.md) — `accepted`
 - [UI/design specification shell и Genre page](specs/epic-001-genre-exploration/story-001-view-published-genre/design.md) — `accepted`
