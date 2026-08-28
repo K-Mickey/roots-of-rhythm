@@ -12,6 +12,7 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
 )
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     RecordingCreditRecord,
+    RecordingLyricsUsageRecord,
     RecordingRecord,
     RecordingWorkUsageRecord,
 )
@@ -27,10 +28,10 @@ class SqlAlchemyRecordingRepository:
         self._session = session
 
     async def add(self, recording: Recording) -> None:
-        credit_records, usages = records_from_recording_children(recording)
+        credit_records, usages, lyrics_usages = records_from_recording_children(recording)
         self._session.add(record_from_recording(recording))
         await self._session.flush()
-        self._session.add_all([*credit_records, *usages])
+        self._session.add_all([*credit_records, *usages, *lyrics_usages])
 
     async def get(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None:
         return await self._get(recording_id, for_update=for_update)
@@ -83,7 +84,15 @@ class SqlAlchemyRecordingRepository:
             )
             .order_by(RecordingWorkUsageRecord.position.nulls_last(), RecordingWorkUsageRecord.id)
         )
-        return recording_from_records(record, list(credit_records), list(usages))
+        lyrics_usages = await self._session.scalars(
+            select(RecordingLyricsUsageRecord)
+            .where(
+                RecordingLyricsUsageRecord.recording_id == recording_id,
+                RecordingLyricsUsageRecord.deleted.is_(False),
+            )
+            .order_by(RecordingLyricsUsageRecord.position, RecordingLyricsUsageRecord.id)
+        )
+        return recording_from_records(record, list(credit_records), list(usages), list(lyrics_usages))
 
     async def _get_record(
         self,
@@ -112,13 +121,21 @@ class SqlAlchemyRecordingRepository:
                 select(RecordingWorkUsageRecord).where(RecordingWorkUsageRecord.recording_id == recording.id)
             )
         )
-        credit_records, usages = records_from_recording_children(recording)
+        stored_lyrics_usages = list(
+            await self._session.scalars(
+                select(RecordingLyricsUsageRecord).where(RecordingLyricsUsageRecord.recording_id == recording.id)
+            )
+        )
+        credit_records, usages, lyrics_usages = records_from_recording_children(recording)
         credit_by_id = {record.id: record for record in stored_credits}
         usage_by_id = {record.id: record for record in stored_usages}
+        lyrics_usage_by_id = {record.id: record for record in stored_lyrics_usages}
         for stored_credit_record in stored_credits:
             stored_credit_record.deleted = True
         for stored_usage_record in stored_usages:
             stored_usage_record.deleted = True
+        for stored_lyrics_usage in stored_lyrics_usages:
+            stored_lyrics_usage.deleted = True
         await self._session.flush()
 
         for incoming_credit in credit_records:
@@ -141,3 +158,11 @@ class SqlAlchemyRecordingRepository:
             stored_usage.usage_kind = incoming_usage.usage_kind
             stored_usage.position = incoming_usage.position
             stored_usage.deleted = False
+
+        for incoming_lyrics_usage in lyrics_usages:
+            if (found_lyrics_usage := lyrics_usage_by_id.get(incoming_lyrics_usage.id)) is None:
+                self._session.add(incoming_lyrics_usage)
+                continue
+            found_lyrics_usage.lyrics_version_id = incoming_lyrics_usage.lyrics_version_id
+            found_lyrics_usage.position = incoming_lyrics_usage.position
+            found_lyrics_usage.deleted = False

@@ -10,6 +10,7 @@ from roots_of_rhythm.music_catalog.domain import (
     RecordingContributionKind,
     RecordingCredit,
     RecordingCreditTargetKind,
+    RecordingLyricsUsage,
     RecordingPublicationError,
     RecordingWorkUsage,
     RecordingWorkUsageKind,
@@ -124,3 +125,20 @@ def test_recording_rejects_mixed_or_multiple_non_medley_usages() -> None:
 def test_recording_rejects_invalid_isrc() -> None:
     with pytest.raises(MusicCatalogDomainError, match="ISRC"):
         RecordingContent.create("Bad code", isrc="invalid")
+
+
+def test_recording_assigns_lyrics_positions_and_rejects_duplicates() -> None:
+    version_ids = (uuid7(), uuid7())
+    usages = tuple(RecordingLyricsUsage.create(uuid7(), version_id) for version_id in version_ids)
+    content = RecordingContent.create("Two parts", lyrics_usages=usages)
+    assert [usage.position for usage in content.lyrics_usages] == [1, 2]
+
+    reordered = RecordingContent.create("Reordered", lyrics_usages=tuple(reversed(usages)))
+    assert [usage.lyrics_version_id for usage in reordered.lyrics_usages] == list(reversed(version_ids))
+    assert [usage.position for usage in reordered.lyrics_usages] == [1, 2]
+
+    with pytest.raises(MusicCatalogDomainError, match="duplicate LyricsVersion"):
+        RecordingContent.create(
+            "Duplicate",
+            lyrics_usages=(usages[0], RecordingLyricsUsage.create(uuid7(), version_ids[0])),
+        )

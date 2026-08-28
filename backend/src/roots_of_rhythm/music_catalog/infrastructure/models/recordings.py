@@ -14,6 +14,8 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
     PERIOD_START_YEAR_COLUMN,
     RECORDING_CONTRIBUTION_KIND_CHECK,
     RECORDING_CREDIT_TARGET_KIND_CHECK,
+    RECORDING_LYRICS_POSITION_UNIQUE_CONSTRAINT,
+    RECORDING_LYRICS_VERSION_UNIQUE_CONSTRAINT,
     RECORDING_WORK_USAGE_KIND_CHECK,
     RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT,
     TEMPORAL_PRECISION_CHECK,
@@ -106,3 +108,33 @@ Index(
 )
 Index("ix_recording_work_usages_recording_id", RecordingWorkUsageRecord.recording_id)
 Index("ix_recording_work_usages_work_id", RecordingWorkUsageRecord.work_id)
+
+
+class RecordingLyricsUsageRecord(ServiceColumnsMixin, MusicCatalogBase):
+    __tablename__ = "recording_lyrics_usages"
+    __table_args__ = (CheckConstraint("position > 0", name="ck_recording_lyrics_usages_position"),)
+
+    id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
+    recording_id: Mapped[UUID] = mapped_column(ForeignKey("recordings.id", ondelete="CASCADE"), nullable=False)
+    lyrics_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("lyrics_versions.id", ondelete="RESTRICT"), nullable=False
+    )
+    position: Mapped[int] = mapped_column(nullable=False)
+
+
+Index("ix_recording_lyrics_usages_recording_id", RecordingLyricsUsageRecord.recording_id)
+Index("ix_recording_lyrics_usages_version_id", RecordingLyricsUsageRecord.lyrics_version_id)
+Index(
+    RECORDING_LYRICS_VERSION_UNIQUE_CONSTRAINT,
+    RecordingLyricsUsageRecord.recording_id,
+    RecordingLyricsUsageRecord.lyrics_version_id,
+    unique=True,
+    postgresql_where=RecordingLyricsUsageRecord.deleted.is_(False),
+)
+Index(
+    RECORDING_LYRICS_POSITION_UNIQUE_CONSTRAINT,
+    RecordingLyricsUsageRecord.recording_id,
+    RecordingLyricsUsageRecord.position,
+    unique=True,
+    postgresql_where=RecordingLyricsUsageRecord.deleted.is_(False),
+)

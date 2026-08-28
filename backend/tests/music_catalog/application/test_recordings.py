@@ -10,6 +10,9 @@ from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
 from tests.support.scopes import pair_scope
 
 from roots_of_rhythm.music_catalog.application import (
+    RecordingLyricsVersionNotPerformable,
+    RecordingLyricsVersionNotPublished,
+    RecordingLyricsVersionWorkMismatch,
     RecordingPrimaryTargetNotPublished,
     RecordingService,
     RecordingWorkNotPublished,
@@ -19,11 +22,16 @@ from roots_of_rhythm.music_catalog.domain import (
     EditorialStatus,
     Group,
     GroupContent,
+    LyricsCreationMethod,
+    LyricsUsageKind,
+    LyricsVersion,
+    LyricsVersionContent,
     MusicalWork,
     Recording,
     RecordingContent,
     RecordingCredit,
     RecordingCreditTargetKind,
+    RecordingLyricsUsage,
     RecordingWorkUsage,
     RecordingWorkUsageKind,
     WorkContent,
@@ -38,6 +46,7 @@ def _content(
     *,
     target_kind: RecordingCreditTargetKind = RecordingCreditTargetKind.PERSON,
     additional_target_id: UUID | None = None,
+    lyrics_version_id: UUID | None = None,
 ) -> RecordingContent:
     recording_credits = [RecordingCredit.create(uuid7(), target_kind, target_id, BillingRole.PRIMARY)]
     if additional_target_id is not None:
@@ -53,6 +62,9 @@ def _content(
         "Take",
         recording_credits=tuple(recording_credits),
         work_usages=(RecordingWorkUsage.create(uuid7(), work_id, RecordingWorkUsageKind.COMPLETE),),
+        lyrics_usages=(
+            (RecordingLyricsUsage.create(uuid7(), lyrics_version_id),) if lyrics_version_id is not None else ()
+        ),
     )
 
 
@@ -188,3 +200,60 @@ async def test_one_published_primary_target_is_enough() -> None:
 
     recording = await service.create(content)
     assert (await service.publish(recording.id)).editorial_status is EditorialStatus.PUBLISHED
+
+
+@pytest.mark.asyncio
+async def test_recording_service_validates_lyrics_usages() -> None:
+    work = MusicalWork.create(
+        uuid7(),
+        WorkContent.create("Work", provenance="Editorial note"),
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    person = _published_person(uuid7())
+
+    def version(
+        *,
+        work_id: UUID = work.id,
+        usage_kind: LyricsUsageKind = LyricsUsageKind.PERFORMABLE,
+        status: EditorialStatus = EditorialStatus.PUBLISHED,
+    ) -> LyricsVersion:
+        return LyricsVersion.create(
+            uuid7(),
+            work_id,
+            uuid7(),
+            LyricsVersionContent.create(
+                language_tag="en",
+                usage_kind=usage_kind,
+                creation_method=(
+                    LyricsCreationMethod.HUMAN_TRANSLATION
+                    if usage_kind is LyricsUsageKind.READING_TRANSLATION
+                    else LyricsCreationMethod.ORIGINAL
+                ),
+            ),
+            editorial_status=status,
+        )
+
+    valid = version()
+    invalid_cases = (
+        (version(status=EditorialStatus.DRAFT), RecordingLyricsVersionNotPublished),
+        (version(usage_kind=LyricsUsageKind.READING_TRANSLATION), RecordingLyricsVersionNotPerformable),
+        (version(work_id=uuid7()), RecordingLyricsVersionWorkMismatch),
+    )
+    versions = {item.id: item for item, _error in invalid_cases} | {valid.id: valid}
+    recordings: dict[UUID, Recording] = {}
+    service = RecordingService(
+        pair_scope(
+            lambda: FakeMusicCatalogUnitOfWork(
+                {}, works={work.id: work}, lyrics_versions=versions, recordings=recordings
+            ),
+            lambda: FakePeopleCatalogUnitOfWork({person.id: person}),
+        )
+    )
+
+    recording = await service.create(_content(work.id, person.id, lyrics_version_id=valid.id))
+    await service.publish(recording.id)
+
+    for invalid, error in invalid_cases:
+        draft = await service.create(_content(work.id, person.id, lyrics_version_id=invalid.id))
+        with pytest.raises(error):
+            await service.publish(draft.id)

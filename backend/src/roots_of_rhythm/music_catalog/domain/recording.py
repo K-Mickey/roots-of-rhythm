@@ -8,6 +8,7 @@ from roots_of_rhythm.music_catalog.domain.value_objects import (
     ExistencePeriod,
     RecordingContent,
     RecordingCredit,
+    RecordingLyricsUsage,
     RecordingWorkUsage,
 )
 
@@ -20,6 +21,7 @@ class Recording(msgspec.Struct, frozen=True):
     isrc: str | None = None
     credits: tuple[RecordingCredit, ...] = ()
     work_usages: tuple[RecordingWorkUsage, ...] = ()
+    lyrics_usages: tuple[RecordingLyricsUsage, ...] = ()
     editorial_status: EditorialStatus = EditorialStatus.DRAFT
 
     @classmethod
@@ -38,6 +40,7 @@ class Recording(msgspec.Struct, frozen=True):
             isrc=content.isrc,
             credits=content.credits,
             work_usages=content.work_usages,
+            lyrics_usages=content.lyrics_usages,
             editorial_status=editorial_status,
         )
 
@@ -70,5 +73,6 @@ class Recording(msgspec.Struct, frozen=True):
             isrc=self.isrc,
             credits=self.credits,
             work_usages=self.work_usages,
+            lyrics_usages=self.lyrics_usages,
             editorial_status=status,
         )

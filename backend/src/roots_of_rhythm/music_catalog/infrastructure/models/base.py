@@ -48,6 +48,8 @@ LYRICS_VERSION_UNIQUE_CONSTRAINT = "uq_lyrics_versions_work_language_usage_label
 LYRICS_VERSION_CREDIT_UNIQUE_CONSTRAINT = "uq_lyrics_version_credits_version_person_role"
 LYRICS_VERSION_RELATION_UNIQUE_CONSTRAINT = "uq_lyrics_version_relations_source_target_type"
 RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT = "uq_recording_work_usages_recording_work_kind"
+RECORDING_LYRICS_VERSION_UNIQUE_CONSTRAINT = "uq_recording_lyrics_usages_recording_version"
+RECORDING_LYRICS_POSITION_UNIQUE_CONSTRAINT = "uq_recording_lyrics_usages_recording_position"
 TEMPORAL_PRECISION_CHECK = (
     "({year_column} IS NULL AND {precision_column} IS NULL) OR "
     "({year_column} IS NOT NULL AND {precision_column} IN "

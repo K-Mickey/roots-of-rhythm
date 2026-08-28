@@ -6,6 +6,7 @@ from roots_of_rhythm.music_catalog.domain import (
     RecordingContributionKind,
     RecordingCredit,
     RecordingCreditTargetKind,
+    RecordingLyricsUsage,
     RecordingWorkUsage,
     RecordingWorkUsageKind,
 )
@@ -15,6 +16,7 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping._temporal import (
 )
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     RecordingCreditRecord,
+    RecordingLyricsUsageRecord,
     RecordingRecord,
     RecordingWorkUsageRecord,
 )
@@ -36,6 +38,7 @@ def recording_from_records(
     record: RecordingRecord,
     credit_records: list[RecordingCreditRecord],
     usages: list[RecordingWorkUsageRecord],
+    lyrics_usages: list[RecordingLyricsUsageRecord],
 ) -> Recording:
     return Recording.create(
         record.id,
@@ -74,6 +77,9 @@ def recording_from_records(
                 )
                 for usage in usages
             ),
+            lyrics_usages=tuple(
+                RecordingLyricsUsage.create(usage.id, usage.lyrics_version_id) for usage in lyrics_usages
+            ),
         ),
         editorial_status=EditorialStatus(record.editorial_status),
     )
@@ -89,7 +95,7 @@ def update_recording_record(record: RecordingRecord, recording: Recording) -> No
 
 def records_from_recording_children(
     recording: Recording,
-) -> tuple[list[RecordingCreditRecord], list[RecordingWorkUsageRecord]]:
+) -> tuple[list[RecordingCreditRecord], list[RecordingWorkUsageRecord], list[RecordingLyricsUsageRecord]]:
     credit_records = [
         RecordingCreditRecord(
             id=credit.id,
@@ -113,4 +119,13 @@ def records_from_recording_children(
         )
         for usage in recording.work_usages
     ]
-    return credit_records, usages
+    lyrics_usages = [
+        RecordingLyricsUsageRecord(
+            id=usage.id,
+            recording_id=recording.id,
+            lyrics_version_id=usage.lyrics_version_id,
+            position=usage.position,
+        )
+        for usage in recording.lyrics_usages
+    ]
+    return credit_records, usages, lyrics_usages

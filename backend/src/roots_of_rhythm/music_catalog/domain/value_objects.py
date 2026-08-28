@@ -468,6 +468,16 @@ class RecordingWorkUsage(msgspec.Struct, frozen=True):
         return cls(id=usage_id, work_id=work_id, usage_kind=usage_kind, position=position)
 
 
+class RecordingLyricsUsage(msgspec.Struct, frozen=True):
+    id: UUID
+    lyrics_version_id: UUID
+    position: int = 0
+
+    @classmethod
+    def create(cls, usage_id: UUID, lyrics_version_id: UUID) -> "RecordingLyricsUsage":
+        return cls(id=usage_id, lyrics_version_id=lyrics_version_id)
+
+
 class RecordingContent(msgspec.Struct, frozen=True):
     title: str
     recorded_period: ExistencePeriod | None = None
@@ -475,6 +485,7 @@ class RecordingContent(msgspec.Struct, frozen=True):
     isrc: str | None = None
     credits: tuple[RecordingCredit, ...] = ()
     work_usages: tuple[RecordingWorkUsage, ...] = ()
+    lyrics_usages: tuple[RecordingLyricsUsage, ...] = ()
 
     @classmethod
     def create(
@@ -486,6 +497,7 @@ class RecordingContent(msgspec.Struct, frozen=True):
         isrc: str | None = None,
         recording_credits: tuple[RecordingCredit, ...] = (),
         work_usages: tuple[RecordingWorkUsage, ...] = (),
+        lyrics_usages: tuple[RecordingLyricsUsage, ...] = (),
     ) -> "RecordingContent":
         normalized_isrc = None
         if isrc is not None:
@@ -515,6 +527,14 @@ class RecordingContent(msgspec.Struct, frozen=True):
             if len(positions) != len(set(positions)):
                 raise MusicCatalogDomainError("medley component positions must be unique")
 
+        lyrics_version_ids = [usage.lyrics_version_id for usage in lyrics_usages]
+        if len(lyrics_version_ids) != len(set(lyrics_version_ids)):
+            raise MusicCatalogDomainError("lyrics usages must not contain duplicate LyricsVersion")
+        ordered_lyrics_usages = tuple(
+            RecordingLyricsUsage(id=usage.id, lyrics_version_id=usage.lyrics_version_id, position=position)
+            for position, usage in enumerate(lyrics_usages, start=1)
+        )
+
         return cls(
             title=_required_text(title, "recording title", max_length=TEXT_64),
             recorded_period=recorded_period,
@@ -522,4 +542,5 @@ class RecordingContent(msgspec.Struct, frozen=True):
             isrc=normalized_isrc,
             credits=recording_credits,
             work_usages=work_usages,
+            lyrics_usages=ordered_lyrics_usages,
         )

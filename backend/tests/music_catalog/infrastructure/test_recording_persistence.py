@@ -4,25 +4,40 @@ from uuid import uuid7
 import pytest
 from sqlalchemy import select
 
+from roots_of_rhythm.historical_knowledge.domain import Source, SourceVersion
+from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
 from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.infrastructure.write_scopes import music_people_scope
-from roots_of_rhythm.music_catalog.application import GroupService, MusicalWorkService, RecordingService
+from roots_of_rhythm.music_catalog.application import (
+    GroupService,
+    LyricsVersionService,
+    MusicalWorkService,
+    RecordingService,
+)
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
     EditorialStatus,
     ExistencePeriod,
     GroupContent,
+    LyricsCreationMethod,
+    LyricsUsageKind,
+    LyricsVersionContent,
     RecordingContent,
     RecordingContributionKind,
     RecordingCredit,
     RecordingCreditTargetKind,
+    RecordingLyricsUsage,
     RecordingWorkUsage,
     RecordingWorkUsageKind,
     TemporalBound,
     TemporalPrecision,
     WorkContent,
 )
-from roots_of_rhythm.music_catalog.infrastructure.models import RecordingCreditRecord, RecordingWorkUsageRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import (
+    RecordingCreditRecord,
+    RecordingLyricsUsageRecord,
+    RecordingWorkUsageRecord,
+)
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.application import PersonService
 from roots_of_rhythm.people_catalog.domain import PersonContent
@@ -38,11 +53,28 @@ pytestmark = pytest.mark.integration
 async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: AsyncEngine) -> None:
     session_factory = create_session_factory(engine)
     works = MusicalWorkService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
+    lyrics = LyricsVersionService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
     recordings = RecordingService(lambda: music_people_scope(session_factory))
     persons = PersonService(lambda: SqlAlchemyPeopleCatalogUnitOfWork(session_factory))
     groups = GroupService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
     work = await works.create(WorkContent.create("Sixteen Tons", provenance="Editorial note"))
     await works.publish(work.id)
+    async with SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory) as hk:
+        source = Source.create("Lyrics source")
+        source_version = SourceVersion.create(source.id, "v1")
+        await hk.sources.add_source(source)
+        await hk.sources.add_version(source_version)
+        await hk.commit()
+    lyrics_version = await lyrics.create(
+        work.id,
+        source_version.id,
+        LyricsVersionContent.create(
+            language_tag="en",
+            usage_kind=LyricsUsageKind.PERFORMABLE,
+            creation_method=LyricsCreationMethod.ORIGINAL,
+        ),
+    )
+    await lyrics.publish(lyrics_version.id)
     person = await persons.create(PersonContent.create("Tennessee Ernie Ford"))
     await persons.publish(person.id)
     group = await groups.create(GroupContent.create("Studio group"))
@@ -57,6 +89,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
     )
     additional = RecordingCredit.create(uuid7(), RecordingCreditTargetKind.GROUP, uuid7(), BillingRole.ADDITIONAL)
     usage = RecordingWorkUsage.create(uuid7(), work.id, RecordingWorkUsageKind.COMPLETE)
+    lyrics_usage = RecordingLyricsUsage.create(uuid7(), lyrics_version.id)
     period = ExistencePeriod.create(
         TemporalBound(1955, TemporalPrecision.EXACT_YEAR),
         TemporalBound(1955, TemporalPrecision.EXACT_YEAR),
@@ -69,6 +102,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
             isrc="US-AAA-55-00001",
             recording_credits=(primary, additional),
             work_usages=(usage,),
+            lyrics_usages=(lyrics_usage,),
         )
     )
     async with session_factory() as session:
@@ -111,6 +145,12 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
         )
         assert (
             await session.scalar(
+                select(RecordingLyricsUsageRecord.deleted).where(RecordingLyricsUsageRecord.id == lyrics_usage.id)
+            )
+            is True
+        )
+        assert (
+            await session.scalar(
                 select(RecordingWorkUsageRecord.deleted).where(RecordingWorkUsageRecord.id == usage.id)
             )
             is True
@@ -122,6 +162,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
             "Sixteen Tons — restored",
             recording_credits=(primary,),
             work_usages=(usage,),
+            lyrics_usages=(lyrics_usage,),
         ),
     )
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
@@ -129,6 +170,12 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
     async with session_factory() as session:
         assert (
             await session.scalar(select(RecordingCreditRecord.deleted).where(RecordingCreditRecord.id == primary.id))
+            is False
+        )
+        assert (
+            await session.scalar(
+                select(RecordingLyricsUsageRecord.deleted).where(RecordingLyricsUsageRecord.id == lyrics_usage.id)
+            )
             is False
         )
         assert (

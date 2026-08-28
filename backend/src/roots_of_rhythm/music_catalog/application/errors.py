@@ -111,3 +111,15 @@ class RecordingWorkNotPublished(ValueError):
 
 class RecordingPrimaryTargetNotPublished(ValueError):
     pass
+
+
+class RecordingLyricsVersionNotPublished(ValueError):
+    pass
+
+
+class RecordingLyricsVersionNotPerformable(ValueError):
+    pass
+
+
+class RecordingLyricsVersionWorkMismatch(ValueError):
+    pass

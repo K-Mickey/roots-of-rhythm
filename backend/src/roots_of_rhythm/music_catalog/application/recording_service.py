@@ -3,6 +3,9 @@ from contextlib import AbstractAsyncContextManager
 from uuid import UUID, uuid7
 
 from roots_of_rhythm.music_catalog.application.errors import (
+    RecordingLyricsVersionNotPerformable,
+    RecordingLyricsVersionNotPublished,
+    RecordingLyricsVersionWorkMismatch,
     RecordingNotFound,
     RecordingPrimaryTargetNotPublished,
     RecordingWorkNotPublished,
@@ -11,6 +14,8 @@ from roots_of_rhythm.music_catalog.application.ports import RecordingUnitOfWork
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
     EditorialStatus,
+    LyricsCreationMethod,
+    LyricsUsageKind,
     Recording,
     RecordingContent,
     RecordingCreditTargetKind,
@@ -46,6 +51,8 @@ class RecordingService:
                 uow, people, updated
             ):
                 raise RecordingPrimaryTargetNotPublished(str(recording_id))
+            if updated.editorial_status is EditorialStatus.PUBLISHED:
+                await self._validate_lyrics_usages(uow, updated)
             await self._save(uow, updated)
             await uow.commit()
             return updated
@@ -58,6 +65,7 @@ class RecordingService:
                 raise RecordingWorkNotPublished(str(recording_id))
             if not await self._has_published_primary_target(uow, people, updated):
                 raise RecordingPrimaryTargetNotPublished(str(recording_id))
+            await self._validate_lyrics_usages(uow, updated)
             await self._save_status(uow, updated)
             await uow.commit()
             return updated
@@ -102,6 +110,21 @@ class RecordingService:
             if await uow.works.get_published(work_id, for_update=True) is not None:
                 return True
         return False
+
+    @staticmethod
+    async def _validate_lyrics_usages(uow: RecordingUnitOfWork, recording: Recording) -> None:
+        work_ids = {usage.work_id for usage in recording.work_usages}
+        for usage in sorted(recording.lyrics_usages, key=lambda item: item.lyrics_version_id):
+            version = await uow.lyrics_versions.get_published(usage.lyrics_version_id, for_update=True)
+            if version is None:
+                raise RecordingLyricsVersionNotPublished(str(usage.lyrics_version_id))
+            if (
+                version.usage_kind is not LyricsUsageKind.PERFORMABLE
+                or version.creation_method is LyricsCreationMethod.MACHINE_TRANSLATION
+            ):
+                raise RecordingLyricsVersionNotPerformable(str(version.id))
+            if version.work_id not in work_ids:
+                raise RecordingLyricsVersionWorkMismatch(str(version.id))
 
     @staticmethod
     async def _has_published_primary_target(

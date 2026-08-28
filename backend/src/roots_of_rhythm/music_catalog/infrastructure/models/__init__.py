@@ -17,6 +17,8 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
     PERIOD_START_YEAR_COLUMN,
     RECORDING_CONTRIBUTION_KIND_CHECK,
     RECORDING_CREDIT_TARGET_KIND_CHECK,
+    RECORDING_LYRICS_POSITION_UNIQUE_CONSTRAINT,
+    RECORDING_LYRICS_VERSION_UNIQUE_CONSTRAINT,
     RECORDING_WORK_USAGE_KIND_CHECK,
     RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT,
     TARGET_KIND_CHECK,
@@ -39,6 +41,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models.lyrics import (
 )
 from roots_of_rhythm.music_catalog.infrastructure.models.recordings import (
     RecordingCreditRecord,
+    RecordingLyricsUsageRecord,
     RecordingRecord,
     RecordingWorkUsageRecord,
 )
@@ -80,7 +83,10 @@ __all__ = [
     "RECORDING_CREDIT_TARGET_KIND_CHECK",
     "RECORDING_WORK_USAGE_KIND_CHECK",
     "RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT",
+    "RECORDING_LYRICS_POSITION_UNIQUE_CONSTRAINT",
+    "RECORDING_LYRICS_VERSION_UNIQUE_CONSTRAINT",
     "RecordingCreditRecord",
+    "RecordingLyricsUsageRecord",
     "RecordingRecord",
     "RecordingWorkUsageRecord",
     "TARGET_KIND_CHECK",
