@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.6.0
+  version: 0.7.0
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
@@ -11,6 +11,8 @@ tags:
     description: Published Performer (Person) read models.
   - name: Groups
     description: Published Group read models.
+  - name: Songs
+    description: Published Song (MusicalWork) read models.
 paths:
   /api/v1/genres:
     get:
@@ -321,6 +323,84 @@ paths:
           $ref: "#/components/responses/GroupNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/songs:
+    get:
+      tags: [Songs]
+      operationId: listPublishedSongs
+      summary: List published Songs
+      description: >-
+        Returns identity summaries of all currently published MusicalWorks, ordered by
+        canonical title. Draft, archived, and deleted Works are omitted. An empty
+        list is a successful result.
+      security: []
+      responses:
+        "200":
+          description: Ordered published Song summaries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SongListResponse"
+              examples:
+                seed:
+                  value:
+                    items:
+                      - id: 01a01a72-3c01-7000-8000-000000000001
+                        name: Sixteen Tons
+                      - id: 01a01a72-3c01-7000-8000-000000000002
+                        name: One O'Clock Jump
+                      - id: 01a01a72-3c01-7000-8000-000000000003
+                        name: Ornithology
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/songs/{song_id}:
+    get:
+      tags: [Songs]
+      operationId: getPublishedSongOverview
+      summary: Get a published Song overview
+      description: >-
+        Returns public MusicalWork content plus credits, classifications, related Works
+        and rights-aware LyricsVersion projections. Editorial status, deleted flags,
+        timestamps, evidence, and provenance are omitted. Unknown, malformed, draft,
+        and archived identifiers are intentionally indistinguishable.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/SongId"
+      responses:
+        "200":
+          description: Public Song overview.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SongOverviewResponse"
+              examples:
+                sixteen_tons:
+                  value:
+                    id: 01a01a72-3c01-7000-8000-000000000001
+                    name: Sixteen Tons
+                    aliases: []
+                    description: null
+                    period:
+                      start: null
+                      end: null
+                    external_identities: []
+                    credits:
+                      - person:
+                          id: 01a01a72-3b01-7000-8000-000000000001
+                          name: Merle Travis
+                        role: composer
+                        credited_as: null
+                      - person:
+                          id: 01a01a72-3b01-7000-8000-000000000001
+                          name: Merle Travis
+                        role: lyricist
+                        credited_as: null
+                    classifications: []
+                    related_works: []
+                    lyrics_versions: []
+        "404":
+          $ref: "#/components/responses/SongNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   parameters:
     GenreId:
@@ -342,6 +422,13 @@ components:
       in: path
       required: true
       description: Stable opaque Group identifier. Clients must not derive meaning from it.
+      schema:
+        $ref: "#/components/schemas/PublicId"
+    SongId:
+      name: song_id
+      in: path
+      required: true
+      description: Stable opaque Song identifier (MusicalWork). Clients must not derive meaning from it.
       schema:
         $ref: "#/components/schemas/PublicId"
   responses:
@@ -375,6 +462,17 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
           example:
             code: GROUP_NOT_FOUND
+            message: Материал не найден.
+            details: null
+            request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
+    SongNotFound:
+      description: Song is absent or not publicly visible.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: SONG_NOT_FOUND
             message: Материал не найден.
             details: null
             request_id: 01K2V3A5J2P9M3EVWQ3E7G4C6X
@@ -481,6 +579,156 @@ components:
           type: array
           description: Published memberships of published Performers, ordered by person name.
           items: {$ref: "#/components/schemas/GroupMemberView"}
+    SongListResponse:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Published Song summaries ordered by canonical title.
+          items: {$ref: "#/components/schemas/SongSummary"}
+    SongSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+    SongPeriodView:
+      type: object
+      additionalProperties: false
+      required: [start, end]
+      properties:
+        start:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+        end:
+          oneOf:
+            - $ref: "#/components/schemas/TemporalBound"
+            - type: "null"
+    SongWorkCreditView:
+      type: object
+      additionalProperties: false
+      required: [person, role, credited_as]
+      properties:
+        person: {$ref: "#/components/schemas/PerformerSummary"}
+        role: {$ref: "#/components/schemas/WorkCreditRole"}
+        credited_as: {$ref: "#/components/schemas/NullableText"}
+    RelatedWorkView:
+      type: object
+      additionalProperties: false
+      required: [relation_type, work]
+      properties:
+        relation_type: {$ref: "#/components/schemas/WorkRelationType"}
+        work: {$ref: "#/components/schemas/SongSummary"}
+    LyricsVersionSummary:
+      type: object
+      additionalProperties: false
+      required: [id, language_tag, label]
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        language_tag: {type: string, minLength: 1}
+        label: {$ref: "#/components/schemas/NullableText"}
+    LyricsVersionRelationView:
+      type: object
+      additionalProperties: false
+      required: [relation_type, version]
+      properties:
+        relation_type: {$ref: "#/components/schemas/LyricsVersionRelationType"}
+        version: {$ref: "#/components/schemas/LyricsVersionSummary"}
+    SongLyricsVersionView:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - language_tag
+        - label
+        - usage_kind
+        - creation_method
+        - body
+        - body_unavailable_reason
+        - credits
+        - relations
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        language_tag: {type: string, minLength: 1}
+        label: {$ref: "#/components/schemas/NullableText"}
+        usage_kind: {$ref: "#/components/schemas/LyricsUsageKind"}
+        creation_method: {$ref: "#/components/schemas/LyricsCreationMethod"}
+        body: {$ref: "#/components/schemas/NullableText"}
+        body_unavailable_reason: {$ref: "#/components/schemas/NullableText"}
+        credits:
+          type: array
+          description: Published credits with published Performers; may be empty.
+          items: {$ref: "#/components/schemas/SongWorkCreditView"}
+        relations:
+          type: array
+          description: Published relations to other LyricsVersions; may be empty.
+          items: {$ref: "#/components/schemas/LyricsVersionRelationView"}
+    SongOverviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - aliases
+        - description
+        - period
+        - external_identities
+        - credits
+        - classifications
+        - related_works
+        - lyrics_versions
+      properties:
+        id: {$ref: "#/components/schemas/PublicId"}
+        name: {type: string, minLength: 1}
+        aliases:
+          type: array
+          description: Alternate names; may be empty. Does not include the canonical title.
+          items: {type: string, minLength: 1}
+        description: {$ref: "#/components/schemas/NullableText"}
+        period: {$ref: "#/components/schemas/SongPeriodView"}
+        external_identities:
+          type: array
+          description: External catalog identifiers; may be empty.
+          items: {$ref: "#/components/schemas/ExternalIdentityView"}
+        credits:
+          type: array
+          description: Published WorkCredits with published Performers; may be empty.
+          items: {$ref: "#/components/schemas/SongWorkCreditView"}
+        classifications:
+          type: array
+          description: Published Genre summaries assigned to the Work, ordered by canonical name.
+          items: {$ref: "#/components/schemas/GenreSummary"}
+        related_works:
+          type: array
+          description: >-
+            Published directed WorkRelations where this song is the source
+            (for example translation_of pointing at the original Work); may be empty.
+          items: {$ref: "#/components/schemas/RelatedWorkView"}
+        lyrics_versions:
+          type: array
+          description: >-
+            Published LyricsVersions ordered performable before reading_translation,
+            then language_tag, label, and id. Body is rights-aware.
+          items: {$ref: "#/components/schemas/SongLyricsVersionView"}
+    WorkCreditRole:
+      type: string
+      enum: [composer, lyricist, writer, translator, adapter, arranger, other]
+    WorkRelationType:
+      type: string
+      enum: [translation_of, adaptation_of, arrangement_of, medley_of]
+    LyricsUsageKind:
+      type: string
+      enum: [performable, reading_translation]
+    LyricsCreationMethod:
+      type: string
+      enum: [original, human_translation, machine_translation]
+    LyricsVersionRelationType:
+      type: string
+      enum: [translation_of, adaptation_of]
     PerformerListResponse:
       type: object
       additionalProperties: false

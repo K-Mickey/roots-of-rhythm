@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Self
 from roots_of_rhythm.people_catalog.domain import EditorialStatus
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from types import TracebackType
     from uuid import UUID
 
@@ -23,6 +24,14 @@ class FakePersonRepository:
     async def get_published(self, person_id: UUID, *, for_update: bool = False) -> Person | None:
         person = self._persons.get(person_id)
         return person if person is not None and person.editorial_status is EditorialStatus.PUBLISHED else None
+
+    async def get_published_by_ids(self, person_ids: Collection[UUID]) -> dict[UUID, Person]:
+        return {
+            person_id: person
+            for person_id in person_ids
+            if (person := self._persons.get(person_id)) is not None
+            and person.editorial_status is EditorialStatus.PUBLISHED
+        }
 
     async def list_published(self) -> list[Person]:
         return sorted(

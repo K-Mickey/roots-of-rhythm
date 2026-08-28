@@ -12,6 +12,7 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
 from roots_of_rhythm.music_catalog.infrastructure.models import LyricsVersionCreditRecord
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from uuid import UUID
 
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,6 +43,33 @@ class SqlAlchemyLyricsVersionCreditRepository:
         )
         result = await self._session.execute(statement)
         return [lyrics_version_credit_from_record(record) for record in result.scalars()]
+
+    async def list_published_for_versions(
+        self,
+        lyrics_version_ids: Collection[UUID],
+    ) -> dict[UUID, list[LyricsVersionCredit]]:
+        ids = set(lyrics_version_ids)
+        if not ids:
+            return {}
+        statement = (
+            select(LyricsVersionCreditRecord)
+            .where(
+                LyricsVersionCreditRecord.lyrics_version_id.in_(ids),
+                LyricsVersionCreditRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                LyricsVersionCreditRecord.deleted.is_(False),
+            )
+            .order_by(
+                LyricsVersionCreditRecord.lyrics_version_id,
+                LyricsVersionCreditRecord.role,
+                LyricsVersionCreditRecord.id,
+            )
+        )
+        result = await self._session.execute(statement)
+        grouped: dict[UUID, list[LyricsVersionCredit]] = {version_id: [] for version_id in ids}
+        for record in result.scalars():
+            credit = lyrics_version_credit_from_record(record)
+            grouped[credit.lyrics_version_id].append(credit)
+        return grouped
 
     async def save(self, credit: LyricsVersionCredit) -> None:
         record = await self._get_record(credit.id, for_update=True)

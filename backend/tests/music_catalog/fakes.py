@@ -65,6 +65,17 @@ class FakeClassificationAssignmentRepository:
             and assignment.editorial_status is EditorialStatus.PUBLISHED
         ]
 
+    async def list_published_for_work(self, work_id: UUID) -> list[ClassificationAssignment]:
+        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
+
+        return [
+            assignment
+            for assignment in self._assignments.values()
+            if assignment.target_kind is ClassificationTargetKind.MUSICAL_WORK
+            and assignment.target_id == work_id
+            and assignment.editorial_status is EditorialStatus.PUBLISHED
+        ]
+
     async def save(self, assignment: ClassificationAssignment) -> None:
         if assignment.id not in self._assignments:
             raise LookupError(str(assignment.id))
@@ -196,6 +207,13 @@ class FakeMusicalWorkRepository:
         work = self._works.get(work_id)
         return work if work is not None and work.editorial_status is EditorialStatus.PUBLISHED else None
 
+    async def get_published_by_ids(self, work_ids: Collection[UUID]) -> dict[UUID, MusicalWork]:
+        return {
+            work_id: work
+            for work_id in work_ids
+            if (work := self._works.get(work_id)) is not None and work.editorial_status is EditorialStatus.PUBLISHED
+        }
+
     async def list_published(self) -> list[MusicalWork]:
         return sorted(
             (work for work in self._works.values() if work.editorial_status is EditorialStatus.PUBLISHED),
@@ -294,6 +312,14 @@ class FakeLyricsVersionRepository:
         version = self._versions.get(version_id)
         return version if version is not None and version.editorial_status is EditorialStatus.PUBLISHED else None
 
+    async def get_published_by_ids(self, version_ids: Collection[UUID]) -> dict[UUID, LyricsVersion]:
+        return {
+            version_id: version
+            for version_id in version_ids
+            if (version := self._versions.get(version_id)) is not None
+            and version.editorial_status is EditorialStatus.PUBLISHED
+        }
+
     async def list_published_for_work(self, work_id: UUID) -> list[LyricsVersion]:
         usage_rank = {LyricsUsageKind.PERFORMABLE: 0, LyricsUsageKind.READING_TRANSLATION: 1}
         return sorted(
@@ -344,6 +370,16 @@ class FakeLyricsVersionCreditRepository:
             key=lambda credit: (credit.role.value, credit.id),
         )
 
+    async def list_published_for_versions(
+        self,
+        lyrics_version_ids: Collection[UUID],
+    ) -> dict[UUID, list[LyricsVersionCredit]]:
+        ids = set(lyrics_version_ids)
+        return {
+            version_id: await self.list_published_for_version(version_id)
+            for version_id in ids
+        }
+
     async def save(self, credit: LyricsVersionCredit) -> None:
         if credit.id not in self._credits:
             raise LookupError(str(credit.id))
@@ -382,6 +418,16 @@ class FakeLyricsVersionRelationRepository:
             ),
             key=lambda relation: (relation.relation_type.value, relation.id),
         )
+
+    async def list_published_for_versions(
+        self,
+        lyrics_version_ids: Collection[UUID],
+    ) -> dict[UUID, list[LyricsVersionRelation]]:
+        ids = set(lyrics_version_ids)
+        return {
+            version_id: await self.list_published_for_version(version_id)
+            for version_id in ids
+        }
 
     async def save(self, relation: LyricsVersionRelation) -> None:
         if relation.id not in self._relations:

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Protocol, Self
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from types import TracebackType
     from uuid import UUID
 
@@ -13,6 +14,8 @@ class PersonRepository(Protocol):
     async def get(self, person_id: UUID, *, for_update: bool = False) -> Person | None: ...
 
     async def get_published(self, person_id: UUID, *, for_update: bool = False) -> Person | None: ...
+
+    async def get_published_by_ids(self, person_ids: Collection[UUID]) -> dict[UUID, Person]: ...
 
     async def list_published(self) -> list[Person]: ...
 

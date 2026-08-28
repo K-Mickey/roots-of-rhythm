@@ -12,6 +12,7 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
 from roots_of_rhythm.music_catalog.infrastructure.models import LyricsVersionRelationRecord
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from uuid import UUID
 
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,6 +46,39 @@ class SqlAlchemyLyricsVersionRelationRepository:
         )
         result = await self._session.execute(statement)
         return [lyrics_version_relation_from_record(record) for record in result.scalars()]
+
+    async def list_published_for_versions(
+        self,
+        lyrics_version_ids: Collection[UUID],
+    ) -> dict[UUID, list[LyricsVersionRelation]]:
+        ids = set(lyrics_version_ids)
+        if not ids:
+            return {}
+        statement = (
+            select(LyricsVersionRelationRecord)
+            .where(
+                or_(
+                    LyricsVersionRelationRecord.source_lyrics_version_id.in_(ids),
+                    LyricsVersionRelationRecord.target_lyrics_version_id.in_(ids),
+                ),
+                LyricsVersionRelationRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                LyricsVersionRelationRecord.deleted.is_(False),
+            )
+            .order_by(LyricsVersionRelationRecord.relation_type, LyricsVersionRelationRecord.id)
+        )
+        result = await self._session.execute(statement)
+        grouped: dict[UUID, list[LyricsVersionRelation]] = {version_id: [] for version_id in ids}
+        seen: dict[UUID, set[UUID]] = {version_id: set() for version_id in ids}
+        for record in result.scalars():
+            relation = lyrics_version_relation_from_record(record)
+            for endpoint_id in (relation.source_lyrics_version_id, relation.target_lyrics_version_id):
+                if endpoint_id not in grouped:
+                    continue
+                if relation.id in seen[endpoint_id]:
+                    continue
+                seen[endpoint_id].add(relation.id)
+                grouped[endpoint_id].append(relation)
+        return grouped
 
     async def save(self, relation: LyricsVersionRelation) -> None:
         record = await self._get_record(relation.id, for_update=True)

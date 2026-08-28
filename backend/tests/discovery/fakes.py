@@ -12,6 +12,8 @@ if TYPE_CHECKING:
         GroupOverviewResponse,
         PerformerListResponse,
         PerformerOverviewResponse,
+        SongListResponse,
+        SongOverviewResponse,
     )
 
 
@@ -95,6 +97,27 @@ class StubGroupOverviewReader:
 
     async def get(self, group_id: UUID) -> GroupOverviewResponse:
         del group_id
+        if isinstance(self._result, Exception):
+            raise self._result
+        return self._result
+
+
+class StubSongListReader:
+    def __init__(self, result: SongListResponse | Exception) -> None:
+        self._result = result
+
+    async def list(self) -> SongListResponse:
+        if isinstance(self._result, Exception):
+            raise self._result
+        return self._result
+
+
+class StubSongOverviewReader:
+    def __init__(self, result: SongOverviewResponse | Exception) -> None:
+        self._result = result
+
+    async def get(self, song_id: UUID) -> SongOverviewResponse:
+        del song_id
         if isinstance(self._result, Exception):
             raise self._result
         return self._result

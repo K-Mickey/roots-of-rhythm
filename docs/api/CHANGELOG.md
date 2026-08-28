@@ -1,5 +1,19 @@
 # API changelog
 
+## 0.7.0 — 2026-08-28
+
+STORY-007 published Song catalog and overview:
+
+- added `GET /api/v1/songs` returning `SongListResponse` with `items` of `SongSummary` (`id`, `name`);
+- added `GET /api/v1/songs/{song_id}` returning `SongOverviewResponse` with credits, classifications, related Works and rights-aware `lyrics_versions`;
+- `period` is `{ start, end }` with nullable `TemporalBound`; `external_identities` reuse `ExternalIdentityView`;
+- `credits` are `{ person: { id, name }, role, credited_as }`; `classifications` are published Genre summaries;
+- `related_works` are `{ relation_type, work: { id, name } }`; lyrics views include optional `body` and `body_unavailable_reason`;
+- unknown or non-public identifiers return `SONG_NOT_FOUND` with the same safe message as Genre;
+- list failures use `INTERNAL_ERROR` and do not use `SONG_NOT_FOUND`.
+
+Breaking changes: none; additive.
+
 ## 0.6.0 — 2026-08-20
 
 STORY-006 published Group catalog and overview:

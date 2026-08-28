@@ -60,6 +60,13 @@ class FakeSourceRepository:
     async def get_version(self, version_id: UUID, *, for_update: bool = False) -> SourceVersion | None:
         return self.versions.get(version_id)
 
+    async def get_versions_by_ids(self, version_ids: Collection[UUID]) -> dict[UUID, SourceVersion]:
+        return {
+            version_id: version
+            for version_id in version_ids
+            if (version := self.versions.get(version_id)) is not None
+        }
+
     async def get_fragment(self, fragment_id: UUID, *, for_update: bool = False) -> SourceFragment | None:
         return self.fragments.get(fragment_id)
 
@@ -104,8 +111,10 @@ class FakeHistoricalKnowledgeUnitOfWork:
         self.claims = FakeClaimRepository(claims)
         self.sources = sources
         self.commits = 0
+        self.enter_count = 0
 
     async def __aenter__(self) -> Self:
+        self.enter_count += 1
         return self
 
     async def __aexit__(self, *args: object) -> None:

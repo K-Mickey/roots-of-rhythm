@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING
 
 from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
@@ -30,13 +30,32 @@ class LyricsVersionProjectionService:
         self._hk_uow_factory = hk_uow_factory
 
     async def disclose_body_for_version(self, version: LyricsVersion) -> LyricsBodyDisclosure:
+        disclosures = await self.disclose_bodies_for_versions((version,))
+        return disclosures[0]
+
+    async def disclose_bodies_for_versions(
+        self,
+        versions: Sequence[LyricsVersion],
+    ) -> list[LyricsBodyDisclosure]:
+        if not versions:
+            return []
         async with self._hk_uow_factory() as hk:
-            source_version = await hk.sources.get_version(version.source_version_id)
+            source_versions = await hk.sources.get_versions_by_ids(
+                [version.source_version_id for version in versions],
+            )
+            sources = await hk.sources.get_sources_by_ids(
+                {source_version.source_id for source_version in source_versions.values()},
+            )
+        disclosures: list[LyricsBodyDisclosure] = []
+        for version in versions:
+            source_version = source_versions.get(version.source_version_id)
             if source_version is None:
-                return project_lyrics_version_body(version, None)
-            source = await hk.sources.get_source(source_version.source_id)
+                disclosures.append(project_lyrics_version_body(version, None))
+                continue
+            source = sources.get(source_version.source_id)
             policy = None if source is None else source.access_policy
-        return project_lyrics_version_body(version, policy)
+            disclosures.append(project_lyrics_version_body(version, policy))
+        return disclosures
 
     async def disclose_body_for_version_id(self, version_id: UUID) -> LyricsBodyDisclosure:
         async with self._music_uow_factory() as music:
