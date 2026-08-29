@@ -10,6 +10,7 @@ from roots_of_rhythm.discovery.application.dto import (
     SongRecordingGenreFacet,
     SongRecordingSummary,
 )
+from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
     RecordingCreditTargetKind,
@@ -30,7 +31,9 @@ def project_song_recordings(
     genres: dict[UUID, Genre],
     persons: dict[UUID, Person],
     groups: dict[UUID, Group],
+    origin_claims_by_recording: dict[UUID, list] | None = None,
 ) -> tuple[list[SongRecordingGenreFacet], list[SongRecordingSummary]]:
+    claims_by_recording = origin_claims_by_recording or {}
     summaries: list[SongRecordingSummary] = []
     facet_recording_ids: defaultdict[UUID, set[UUID]] = defaultdict(set)
 
@@ -76,7 +79,7 @@ def project_song_recordings(
                 primary_credits=primary_credits,
                 genre_ids=sorted(str(concept_id) for concept_id in genre_concept_ids),
                 work_usage_kind=usage_kind,
-                origin_badges=[],
+                origin_badges=origin_badge_values(claims_by_recording.get(recording.id, ())),
             )
         )
         if usage_kind is RecordingWorkUsageKind.COMPLETE or usage_kind is RecordingWorkUsageKind.PARTIAL:

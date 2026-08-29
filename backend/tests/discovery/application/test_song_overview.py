@@ -28,6 +28,7 @@ from roots_of_rhythm.people_catalog.domain import (
     EditorialStatus as PersonEditorialStatus,
 )
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
+from tests.historical_knowledge.fakes import StubHistoricalKnowledgeUnitOfWork
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
 from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
 
@@ -134,6 +135,7 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
         lambda: FakePeopleCatalogUnitOfWork(
             {merle_travis_id: merle_travis, hidden_person.id: hidden_person},
         ),
+        lambda: StubHistoricalKnowledgeUnitOfWork(),
         StubLyricsProjection(),  # type: ignore[arg-type]
     )
 
@@ -181,6 +183,7 @@ async def test_song_overview_hides_missing_and_non_public_works(status: Editoria
     query = SongOverviewQuery(
         lambda: FakeMusicCatalogUnitOfWork({}, works=works),
         lambda: FakePeopleCatalogUnitOfWork({}),
+        lambda: StubHistoricalKnowledgeUnitOfWork(),
         StubLyricsProjection(),  # type: ignore[arg-type]
     )
 
@@ -237,6 +240,7 @@ async def test_song_overview_related_works_include_only_outbound_source_relation
             work_relations={outbound.id: outbound, inbound.id: inbound},
         ),
         lambda: FakePeopleCatalogUnitOfWork({}),
+        lambda: StubHistoricalKnowledgeUnitOfWork(),
         StubLyricsProjection(),  # type: ignore[arg-type]
     )
 

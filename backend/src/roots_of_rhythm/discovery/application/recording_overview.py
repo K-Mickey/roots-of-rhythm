@@ -16,6 +16,7 @@ from roots_of_rhythm.discovery.application.dto import (
 )
 from roots_of_rhythm.discovery.application.errors import RecordingOverviewNotFound
 from roots_of_rhythm.discovery.application.recording_lyrics import RecordingLyricsProjectionQuery
+from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
@@ -124,6 +125,16 @@ class RecordingOverviewQuery:
 
         async with self._knowledge() as hk:
             guide = await hk.listening_guides.get_published_for_recording(recording_id)
+            claims_by_recording = await hk.recording_origin_claims.list_supported_published_for_recordings(
+                [recording_id],
+            )
+        published_work_ids = set(works.keys())
+        visible_claims = [
+            claim
+            for claim in claims_by_recording.get(recording_id, ())
+            if claim.work_id in published_work_ids
+        ]
+        origin_badges = origin_badge_values(visible_claims)
 
         work_views = [
             RecordingWorkView(SongSummary(str(work.id), work.canonical_title), usage.usage_kind, usage.position)
@@ -162,5 +173,5 @@ class RecordingOverviewQuery:
                     for item in guide.observations
                 ]
             ),
-            origin_badges=[],
+            origin_badges=origin_badges,
         )

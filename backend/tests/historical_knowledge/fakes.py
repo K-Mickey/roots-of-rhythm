@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Self
 
+from roots_of_rhythm.historical_knowledge.domain import EditorialStatus, EvidenceStatus, RecordingOriginClaim
+
 if TYPE_CHECKING:
     from collections.abc import Collection
     from uuid import UUID
@@ -34,6 +36,28 @@ class FakeClaimRepository:
             for claim in self._claims.values()
             if claim.subject_genre_id == genre_id or claim.target_genre_id == genre_id
         ]
+
+
+class StubRecordingOriginClaimRepository:
+    def __init__(
+        self,
+        claims_by_recording: dict[UUID, list[RecordingOriginClaim]] | None = None,
+    ) -> None:
+        self._claims_by_recording = claims_by_recording or {}
+
+    async def list_supported_published_for_recordings(
+        self,
+        recording_ids: Collection[UUID],
+    ) -> dict[UUID, list[RecordingOriginClaim]]:
+        return {
+            recording_id: [
+                claim
+                for claim in self._claims_by_recording.get(recording_id, ())
+                if claim.editorial_status is EditorialStatus.PUBLISHED
+                and claim.evidence_status is EvidenceStatus.SUPPORTED
+            ]
+            for recording_id in recording_ids
+        }
 
 
 class FakeSourceRepository:
@@ -104,9 +128,16 @@ class FakeSourceRepository:
         return result
 
 
+class StubListeningGuideRepository:
+    async def get_published_for_recording(self, _recording_id: UUID) -> None:
+        return None
+
+
 class FakeHistoricalKnowledgeUnitOfWork:
     def __init__(self, claims: dict[UUID, GenreRelationClaim], sources: FakeSourceRepository) -> None:
         self.claims = FakeClaimRepository(claims)
+        self.recording_origin_claims = StubRecordingOriginClaimRepository()
+        self.listening_guides = StubListeningGuideRepository()
         self.sources = sources
         self.commits = 0
         self.enter_count = 0
@@ -120,6 +151,27 @@ class FakeHistoricalKnowledgeUnitOfWork:
 
     async def commit(self) -> None:
         self.commits += 1
+
+    async def rollback(self) -> None:
+        return None
+
+
+class StubHistoricalKnowledgeUnitOfWork:
+    def __init__(
+        self,
+        claims_by_recording: dict[UUID, list[RecordingOriginClaim]] | None = None,
+    ) -> None:
+        self.listening_guides = StubListeningGuideRepository()
+        self.recording_origin_claims = StubRecordingOriginClaimRepository(claims_by_recording)
+
+    async def __aenter__(self) -> "StubHistoricalKnowledgeUnitOfWork":
+        return self
+
+    async def __aexit__(self, *args: object) -> None:
+        return None
+
+    async def commit(self) -> None:
+        return None
 
     async def rollback(self) -> None:
         return None

@@ -25,6 +25,7 @@ from roots_of_rhythm.music_catalog.domain import (
     WorkContent,
 )
 from tests.discovery.application.test_song_overview import StubLyricsProjection
+from tests.historical_knowledge.fakes import StubHistoricalKnowledgeUnitOfWork
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
 from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
 
@@ -149,6 +150,7 @@ async def test_song_overview_builds_recording_facets_and_chronology() -> None:
             },
         ),
         lambda: FakePeopleCatalogUnitOfWork({}),
+        lambda: StubHistoricalKnowledgeUnitOfWork(),
         StubLyricsProjection(),  # type: ignore[arg-type]
     )
 

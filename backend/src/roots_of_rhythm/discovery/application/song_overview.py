@@ -22,6 +22,7 @@ from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTar
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
     from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import (
         LyricsVersionProjectionService,
     )
@@ -37,6 +38,7 @@ if TYPE_CHECKING:
 
 type PeopleUnitOfWorkFactory = Callable[[], PeopleCatalogUnitOfWork]
 type RecordingUnitOfWorkFactory = Callable[[], RecordingUnitOfWork]
+type HistoricalKnowledgeUnitOfWorkFactory = Callable[[], HistoricalKnowledgeUnitOfWork]
 
 
 @runtime_checkable
@@ -49,10 +51,12 @@ class SongOverviewQuery:
         self,
         music_uow_factory: RecordingUnitOfWorkFactory,
         people_uow_factory: PeopleUnitOfWorkFactory,
+        hk_uow_factory: HistoricalKnowledgeUnitOfWorkFactory,
         lyrics_projection: LyricsVersionProjectionService,
     ) -> None:
         self._music_uow_factory = music_uow_factory
         self._people_uow_factory = people_uow_factory
+        self._hk_uow_factory = hk_uow_factory
         self._lyrics_projection = lyrics_projection
 
     async def get(self, song_id: UUID) -> SongOverviewResponse:
@@ -120,6 +124,15 @@ class SongOverviewQuery:
             self._lyrics_projection.disclose_bodies_for_versions(lyrics_versions),
         )
 
+        async with self._hk_uow_factory() as hk_uow:
+            loaded_claims = await hk_uow.recording_origin_claims.list_supported_published_for_recordings(
+                recording_ids,
+            )
+        origin_claims_by_recording = {
+            recording_id: [claim for claim in claims if claim.work_id == song_id]
+            for recording_id, claims in loaded_claims.items()
+        }
+
         recording_genres_view, recordings_view = project_song_recordings(
             song_id,
             recordings,
@@ -127,6 +140,7 @@ class SongOverviewQuery:
             recording_genres,
             persons,
             groups,
+            origin_claims_by_recording,
         )
 
         return SongOverviewResponse(

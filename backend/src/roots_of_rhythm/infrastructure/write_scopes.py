@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from roots_of_rhythm.music_catalog.application.ports import RecordingUnitOfWork
+
 
 @asynccontextmanager
 async def music_people_scope(
@@ -31,12 +33,13 @@ async def music_people_scope(
 @asynccontextmanager
 async def knowledge_music_scope(
     session_factory: async_sessionmaker[AsyncSession],
-) -> AsyncIterator[tuple[SqlAlchemyHistoricalKnowledgeUnitOfWork, SqlAlchemyMusicCatalogUnitOfWork]]:
+) -> AsyncIterator[tuple[SqlAlchemyHistoricalKnowledgeUnitOfWork, RecordingUnitOfWork]]:
     session = session_factory()
     try:
+        music_uow: RecordingUnitOfWork = SqlAlchemyMusicCatalogUnitOfWork.using(session)
         yield (
             SqlAlchemyHistoricalKnowledgeUnitOfWork.using(session),
-            SqlAlchemyMusicCatalogUnitOfWork.using(session),
+            music_uow,
         )
     except BaseException:
         await session.rollback()

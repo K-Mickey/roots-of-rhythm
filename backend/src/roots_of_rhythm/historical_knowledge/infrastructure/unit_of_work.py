@@ -7,6 +7,9 @@ from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstr
 from roots_of_rhythm.historical_knowledge.infrastructure.listening_guide_repository import (
     SqlAlchemyListeningGuideRepository,
 )
+from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
+    SqlAlchemyRecordingOriginClaimRepository,
+)
 from roots_of_rhythm.historical_knowledge.infrastructure.repositories import (
     SqlAlchemyClaimRepository,
     SqlAlchemySourceRepository,
@@ -20,6 +23,7 @@ if TYPE_CHECKING:
     from roots_of_rhythm.historical_knowledge.application.ports import (
         ClaimRepository,
         ListeningGuideRepository,
+        RecordingOriginClaimRepository,
         SourceRepository,
     )
 
@@ -38,6 +42,7 @@ class SqlAlchemyHistoricalKnowledgeUnitOfWork:
         self._session = session
         self._owns_session = owns_session
         self.claims: ClaimRepository = SqlAlchemyClaimRepository(session)
+        self.recording_origin_claims: RecordingOriginClaimRepository = SqlAlchemyRecordingOriginClaimRepository(session)
         self.listening_guides: ListeningGuideRepository = SqlAlchemyListeningGuideRepository(session)
         self.sources: SourceRepository = SqlAlchemySourceRepository(session)
 

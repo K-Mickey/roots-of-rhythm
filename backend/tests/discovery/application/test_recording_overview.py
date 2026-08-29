@@ -19,6 +19,7 @@ from roots_of_rhythm.music_catalog.domain import (
     RecordingWorkUsageKind,
     WorkContent,
 )
+from tests.historical_knowledge.fakes import StubHistoricalKnowledgeUnitOfWork
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
 from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
 
@@ -26,28 +27,6 @@ from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
 class StubLyricsProjection:
     async def disclose_bodies_for_versions(self, versions: tuple[object, ...]) -> list[LyricsBodyDisclosure]:
         return [LyricsBodyDisclosure(body=None, body_unavailable_reason=None) for _ in versions]
-
-
-class StubListeningGuideRepository:
-    async def get_published_for_recording(self, _recording_id: object) -> None:
-        return None
-
-
-class StubHistoricalKnowledgeUnitOfWork:
-    def __init__(self) -> None:
-        self.listening_guides = StubListeningGuideRepository()
-
-    async def __aenter__(self) -> "StubHistoricalKnowledgeUnitOfWork":
-        return self
-
-    async def __aexit__(self, *args: object) -> None:
-        return None
-
-    async def commit(self) -> None:
-        return None
-
-    async def rollback(self) -> None:
-        return None
 
 
 @pytest.mark.asyncio

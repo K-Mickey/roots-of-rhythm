@@ -2,7 +2,7 @@ openapi: 3.1.0
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Swing Music Story Public API
-  version: 0.10.0
+  version: 0.10.1
   description: Public read API defined by accepted project specifications.
 tags:
   - name: Genres
@@ -804,7 +804,13 @@ components:
         work_usage_kind: {type: string, enum: [complete, partial, medley_component]}
         origin_badges:
           type: array
-          items: {type: string}
+          items:
+            type: string
+            enum:
+              - first_known_performance_of
+              - first_recording_of
+              - first_released_recording_of
+              - recorded_by_work_author
     WorkCreditRole:
       type: string
       enum: [composer, lyricist, writer, translator, adapter, arranger, other]
@@ -879,7 +885,13 @@ components:
             - {type: "null"}
         origin_badges:
           type: array
-          items: {type: string}
+          items:
+            type: string
+            enum:
+              - first_known_performance_of
+              - first_recording_of
+              - first_released_recording_of
+              - recorded_by_work_author
     RecordingWorkView:
       type: object
       additionalProperties: false
