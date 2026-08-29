@@ -5,7 +5,7 @@ from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
 from roots_of_rhythm.entrypoints.api import create_app
-from roots_of_rhythm.seed import corpus as data
+from roots_of_rhythm.seed import genre_knowledge as genre_data
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -21,8 +21,10 @@ async def test_genre_list_integration_returns_seeded_names_in_order(seeded_engin
     assert response.status_code == 200
     assert response.json() == {
         "items": [
-            {"id": str(data.JAZZ_ID), "name": "Jazz"},
-            {"id": str(data.JUMP_BLUES_ID), "name": "Jump Blues"},
-            {"id": str(data.SWING_ID), "name": "Swing"},
+            {"id": str(genre_data.COUNTRY_ID), "name": "Country"},
+            {"id": str(genre_data.JAZZ_ID), "name": "Jazz"},
+            {"id": str(genre_data.JUMP_BLUES_ID), "name": "Jump Blues"},
+            {"id": str(genre_data.RHYTHM_AND_BLUES_ID), "name": "Rhythm and Blues"},
+            {"id": str(genre_data.SWING_ID), "name": "Swing"},
         ]
     }

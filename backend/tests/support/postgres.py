@@ -13,6 +13,8 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     GenreRelationClaimRecord,
     ListeningGuideRecord,
     ListeningObservationRecord,
+    RecordingOriginClaimEvidenceReferenceRecord,
+    RecordingOriginClaimRecord,
     SourceFragmentRecord,
     SourceRecord,
     SourceVersionRecord,
@@ -44,6 +46,8 @@ if TYPE_CHECKING:
 _CORPUS_TABLES = (
     ListeningObservationRecord,
     ListeningGuideRecord,
+    RecordingOriginClaimEvidenceReferenceRecord,
+    RecordingOriginClaimRecord,
     ClaimEvidenceReferenceRecord,
     GenreRelationClaimRecord,
     SourceFragmentRecord,
