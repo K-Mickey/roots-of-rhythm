@@ -130,9 +130,7 @@ class RecordingOverviewQuery:
             )
         published_work_ids = set(works.keys())
         visible_claims = [
-            claim
-            for claim in claims_by_recording.get(recording_id, ())
-            if claim.work_id in published_work_ids
+            claim for claim in claims_by_recording.get(recording_id, ()) if claim.work_id in published_work_ids
         ]
         origin_badges = origin_badge_values(visible_claims)
 

@@ -171,4 +171,3 @@ def is_recording_origin_badge_visible(
 def origin_badge_values(claims: Sequence[RecordingOriginClaim]) -> list[str]:
     present = {claim.predicate for claim in claims}
     return [predicate.value for predicate in RecordingOriginPredicate if predicate in present]
-

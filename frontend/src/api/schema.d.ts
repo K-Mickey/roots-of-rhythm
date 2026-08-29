@@ -362,7 +362,7 @@ export interface components {
             genre_ids: components["schemas"]["PublicId"][];
             /** @enum {string} */
             work_usage_kind: "complete" | "partial" | "medley_component";
-            origin_badges: string[];
+            origin_badges: ("first_known_performance_of" | "first_recording_of" | "first_released_recording_of" | "recorded_by_work_author")[];
         };
         /** @enum {string} */
         WorkCreditRole: "composer" | "lyricist" | "writer" | "translator" | "adapter" | "arranger" | "other";
@@ -399,7 +399,7 @@ export interface components {
             genres: components["schemas"]["GenreSummary"][];
             lyrics: components["schemas"]["RecordingLyricsVersionView"][];
             listening_guide: components["schemas"]["ListeningGuideView"] | null;
-            origin_badges: string[];
+            origin_badges: ("first_known_performance_of" | "first_recording_of" | "first_released_recording_of" | "recorded_by_work_author")[];
         };
         RecordingWorkView: {
             work: components["schemas"]["SongSummary"];

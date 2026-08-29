@@ -54,13 +54,11 @@ class SqlAlchemyRecordingRepository:
         if not records:
             return []
         ids = [record.id for record in records]
-        credits = await self._active_children(RecordingCreditRecord, ids)
-        work_usages = await self._active_children(RecordingWorkUsageRecord, ids)
-        lyrics_usages = await self._active_children(RecordingLyricsUsageRecord, ids)
+        credit_rows, work_usages, lyrics_usages = await self._active_children(ids)
         return [
             recording_from_records(
                 record,
-                credits[record.id],
+                credit_rows[record.id],
                 sorted(work_usages[record.id], key=lambda item: (item.position is None, item.position, item.id)),
                 sorted(lyrics_usages[record.id], key=lambda item: (item.position, item.id)),
             )
@@ -88,13 +86,11 @@ class SqlAlchemyRecordingRepository:
         if not records:
             return []
         ids = [record.id for record in records]
-        credits = await self._active_children(RecordingCreditRecord, ids)
-        work_usages = await self._active_children(RecordingWorkUsageRecord, ids)
-        lyrics_usages = await self._active_children(RecordingLyricsUsageRecord, ids)
+        credit_rows, work_usages, lyrics_usages = await self._active_children(ids)
         return [
             recording_from_records(
                 record,
-                credits[record.id],
+                credit_rows[record.id],
                 sorted(work_usages[record.id], key=lambda item: (item.position is None, item.position, item.id)),
                 sorted(lyrics_usages[record.id], key=lambda item: (item.position, item.id)),
             )
@@ -172,14 +168,38 @@ class SqlAlchemyRecordingRepository:
         result = await self._session.execute(apply_write_lock(statement, for_update=for_update))
         return result.scalar_one_or_none()
 
-    async def _active_children(self, model: type, recording_ids: list[UUID]) -> defaultdict[UUID, list]:
-        grouped: defaultdict[UUID, list] = defaultdict(list)
-        rows = await self._session.scalars(
-            select(model).where(model.recording_id.in_(recording_ids), model.deleted.is_(False))
-        )
-        for row in rows:
-            grouped[row.recording_id].append(row)
-        return grouped
+    async def _active_children(
+        self, recording_ids: list[UUID]
+    ) -> tuple[
+        defaultdict[UUID, list[RecordingCreditRecord]],
+        defaultdict[UUID, list[RecordingWorkUsageRecord]],
+        defaultdict[UUID, list[RecordingLyricsUsageRecord]],
+    ]:
+        credit_rows: defaultdict[UUID, list[RecordingCreditRecord]] = defaultdict(list)
+        work_rows: defaultdict[UUID, list[RecordingWorkUsageRecord]] = defaultdict(list)
+        lyrics_rows: defaultdict[UUID, list[RecordingLyricsUsageRecord]] = defaultdict(list)
+        for credit_row in await self._session.scalars(
+            select(RecordingCreditRecord).where(
+                RecordingCreditRecord.recording_id.in_(recording_ids),
+                RecordingCreditRecord.deleted.is_(False),
+            )
+        ):
+            credit_rows[credit_row.recording_id].append(credit_row)
+        for work_row in await self._session.scalars(
+            select(RecordingWorkUsageRecord).where(
+                RecordingWorkUsageRecord.recording_id.in_(recording_ids),
+                RecordingWorkUsageRecord.deleted.is_(False),
+            )
+        ):
+            work_rows[work_row.recording_id].append(work_row)
+        for lyrics_row in await self._session.scalars(
+            select(RecordingLyricsUsageRecord).where(
+                RecordingLyricsUsageRecord.recording_id.in_(recording_ids),
+                RecordingLyricsUsageRecord.deleted.is_(False),
+            )
+        ):
+            lyrics_rows[lyrics_row.recording_id].append(lyrics_row)
+        return credit_rows, work_rows, lyrics_rows
 
     async def _replace_children(self, recording: Recording) -> None:
         stored_credits = list(

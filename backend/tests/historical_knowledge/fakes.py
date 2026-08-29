@@ -6,8 +6,15 @@ if TYPE_CHECKING:
     from collections.abc import Collection
     from uuid import UUID
 
+    from roots_of_rhythm.historical_knowledge.application.ports import (
+        ClaimRepository,
+        ListeningGuideRepository,
+        RecordingOriginClaimRepository,
+        SourceRepository,
+    )
     from roots_of_rhythm.historical_knowledge.domain import (
         GenreRelationClaim,
+        ListeningGuide,
         Source,
         SourceFragment,
         SourceVersion,
@@ -44,6 +51,23 @@ class StubRecordingOriginClaimRepository:
         claims_by_recording: dict[UUID, list[RecordingOriginClaim]] | None = None,
     ) -> None:
         self._claims_by_recording = claims_by_recording or {}
+
+    async def add(self, claim: RecordingOriginClaim) -> None:
+        self._claims_by_recording.setdefault(claim.recording_id, []).append(claim)
+
+    async def get(self, claim_id: UUID, *, for_update: bool = False) -> RecordingOriginClaim | None:
+        return next(
+            (claim for claims in self._claims_by_recording.values() for claim in claims if claim.id == claim_id),
+            None,
+        )
+
+    async def save(self, claim: RecordingOriginClaim) -> None:
+        await self.mark_deleted(claim.id)
+        await self.add(claim)
+
+    async def mark_deleted(self, claim_id: UUID) -> None:
+        for recording_id, claims in self._claims_by_recording.items():
+            self._claims_by_recording[recording_id] = [claim for claim in claims if claim.id != claim_id]
 
     async def list_supported_published_for_recordings(
         self,
@@ -129,7 +153,19 @@ class FakeSourceRepository:
 
 
 class StubListeningGuideRepository:
-    async def get_published_for_recording(self, _recording_id: UUID) -> None:
+    async def add(self, _guide: ListeningGuide) -> None:
+        return None
+
+    async def get(self, _guide_id: UUID, *, for_update: bool = False) -> ListeningGuide | None:
+        return None
+
+    async def get_published_for_recording(self, _recording_id: UUID) -> ListeningGuide | None:
+        return None
+
+    async def save(self, _guide: ListeningGuide) -> None:
+        return None
+
+    async def mark_deleted(self, _guide_id: UUID) -> None:
         return None
 
 
@@ -161,8 +197,12 @@ class StubHistoricalKnowledgeUnitOfWork:
         self,
         claims_by_recording: dict[UUID, list[RecordingOriginClaim]] | None = None,
     ) -> None:
-        self.listening_guides = StubListeningGuideRepository()
-        self.recording_origin_claims = StubRecordingOriginClaimRepository(claims_by_recording)
+        self.claims: ClaimRepository = FakeClaimRepository({})
+        self.sources: SourceRepository = FakeSourceRepository()
+        self.listening_guides: ListeningGuideRepository = StubListeningGuideRepository()
+        self.recording_origin_claims: RecordingOriginClaimRepository = StubRecordingOriginClaimRepository(
+            claims_by_recording
+        )
 
     async def __aenter__(self) -> "StubHistoricalKnowledgeUnitOfWork":
         return self

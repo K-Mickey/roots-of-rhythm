@@ -80,9 +80,11 @@ def test_publish_requires_completeness_and_supported_evidence() -> None:
 
 
 def test_badge_visibility_requires_published_supported_endpoints() -> None:
-    claim = _complete_claim(uuid7(), uuid7(), evidence_status=EvidenceStatus.SUPPORTED).replace_evidence(
-        (ClaimEvidenceReference.create(uuid7(), EvidenceRole.SUPPORTS),)
-    ).publish()
+    claim = (
+        _complete_claim(uuid7(), uuid7(), evidence_status=EvidenceStatus.SUPPORTED)
+        .replace_evidence((ClaimEvidenceReference.create(uuid7(), EvidenceRole.SUPPORTS),))
+        .publish()
+    )
 
     assert is_recording_origin_badge_visible(
         claim,

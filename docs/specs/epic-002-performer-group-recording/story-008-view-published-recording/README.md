@@ -16,7 +16,7 @@ Epic: [EPIC-002](../README.md).
 
 ## Контекст
 
-Публикация Recording требует >=1 `RecordingWorkUsage` на published Work и >=1 primary RecordingCredit. Recording может использовать несколько Works и несколько фактически звучащих LyricsVersion. ListeningGuide остаётся на отдельной странице записи и не дублируется на песне.
+Публикация Recording требует >=1 `RecordingWorkUsage` на published Work и >=1 primary RecordingCredit. Recording может использовать несколько Works и несколько фактически звучащих LyricsVersion. Published ListeningGuide показывается на странице записи и в центральном блоке выбранной Recording на странице песни.
 
 ## Functional requirements
 
@@ -24,7 +24,7 @@ Epic: [EPIC-002](../README.md).
 - `FR-002` Recording нельзя опубликовать без хотя бы одного published Work usage. Страница записи содержит ссылки на все её published Works.
 - `FR-003` Primary credits — ссылки на published Performer/Group.
 - `FR-004` Поля обзора по [mvp-scope Recording](../../../product/mvp-scope.md): период, значение, жанры; пустые скрыты. Провайдеры не обязательны.
-- `FR-005` ListeningGuide: если есть наблюдения — секция; иначе скрыта.
+- `FR-005` Published ListeningGuide показывается на `/recordings/{id}` и в центральном блоке выбранной Recording на `/songs/{id}`; если наблюдений нет, секция скрыта.
 - `FR-006` Страница песни показывает published Recording: при одной — содержимое в центре без боковой колонки, при нескольких — выбранную Recording в центре и список справа; переключение выполняется без полной перезагрузки через `?recording=<id>`.
 - `FR-007` Появления на релизах скрыты или отсутствуют до STORY-009.
 - `FR-008` Непубличный id — безопасный not-found.
@@ -58,6 +58,7 @@ Epic: [EPIC-002](../README.md).
 9. Given несколько LyricsVersion, then язык меняет центральный текст без reload; machine translation не считается исполняемым.
 10. Given `/`, then header содержит ссылку «Записи», а `/recordings` показывает публичный каталог.
 11. Given неизвестный id, then безопасный not-found.
+12. Given у выбранной Recording есть published ListeningGuide, then он виден и на странице Recording, и в её центральном блоке на странице песни.
 
 ## Данные и контракты
 
@@ -88,3 +89,4 @@ STORY-007; STORY-005/006 для credits; EPIC-001 для Genre assignments; Hist
 - 2026-08-19: draft; Work обязателен; каталога нет.
 - 2026-08-27: story принята; добавлены Work/Lyrics usages, жанровые фасеты, хронология без featured/original, origin Claims и интерактивное переключение на странице песни.
 - 2026-08-28: по решению Product Owner добавлены глобальный каталог Recording и пункт header «Записи».
+- 2026-08-30: по решению Product Owner ListeningGuide выбранной Recording также показывается в центральном блоке Song page.

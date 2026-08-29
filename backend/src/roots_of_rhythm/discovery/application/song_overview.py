@@ -103,8 +103,7 @@ class SongOverviewQuery:
                 credit.target_id
                 for recording in recordings
                 for credit in recording.credits
-                if credit.billing_role is BillingRole.PRIMARY
-                and credit.target_kind is RecordingCreditTargetKind.GROUP
+                if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.GROUP
             }
             groups = await music_uow.groups.get_published_by_ids(group_ids)
 
@@ -115,8 +114,7 @@ class SongOverviewQuery:
             credit.target_id
             for recording in recordings
             for credit in recording.credits
-            if credit.billing_role is BillingRole.PRIMARY
-            and credit.target_kind is RecordingCreditTargetKind.PERSON
+            if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.PERSON
         )
 
         persons, body_disclosures = await gather(

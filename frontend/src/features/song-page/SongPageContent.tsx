@@ -2,6 +2,8 @@
 
 import {
   Anchor,
+  Badge,
+  Box,
   Container,
   Skeleton,
   Stack,
@@ -14,24 +16,61 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 
 import type { SongOverview } from '@/shared/api/song';
+import type { RecordingOverview } from '@/shared/api/recording';
+import { RecordingDetails } from '@/features/recording-page/RecordingPageContent';
+import { formatOriginBadge } from '@/features/recording-page/labels';
 
 import {
   formatLyricsVersionTabLabel,
   formatPeriod,
+  formatTemporalBound,
   formatWorkCreditRole,
   formatWorkRelationType,
   hasPeriodBounds,
   resolveSelectedLyricsVersionId,
   safeExternalHref,
 } from './labels';
+import {
+  matchesRecordingGenre,
+  resolveSongSelection,
+  selectionHref,
+} from './selection';
+import classes from './SongPageContent.module.css';
 
-export function SongPageContent({ song }: { song: SongOverview }) {
+export function SongPageContent({
+  song,
+  recording = null,
+}: {
+  song: SongOverview;
+  recording?: RecordingOverview | null;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const selection = resolveSongSelection(
+    song,
+    {
+      genre: searchParams.get('genre') ?? undefined,
+      recording: searchParams.get('recording') ?? undefined,
+      text: searchParams.get('text') ?? undefined,
+    },
+    recording,
+  );
+  const canonicalHref = selectionHref(pathname, selection);
   const aliases = song.aliases;
   const identities = song.external_identities;
   const songPeriod = hasPeriodBounds(song.period)
     ? formatPeriod(song.period)
     : null;
   const lyricsVersions = song.lyrics_versions;
+
+  useEffect(() => {
+    const current = searchParams.toString();
+    const currentHref = current ? `${pathname}?${current}` : pathname;
+    if (currentHref !== canonicalHref) {
+      router.replace(canonicalHref, { scroll: false });
+    }
+  }, [canonicalHref, pathname, router, searchParams]);
 
   return (
     <Container size="52rem" py="xl" style={{ containerType: 'inline-size' }}>
@@ -193,9 +232,21 @@ export function SongPageContent({ song }: { song: SongOverview }) {
           </Stack>
         ) : null}
 
-        {lyricsVersions.length > 0 ? (
+        {selection.recordingId !== null &&
+        recording !== null &&
+        recording.id === selection.recordingId ? (
+          <RecordingStudyArea
+            song={song}
+            recording={recording}
+            selection={selection}
+            pathname={pathname}
+          />
+        ) : lyricsVersions.length > 0 ? (
           <Suspense fallback={<SongLyricsSectionFallback />}>
-            <SongLyricsSection versions={lyricsVersions} />
+            <SongLyricsSection
+              versions={lyricsVersions}
+              selectedId={selection.textId}
+            />
           </Suspense>
         ) : null}
       </Stack>
@@ -203,30 +254,186 @@ export function SongPageContent({ song }: { song: SongOverview }) {
   );
 }
 
+function RecordingStudyArea({
+  song,
+  recording,
+  selection,
+  pathname,
+}: {
+  song: SongOverview;
+  recording: RecordingOverview;
+  selection: ReturnType<typeof resolveSongSelection>;
+  pathname: string;
+}) {
+  const hasChronology = song.recordings.length > 1;
+  const summary = song.recordings.find(
+    (item) => item.id === selection.recordingId,
+  );
+  const chronology = (
+    <RecordingChronology
+      song={song}
+      selection={selection}
+      pathname={pathname}
+    />
+  );
+
+  return (
+    <div className={hasChronology ? classes.recordingsGrid : undefined}>
+      {hasChronology ? (
+        <aside className={classes.timeline}>{chronology}</aside>
+      ) : null}
+      <Box className={classes.recordingContent}>
+        <RecordingDetails
+          recording={recording}
+          headingOrder={2}
+          showWorks={false}
+          showLyrics={false}
+          originBadges={summary?.origin_badges ?? []}
+        />
+        {recording.lyrics.length ? (
+          <SongLyricsSection
+            versions={recording.lyrics}
+            selectedId={selection.textId}
+          />
+        ) : null}
+      </Box>
+    </div>
+  );
+}
+
+function RecordingChronology({
+  song,
+  selection,
+  pathname,
+}: {
+  song: SongOverview;
+  selection: ReturnType<typeof resolveSongSelection>;
+  pathname: string;
+}) {
+  const groups = new Map<string, SongOverview['recordings']>();
+  for (const item of selection.recordings) {
+    const key = item.primary_credits
+      .map((credit) => `${credit.target_kind}:${credit.target.id}`)
+      .sort()
+      .join('|');
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+  }
+
+  return (
+    <Stack gap="md">
+      <Stack gap="xs" component="nav" aria-label="Жанры исполнений">
+        <Title order={2}>Жанры исполнений</Title>
+        <div className={classes.facets}>
+          <Anchor
+            component={Link}
+            href={selectionHref(pathname, {
+              genreId: null,
+              recordingId: selection.recordingId,
+              textId: null,
+            })}
+            aria-current={selection.genreId === null ? 'page' : undefined}
+            fw={selection.genreId === null ? 700 : 400}
+          >
+            Все
+          </Anchor>
+          {song.recording_genres.map((facet) => {
+            const currentRecording = song.recordings.find(
+              (item) => item.id === selection.recordingId,
+            );
+            const recordingId =
+              currentRecording &&
+              matchesRecordingGenre(currentRecording, facet.genre.id)
+                ? currentRecording.id
+                : (song.recordings.find((item) =>
+                    matchesRecordingGenre(item, facet.genre.id),
+                  )?.id ?? null);
+            return (
+              <Anchor
+                component={Link}
+                key={facet.genre.id}
+                href={selectionHref(pathname, {
+                  genreId: facet.genre.id,
+                  recordingId,
+                  textId: null,
+                })}
+                aria-current={
+                  selection.genreId === facet.genre.id ? 'page' : undefined
+                }
+                fw={selection.genreId === facet.genre.id ? 700 : 400}
+              >
+                {facet.genre.name} ({facet.recording_count})
+              </Anchor>
+            );
+          })}
+        </div>
+      </Stack>
+      <Stack gap="sm" component="nav" aria-label="Хронология известных записей">
+        <Title order={2}>Хронология известных записей</Title>
+        <div className={classes.chronology}>
+          {[...groups.entries()].map(([groupKey, items]) => {
+            const names = items[0].primary_credits
+              .map((credit) => credit.target.name)
+              .join(', ');
+            return (
+              <Stack
+                key={groupKey}
+                gap="xs"
+                className={classes.chronologyGroup}
+              >
+                <Text fw={600}>{names}</Text>
+                {items.map((item) => (
+                  <Anchor
+                    component={Link}
+                    key={item.id}
+                    href={selectionHref(pathname, {
+                      genreId: selection.genreId,
+                      recordingId: item.id,
+                      textId: null,
+                    })}
+                    aria-current={
+                      selection.recordingId === item.id ? 'page' : undefined
+                    }
+                    fw={selection.recordingId === item.id ? 700 : 400}
+                  >
+                    {item.title}
+                    {item.recorded_period.start
+                      ? ` · ${formatTemporalBound(item.recorded_period.start)}`
+                      : ''}
+                    {item.origin_badges.map((badge) => (
+                      <Badge key={badge} ml="xs" size="xs">
+                        {formatOriginBadge(badge)}
+                      </Badge>
+                    ))}
+                  </Anchor>
+                ))}
+              </Stack>
+            );
+          })}
+        </div>
+      </Stack>
+    </Stack>
+  );
+}
+
 function SongLyricsSection({
   versions,
+  selectedId,
 }: {
-  versions: SongOverview['lyrics_versions'];
+  versions: Array<
+    | SongOverview['lyrics_versions'][number]
+    | RecordingOverview['lyrics'][number]
+  >;
+  selectedId: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const textParam = searchParams.get('text');
-  const selectedVersionId = resolveSelectedLyricsVersionId(versions, textParam);
+  const selectedVersionId = resolveSelectedLyricsVersionId(
+    versions,
+    selectedId,
+  );
   const selectedVersion =
     versions.find((version) => version.id === selectedVersionId) ?? null;
-
-  useEffect(() => {
-    if (selectedVersionId === null) {
-      return;
-    }
-    if (textParam === selectedVersionId) {
-      return;
-    }
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('text', selectedVersionId);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router, searchParams, selectedVersionId, textParam]);
 
   const handleTabChange = (versionId: string | null) => {
     if (versionId === null) {
@@ -234,7 +441,7 @@ function SongLyricsSection({
     }
     const params = new URLSearchParams(searchParams.toString());
     params.set('text', versionId);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   if (selectedVersion === null) {
@@ -265,6 +472,12 @@ function SongLyricsSection({
 
         {versions.map((version) => (
           <Tabs.Panel key={version.id} value={version.id} pt="md">
+            {'confirmed_for_recording' in version &&
+            !version.confirmed_for_recording ? (
+              <Text size="sm" mb="xs">
+                Соответствие текста этой записи не подтверждено
+              </Text>
+            ) : null}
             {version.body !== null ? (
               <Text style={{ whiteSpace: 'pre-wrap' }}>{version.body}</Text>
             ) : (

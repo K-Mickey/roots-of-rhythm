@@ -92,10 +92,7 @@ class FakeClassificationAssignmentRepository:
     async def list_published_for_recordings(
         self, recording_ids: Collection[UUID]
     ) -> dict[UUID, list[ClassificationAssignment]]:
-        return {
-            recording_id: await self.list_published_for_recording(recording_id)
-            for recording_id in recording_ids
-        }
+        return {recording_id: await self.list_published_for_recording(recording_id) for recording_id in recording_ids}
 
     async def save(self, assignment: ClassificationAssignment) -> None:
         if assignment.id not in self._assignments:
@@ -168,8 +165,7 @@ class FakeGroupRepository:
         return {
             group_id: group
             for group_id in set(group_ids)
-            if (group := self._groups.get(group_id)) is not None
-            and group.editorial_status is EditorialStatus.PUBLISHED
+            if (group := self._groups.get(group_id)) is not None and group.editorial_status is EditorialStatus.PUBLISHED
         }
 
     async def list_published(self) -> list[Group]:

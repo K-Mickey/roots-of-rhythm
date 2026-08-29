@@ -13,10 +13,10 @@ from roots_of_rhythm.discovery.application.dto import (
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
-    from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
+    from roots_of_rhythm.music_catalog.application.ports import RecordingUnitOfWork
     from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
 
-type MusicFactory = Callable[[], MusicCatalogUnitOfWork]
+type MusicFactory = Callable[[], RecordingUnitOfWork]
 type PeopleFactory = Callable[[], PeopleCatalogUnitOfWork]
 
 
@@ -38,9 +38,7 @@ class RecordingListQuery:
             recording_ids = [recording.id for recording in recordings]
             assignments_by_recording = await uow.assignments.list_published_for_recordings(recording_ids)
             genre_ids = {
-                assignment.concept_id
-                for assignments in assignments_by_recording.values()
-                for assignment in assignments
+                assignment.concept_id for assignments in assignments_by_recording.values() for assignment in assignments
             }
             genres = await uow.genres.get_published_by_ids(genre_ids)
 
@@ -48,8 +46,7 @@ class RecordingListQuery:
             credit.target_id
             for recording in recordings
             for credit in recording.credits
-            if credit.billing_role is BillingRole.PRIMARY
-            and credit.target_kind is RecordingCreditTargetKind.PERSON
+            if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.PERSON
         }
         async with self._people() as people_uow:
             persons = await people_uow.persons.get_published_by_ids(person_ids)
@@ -58,8 +55,7 @@ class RecordingListQuery:
                 credit.target_id
                 for recording in recordings
                 for credit in recording.credits
-                if credit.billing_role is BillingRole.PRIMARY
-                and credit.target_kind is RecordingCreditTargetKind.GROUP
+                if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.GROUP
             }
         )
         async with self._music() as uow:

@@ -166,6 +166,7 @@ Visitor переключает Recording, genre facet и text на `/songs/{id}`
 - accessible `recording`, `genre`, `text` controls;
 - query validation, back/forward, SSR initial state;
 - fallback Work text с явной пометкой;
+- ListeningGuide выбранной Recording в центральном блоке;
 - links from Recording and готовность links from Performer/Genre projections.
 
 ### Покрывает
@@ -174,7 +175,7 @@ Visitor переключает Recording, genre facet и text на `/songs/{id}`
 
 ### Проверка
 
-Keyboard navigation, no full reload, direct query URLs, invalid IDs, mobile layout, genre filtering, text switching and SSR content.
+Keyboard navigation, no full reload, direct query URLs, invalid IDs, mobile layout, genre filtering, text switching, ListeningGuide выбранной Recording and SSR content.
 
 ### Не входит
 

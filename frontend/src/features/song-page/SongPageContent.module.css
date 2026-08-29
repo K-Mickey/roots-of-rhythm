@@ -1,0 +1,50 @@
+.recordingsGrid {
+  display: grid;
+  gap: var(--mantine-spacing-xl);
+}
+
+.timeline {
+  min-width: 0;
+}
+
+.recordingContent {
+  min-width: 0;
+}
+
+.facets,
+.chronology {
+  display: flex;
+  gap: var(--mantine-spacing-md);
+  overflow-x: auto;
+  max-width: 100%;
+  padding-block-end: var(--mantine-spacing-xs);
+}
+
+.chronologyGroup {
+  flex: 0 0 min(18rem, 80vw);
+}
+
+@container (min-width: 48rem) {
+  .recordingsGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+  }
+
+  .timeline {
+    grid-column: 2;
+  }
+
+  .recordingContent {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .facets,
+  .chronology {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .chronologyGroup {
+    flex-basis: auto;
+  }
+}

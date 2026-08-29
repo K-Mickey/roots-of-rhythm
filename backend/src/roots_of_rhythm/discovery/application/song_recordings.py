@@ -20,18 +20,19 @@ from roots_of_rhythm.music_catalog.domain import (
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from roots_of_rhythm.music_catalog.domain import Genre, Group, Recording
+    from roots_of_rhythm.historical_knowledge.domain import RecordingOriginClaim
+    from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, Genre, Group, Recording
     from roots_of_rhythm.people_catalog.domain import Person
 
 
 def project_song_recordings(
     work_id: UUID,
     recordings: list[Recording],
-    assignments_by_recording: dict[UUID, list],
+    assignments_by_recording: dict[UUID, list[ClassificationAssignment]],
     genres: dict[UUID, Genre],
     persons: dict[UUID, Person],
     groups: dict[UUID, Group],
-    origin_claims_by_recording: dict[UUID, list] | None = None,
+    origin_claims_by_recording: dict[UUID, list[RecordingOriginClaim]] | None = None,
 ) -> tuple[list[SongRecordingGenreFacet], list[SongRecordingSummary]]:
     claims_by_recording = origin_claims_by_recording or {}
     summaries: list[SongRecordingSummary] = []

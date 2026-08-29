@@ -1,10 +1,7 @@
 import { Anchor, Stack, Text, Title } from '@mantine/core';
 import Link from 'next/link';
 
-import {
-  formatPeriod,
-  hasPeriodBounds,
-} from '@/features/song-page/labels';
+import { formatPeriod, hasPeriodBounds } from '@/features/song-page/labels';
 import type { RecordingList } from '@/shared/api/recording';
 
 export function RecordingCatalogContent({
@@ -28,7 +25,9 @@ export function RecordingCatalogContent({
             const performers = recording.primary_credits
               .map((credit) => credit.target.name)
               .join(', ');
-            const genres = recording.genres.map((genre) => genre.name).join(', ');
+            const genres = recording.genres
+              .map((genre) => genre.name)
+              .join(', ');
             return (
               <li key={recording.id}>
                 <Stack gap={4}>

@@ -12,7 +12,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
 )
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
-    EditorialStatus as MusicEditorialStatus,
     Group,
     GroupContent,
     MusicalWork,
@@ -23,6 +22,9 @@ from roots_of_rhythm.music_catalog.domain import (
     RecordingWorkUsage,
     RecordingWorkUsageKind,
     WorkContent,
+)
+from roots_of_rhythm.music_catalog.domain import (
+    EditorialStatus as MusicEditorialStatus,
 )
 from tests.discovery.application.test_recording_overview import StubLyricsProjection
 from tests.discovery.application.test_song_overview import StubLyricsProjection as SongStubLyricsProjection
