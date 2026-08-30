@@ -20,6 +20,12 @@ from roots_of_rhythm.music_catalog.application.errors import (
     LyricsVersionRelationConflict,
     LyricsVersionRelationNotFound,
     MusicalWorkNotFound,
+    RecordingLyricsVersionNotPerformable,
+    RecordingLyricsVersionNotPublished,
+    RecordingLyricsVersionWorkMismatch,
+    RecordingNotFound,
+    RecordingPrimaryTargetNotPublished,
+    RecordingWorkNotPublished,
     UniqueConstraintViolation,
     WorkCreditConflict,
     WorkCreditNotFound,
@@ -50,9 +56,12 @@ from roots_of_rhythm.music_catalog.application.ports import (
     LyricsVersionRepository,
     MusicalWorkRepository,
     MusicCatalogUnitOfWork,
+    RecordingRepository,
+    RecordingUnitOfWork,
     WorkCreditRepository,
     WorkRelationRepository,
 )
+from roots_of_rhythm.music_catalog.application.recording_service import RecordingService
 from roots_of_rhythm.music_catalog.application.service import GenreService, UnitOfWorkFactory
 from roots_of_rhythm.music_catalog.application.work_credit_service import WorkCreditService
 from roots_of_rhythm.music_catalog.application.work_relation_service import WorkRelationService
@@ -95,6 +104,15 @@ __all__ = [
     "MusicalWorkRepository",
     "MusicalWorkService",
     "MusicCatalogUnitOfWork",
+    "RecordingNotFound",
+    "RecordingLyricsVersionNotPerformable",
+    "RecordingLyricsVersionNotPublished",
+    "RecordingLyricsVersionWorkMismatch",
+    "RecordingPrimaryTargetNotPublished",
+    "RecordingRepository",
+    "RecordingService",
+    "RecordingUnitOfWork",
+    "RecordingWorkNotPublished",
     "RIGHTS_RESTRICTED_REASON",
     "UniqueConstraintViolation",
     "UnitOfWorkFactory",

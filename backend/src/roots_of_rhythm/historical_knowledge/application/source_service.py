@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from roots_of_rhythm.historical_knowledge.application.errors import SourceNotFound
 from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
-from roots_of_rhythm.historical_knowledge.domain import Source, SourceFragment, SourceVersion
+from roots_of_rhythm.historical_knowledge.domain import Source, SourceAccessPolicy, SourceFragment, SourceVersion
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -24,6 +24,7 @@ class SourceService:
         publication: str | None = None,
         publication_date: str | None = None,
         external_url: str | None = None,
+        access_policy: SourceAccessPolicy = SourceAccessPolicy.WITHHOLD_PUBLIC_BODY,
         source_id: UUID | None = None,
     ) -> Source:
         source = Source.create(
@@ -33,12 +34,23 @@ class SourceService:
             publication=publication,
             publication_date=publication_date,
             external_url=external_url,
+            access_policy=access_policy,
             source_id=source_id,
         )
         async with self._uow_factory() as uow:
             await uow.sources.add_source(source)
             await uow.commit()
             return source
+
+    async def set_access_policy(self, source_id: UUID, access_policy: SourceAccessPolicy) -> Source:
+        async with self._uow_factory() as uow:
+            source = await uow.sources.get_source(source_id, for_update=True)
+            if source is None:
+                raise SourceNotFound(str(source_id))
+            updated = source.with_access_policy(access_policy)
+            await uow.sources.save_source(updated)
+            await uow.commit()
+            return updated
 
     async def create_version(
         self,

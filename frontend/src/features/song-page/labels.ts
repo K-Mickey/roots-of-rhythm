@@ -4,8 +4,6 @@ type TemporalBound = components['schemas']['TemporalBound'];
 type SongPeriodView = components['schemas']['SongPeriodView'];
 type WorkCreditRole = components['schemas']['WorkCreditRole'];
 type WorkRelationType = components['schemas']['WorkRelationType'];
-type LyricsCreationMethod = components['schemas']['LyricsCreationMethod'];
-type SongLyricsVersionView = components['schemas']['SongLyricsVersionView'];
 
 export function formatTemporalBound(bound: TemporalBound): string {
   const { year, precision } = bound;
@@ -82,44 +80,6 @@ export function formatWorkRelationType(relationType: WorkRelationType): string {
       throw new Error(`Unknown work relation type: ${String(unexpected)}`);
     }
   }
-}
-
-export function isMachineTranslation(
-  creationMethod: LyricsCreationMethod,
-): boolean {
-  return creationMethod === 'machine_translation';
-}
-
-export function formatLyricsVersionTabLabel(
-  version: Pick<
-    SongLyricsVersionView,
-    'language_tag' | 'label' | 'creation_method'
-  >,
-): string {
-  const parts = [version.language_tag];
-  if (version.label !== null) {
-    parts.push(version.label);
-  }
-  if (isMachineTranslation(version.creation_method)) {
-    parts.push('машинный перевод');
-  }
-  return parts.join(' · ');
-}
-
-export function resolveSelectedLyricsVersionId(
-  versions: Pick<SongLyricsVersionView, 'id'>[],
-  textParam: string | null,
-): string | null {
-  if (versions.length === 0) {
-    return null;
-  }
-  if (
-    textParam !== null &&
-    versions.some((version) => version.id === textParam)
-  ) {
-    return textParam;
-  }
-  return versions[0].id;
 }
 
 export function safeExternalHref(url: string): string | null {

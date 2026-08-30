@@ -1,4 +1,4 @@
-"""Controlled seed for the Genre and Performer corpus."""
+"""Controlled music corpus seed."""
 
 from roots_of_rhythm.seed.runner import CorpusSeedRunner
 

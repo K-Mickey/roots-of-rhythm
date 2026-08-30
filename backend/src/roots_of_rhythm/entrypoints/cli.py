@@ -30,7 +30,7 @@ def run_api(host: str | None, port: int | None, reload: bool | None) -> None:
 
 @cli.command("seed")
 def run_seed() -> None:
-    """Load the controlled Genre and Performer corpus into PostgreSQL."""
+    """Load the controlled music corpus into PostgreSQL."""
     asyncio.run(_seed())
 
 
@@ -39,6 +39,6 @@ async def _seed() -> None:
     try:
         session_factory = create_session_factory(engine)
         await CorpusSeedRunner(session_factory).run()
-        click.echo("Seed completed: Genre and Performer corpus.")
+        click.echo("Seed completed: controlled music corpus.")
     finally:
         await engine.dispose()

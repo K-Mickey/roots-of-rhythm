@@ -9,6 +9,8 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models.base import (
     EDITORIAL_STATUS_CHECK,
     EVIDENCE_ROLE_CHECK,
     EVIDENCE_STATUS_CHECK,
+    RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX,
+    RECORDING_ORIGIN_PREDICATE_CHECK,
     RELATION_TYPE_CHECK,
     HistoricalKnowledgeBase,
 )
@@ -79,4 +81,70 @@ Index(
 Index(
     "ix_claim_evidence_references_claim_id",
     ClaimEvidenceReferenceRecord.claim_id,
+)
+
+
+class RecordingOriginClaimRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):
+    __tablename__ = "recording_origin_claims"
+    __table_args__ = (
+        CheckConstraint(RECORDING_ORIGIN_PREDICATE_CHECK, name="ck_recording_origin_claims_predicate"),
+        CheckConstraint(EDITORIAL_STATUS_CHECK, name="ck_recording_origin_claims_editorial_status"),
+        CheckConstraint(EVIDENCE_STATUS_CHECK, name="ck_recording_origin_claims_evidence_status"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
+    recording_id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), nullable=False)
+    work_id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), nullable=False)
+    predicate: Mapped[str] = mapped_column(String(TEXT_64), nullable=False)
+    editorial_status: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)
+    evidence_status: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)
+    explanation: Mapped[str | None] = mapped_column(String(TEXT_1024))
+    period_label: Mapped[str | None] = mapped_column(String(TEXT_64))
+    period_start_year: Mapped[int | None]
+    period_start_precision: Mapped[str | None] = mapped_column(String(TEXT_32))
+    period_end_year: Mapped[int | None]
+    period_end_precision: Mapped[str | None] = mapped_column(String(TEXT_32))
+    geography_summary: Mapped[str | None] = mapped_column(String(TEXT_64))
+    provenance_summary: Mapped[str | None] = mapped_column(String(TEXT_1024))
+
+
+class RecordingOriginClaimEvidenceReferenceRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):
+    __tablename__ = "recording_origin_claim_evidence_references"
+    __table_args__ = (CheckConstraint(EVIDENCE_ROLE_CHECK, name="ck_recording_origin_claim_evidence_references_role"),)
+
+    id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
+    claim_id: Mapped[UUID] = mapped_column(
+        PostgreSQLUUID(as_uuid=True),
+        ForeignKey("recording_origin_claims.id"),
+        nullable=False,
+    )
+    source_fragment_id: Mapped[UUID] = mapped_column(
+        PostgreSQLUUID(as_uuid=True),
+        ForeignKey("source_fragments.id"),
+        nullable=False,
+    )
+    role: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)
+    locator_text: Mapped[str | None] = mapped_column(String(TEXT_1024))
+    external_url: Mapped[str | None] = mapped_column(String(TEXT_2048))
+
+
+Index(
+    RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX,
+    RecordingOriginClaimRecord.recording_id,
+    RecordingOriginClaimRecord.work_id,
+    RecordingOriginClaimRecord.predicate,
+    unique=True,
+    postgresql_where=RecordingOriginClaimRecord.deleted.is_(False),
+)
+Index(
+    "ix_recording_origin_claims_recording_id",
+    RecordingOriginClaimRecord.recording_id,
+)
+Index(
+    "ix_recording_origin_claims_work_id",
+    RecordingOriginClaimRecord.work_id,
+)
+Index(
+    "ix_recording_origin_claim_evidence_references_claim_id",
+    RecordingOriginClaimEvidenceReferenceRecord.claim_id,
 )

@@ -5,9 +5,13 @@ from uuid import UUID
 import msgspec
 
 from roots_of_rhythm.music_catalog.domain.enums import (
+    BillingRole,
     LyricsCreationMethod,
     LyricsUsageKind,
     LyricsVersionRelationType,
+    RecordingContributionKind,
+    RecordingCreditTargetKind,
+    RecordingWorkUsageKind,
     TemporalPrecision,
     WorkCreditRole,
     WorkRelationType,
@@ -19,6 +23,8 @@ _LANGUAGE_SUBTAG = re.compile(r"^[A-Za-z]{2,3}$")
 _SCRIPT_SUBTAG = re.compile(r"^[A-Za-z]{4}$")
 _REGION_SUBTAG = re.compile(r"^([A-Za-z]{2}|[0-9]{3})$")
 _VARIANT_SUBTAG = re.compile(r"^([0-9][A-Za-z0-9]{4,7}|[A-Za-z]{4})$")
+_ISRC = re.compile(r"^[A-Z]{2}[A-Z\d]{3}\d{7}$", re.ASCII)
+_CREDITED_AS_FIELD = "credited as"
 
 
 def _required_text(value: str, field: str, *, max_length: int) -> str:
@@ -297,7 +303,7 @@ class WorkCreditContent(msgspec.Struct, frozen=True):
     ) -> "WorkCreditContent":
         return cls(
             role=role,
-            credited_as=optional_text(credited_as, "credited as", max_length=TEXT_64),
+            credited_as=optional_text(credited_as, _CREDITED_AS_FIELD, max_length=TEXT_64),
             provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
         )
 
@@ -365,7 +371,7 @@ class LyricsVersionCreditContent(msgspec.Struct, frozen=True):
     ) -> "LyricsVersionCreditContent":
         return cls(
             role=role,
-            credited_as=optional_text(credited_as, "credited as", max_length=TEXT_64),
+            credited_as=optional_text(credited_as, _CREDITED_AS_FIELD, max_length=TEXT_64),
             provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
         )
 
@@ -408,4 +414,134 @@ class GroupMembershipContent(msgspec.Struct, frozen=True):
                 max_length=TEXT_64,
             ),
             provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
+        )
+
+
+class RecordingCredit(msgspec.Struct, frozen=True):
+    id: UUID
+    target_kind: RecordingCreditTargetKind
+    target_id: UUID
+    billing_role: BillingRole
+    contribution_kind: RecordingContributionKind | None = None
+    instrument: str | None = None
+    credited_as: str | None = None
+
+    @classmethod
+    def create(
+        cls,
+        credit_id: UUID,
+        target_kind: RecordingCreditTargetKind,
+        target_id: UUID,
+        billing_role: BillingRole,
+        *,
+        contribution_kind: RecordingContributionKind | None = None,
+        instrument: str | None = None,
+        credited_as: str | None = None,
+    ) -> "RecordingCredit":
+        return cls(
+            id=credit_id,
+            target_kind=target_kind,
+            target_id=target_id,
+            billing_role=billing_role,
+            contribution_kind=contribution_kind,
+            instrument=optional_text(instrument, "instrument", max_length=TEXT_64),
+            credited_as=optional_text(credited_as, _CREDITED_AS_FIELD, max_length=TEXT_64),
+        )
+
+
+class RecordingWorkUsage(msgspec.Struct, frozen=True):
+    id: UUID
+    work_id: UUID
+    usage_kind: RecordingWorkUsageKind
+    position: int | None = None
+
+    @classmethod
+    def create(
+        cls,
+        usage_id: UUID,
+        work_id: UUID,
+        usage_kind: RecordingWorkUsageKind,
+        *,
+        position: int | None = None,
+    ) -> "RecordingWorkUsage":
+        if position is not None and position <= 0:
+            raise MusicCatalogDomainError("work usage position must be positive")
+        return cls(id=usage_id, work_id=work_id, usage_kind=usage_kind, position=position)
+
+
+class RecordingLyricsUsage(msgspec.Struct, frozen=True):
+    id: UUID
+    lyrics_version_id: UUID
+    position: int = 0
+
+    @classmethod
+    def create(cls, usage_id: UUID, lyrics_version_id: UUID) -> "RecordingLyricsUsage":
+        return cls(id=usage_id, lyrics_version_id=lyrics_version_id)
+
+
+class RecordingContent(msgspec.Struct, frozen=True):
+    title: str
+    recorded_period: ExistencePeriod | None = None
+    description: str | None = None
+    isrc: str | None = None
+    credits: tuple[RecordingCredit, ...] = ()
+    work_usages: tuple[RecordingWorkUsage, ...] = ()
+    lyrics_usages: tuple[RecordingLyricsUsage, ...] = ()
+
+    @classmethod
+    def create(
+        cls,
+        title: str,
+        *,
+        recorded_period: ExistencePeriod | None = None,
+        description: str | None = None,
+        isrc: str | None = None,
+        recording_credits: tuple[RecordingCredit, ...] = (),
+        work_usages: tuple[RecordingWorkUsage, ...] = (),
+        lyrics_usages: tuple[RecordingLyricsUsage, ...] = (),
+    ) -> "RecordingContent":
+        normalized_isrc = None
+        if isrc is not None:
+            normalized_isrc = isrc.strip().replace("-", "").upper()
+            if not _ISRC.fullmatch(normalized_isrc):
+                raise MusicCatalogDomainError("ISRC must be a valid 12-character code")
+
+        usage_keys = tuple((usage.work_id, usage.usage_kind) for usage in work_usages)
+        if len(usage_keys) != len(set(usage_keys)):
+            raise MusicCatalogDomainError("work usages must not contain duplicate work and usage kind")
+
+        usage_kinds = {usage.usage_kind for usage in work_usages}
+        if len(usage_kinds) > 1:
+            raise MusicCatalogDomainError("work usages must use one usage kind")
+        if (
+            work_usages
+            and next(iter(usage_kinds)) is not RecordingWorkUsageKind.MEDLEY_COMPONENT
+            and len(work_usages) > 1
+        ):
+            raise MusicCatalogDomainError("complete and partial recordings require exactly one work usage")
+
+        medley = tuple(usage for usage in work_usages if usage.usage_kind is RecordingWorkUsageKind.MEDLEY_COMPONENT)
+        if len(medley) > 1:
+            positions = tuple(usage.position for usage in medley)
+            if any(position is None for position in positions):
+                raise MusicCatalogDomainError("multiple medley components require positions")
+            if len(positions) != len(set(positions)):
+                raise MusicCatalogDomainError("medley component positions must be unique")
+
+        lyrics_version_ids = [usage.lyrics_version_id for usage in lyrics_usages]
+        if len(lyrics_version_ids) != len(set(lyrics_version_ids)):
+            raise MusicCatalogDomainError("lyrics usages must not contain duplicate LyricsVersion")
+        ordered_lyrics_usages = tuple(
+            RecordingLyricsUsage(id=usage.id, lyrics_version_id=usage.lyrics_version_id, position=position)
+            for position, usage in enumerate(lyrics_usages, start=1)
+        )
+
+        return cls(
+            title=_required_text(title, "recording title", max_length=TEXT_64),
+            recorded_period=recorded_period,
+            description=optional_text(description, "description", max_length=TEXT_1024),
+            isrc=normalized_isrc,
+            credits=recording_credits,
+            work_usages=work_usages,
+            lyrics_usages=ordered_lyrics_usages,
         )

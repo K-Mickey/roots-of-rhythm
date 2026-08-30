@@ -12,6 +12,7 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
 from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationAssignmentRecord
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from uuid import UUID
 
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -63,6 +64,33 @@ class SqlAlchemyClassificationAssignmentRepository:
         )
         result = await self._session.execute(statement)
         return [assignment_from_record(record) for record in result.scalars()]
+
+    async def list_published_for_recording(self, recording_id: UUID) -> list[ClassificationAssignment]:
+        statement = select(ClassificationAssignmentRecord).where(
+            ClassificationAssignmentRecord.target_kind == ClassificationTargetKind.RECORDING.value,
+            ClassificationAssignmentRecord.target_id == recording_id,
+            ClassificationAssignmentRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+            ClassificationAssignmentRecord.deleted.is_(False),
+        )
+        result = await self._session.execute(statement)
+        return [assignment_from_record(record) for record in result.scalars()]
+
+    async def list_published_for_recordings(
+        self, recording_ids: Collection[UUID]
+    ) -> dict[UUID, list[ClassificationAssignment]]:
+        ids = set(recording_ids)
+        grouped: dict[UUID, list[ClassificationAssignment]] = {recording_id: [] for recording_id in ids}
+        if not ids:
+            return grouped
+        statement = select(ClassificationAssignmentRecord).where(
+            ClassificationAssignmentRecord.target_kind == ClassificationTargetKind.RECORDING.value,
+            ClassificationAssignmentRecord.target_id.in_(ids),
+            ClassificationAssignmentRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+            ClassificationAssignmentRecord.deleted.is_(False),
+        )
+        for record in await self._session.scalars(statement):
+            grouped[record.target_id].append(assignment_from_record(record))
+        return grouped
 
     async def save(self, assignment: ClassificationAssignment) -> None:
         statement = select(ClassificationAssignmentRecord).where(

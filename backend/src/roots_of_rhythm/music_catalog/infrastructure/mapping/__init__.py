@@ -25,6 +25,12 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping.lyrics import (
     update_lyrics_version_record,
     update_lyrics_version_relation_record,
 )
+from roots_of_rhythm.music_catalog.infrastructure.mapping.recordings import (
+    record_from_recording,
+    recording_from_records,
+    records_from_recording_children,
+    update_recording_record,
+)
 from roots_of_rhythm.music_catalog.infrastructure.mapping.works import (
     musical_work_from_record,
     record_from_musical_work,
@@ -54,6 +60,7 @@ __all__ = [
     "record_from_lyrics_version_credit",
     "record_from_lyrics_version_relation",
     "record_from_musical_work",
+    "record_from_recording",
     "record_from_work_credit",
     "record_from_work_relation",
     "update_assignment_record",
@@ -63,9 +70,12 @@ __all__ = [
     "update_lyrics_version_record",
     "update_lyrics_version_relation_record",
     "update_musical_work_record",
+    "update_recording_record",
     "update_record",
     "update_work_credit_record",
     "update_work_relation_record",
     "work_credit_from_record",
     "work_relation_from_record",
+    "recording_from_records",
+    "records_from_recording_children",
 ]

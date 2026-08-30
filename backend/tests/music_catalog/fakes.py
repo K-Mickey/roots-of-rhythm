@@ -16,6 +16,7 @@ if TYPE_CHECKING:
         LyricsVersionRelationRepository,
         LyricsVersionRepository,
         MusicalWorkRepository,
+        RecordingRepository,
         WorkCreditRepository,
         WorkRelationRepository,
     )
@@ -28,6 +29,7 @@ if TYPE_CHECKING:
         LyricsVersionCredit,
         LyricsVersionRelation,
         MusicalWork,
+        Recording,
         WorkCredit,
         WorkRelation,
     )
@@ -75,6 +77,22 @@ class FakeClassificationAssignmentRepository:
             and assignment.target_id == work_id
             and assignment.editorial_status is EditorialStatus.PUBLISHED
         ]
+
+    async def list_published_for_recording(self, recording_id: UUID) -> list[ClassificationAssignment]:
+        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
+
+        return [
+            assignment
+            for assignment in self._assignments.values()
+            if assignment.target_kind is ClassificationTargetKind.RECORDING
+            and assignment.target_id == recording_id
+            and assignment.editorial_status is EditorialStatus.PUBLISHED
+        ]
+
+    async def list_published_for_recordings(
+        self, recording_ids: Collection[UUID]
+    ) -> dict[UUID, list[ClassificationAssignment]]:
+        return {recording_id: await self.list_published_for_recording(recording_id) for recording_id in recording_ids}
 
     async def save(self, assignment: ClassificationAssignment) -> None:
         if assignment.id not in self._assignments:
@@ -143,6 +161,13 @@ class FakeGroupRepository:
         group = self._groups.get(group_id)
         return group if group is not None and group.editorial_status is EditorialStatus.PUBLISHED else None
 
+    async def get_published_by_ids(self, group_ids: Collection[UUID]) -> dict[UUID, Group]:
+        return {
+            group_id: group
+            for group_id in set(group_ids)
+            if (group := self._groups.get(group_id)) is not None and group.editorial_status is EditorialStatus.PUBLISHED
+        }
+
     async def list_published(self) -> list[Group]:
         return sorted(
             (group for group in self._groups.values() if group.editorial_status is EditorialStatus.PUBLISHED),
@@ -196,6 +221,7 @@ class FakeGroupMembershipRepository:
 class FakeMusicalWorkRepository:
     def __init__(self, works: dict[UUID, MusicalWork]) -> None:
         self._works = works
+        self.locked_ids: list[UUID] = []
 
     async def add(self, work: MusicalWork) -> None:
         self._works[work.id] = work
@@ -204,6 +230,8 @@ class FakeMusicalWorkRepository:
         return self._works.get(work_id)
 
     async def get_published(self, work_id: UUID, *, for_update: bool = False) -> MusicalWork | None:
+        if for_update:
+            self.locked_ids.append(work_id)
         work = self._works.get(work_id)
         return work if work is not None and work.editorial_status is EditorialStatus.PUBLISHED else None
 
@@ -432,6 +460,60 @@ class FakeLyricsVersionRelationRepository:
         self._relations.pop(relation_id, None)
 
 
+class FakeRecordingRepository:
+    def __init__(self, recordings: dict[UUID, Recording]) -> None:
+        self._recordings = recordings
+        self.locked_ids: list[UUID] = []
+
+    async def add(self, recording: Recording) -> None:
+        self._recordings[recording.id] = recording
+
+    async def get(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None:
+        if for_update:
+            self.locked_ids.append(recording_id)
+        return self._recordings.get(recording_id)
+
+    async def get_published(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None:
+        recording = await self.get(recording_id, for_update=for_update)
+        if recording is None or recording.editorial_status is not EditorialStatus.PUBLISHED:
+            return None
+        return recording
+
+    async def list_published(self) -> list[Recording]:
+        return sorted(
+            (
+                recording
+                for recording in self._recordings.values()
+                if recording.editorial_status is EditorialStatus.PUBLISHED
+            ),
+            key=lambda recording: (recording.title.casefold(), str(recording.id)),
+        )
+
+    async def list_published_for_work(self, work_id: UUID) -> list[Recording]:
+        return sorted(
+            (
+                recording
+                for recording in self._recordings.values()
+                if recording.editorial_status is EditorialStatus.PUBLISHED
+                and any(usage.work_id == work_id for usage in recording.work_usages)
+            ),
+            key=lambda recording: (recording.title.casefold(), str(recording.id)),
+        )
+
+    async def save(self, recording: Recording) -> None:
+        if recording.id not in self._recordings:
+            raise LookupError(str(recording.id))
+        self._recordings[recording.id] = recording
+
+    async def save_status(self, recording: Recording) -> None:
+        if recording.id not in self._recordings:
+            raise LookupError(str(recording.id))
+        self._recordings[recording.id] = recording
+
+    async def mark_deleted(self, recording_id: UUID) -> None:
+        self._recordings.pop(recording_id, None)
+
+
 class FakeMusicCatalogUnitOfWork:
     def __init__(
         self,
@@ -445,6 +527,7 @@ class FakeMusicCatalogUnitOfWork:
         lyrics_versions: dict[UUID, LyricsVersion] | None = None,
         lyrics_version_credits: dict[UUID, LyricsVersionCredit] | None = None,
         lyrics_version_relations: dict[UUID, LyricsVersionRelation] | None = None,
+        recordings: dict[UUID, Recording] | None = None,
     ) -> None:
         self.genres: GenreRepository = FakeGenreRepository(genres)
         self.assignments: ClassificationAssignmentRepository = FakeClassificationAssignmentRepository(
@@ -468,6 +551,7 @@ class FakeMusicCatalogUnitOfWork:
         self.lyrics_version_relations: LyricsVersionRelationRepository = FakeLyricsVersionRelationRepository(
             {} if lyrics_version_relations is None else lyrics_version_relations
         )
+        self.recordings: RecordingRepository = FakeRecordingRepository({} if recordings is None else recordings)
         self.commits = 0
         self.rollbacks = 0
 

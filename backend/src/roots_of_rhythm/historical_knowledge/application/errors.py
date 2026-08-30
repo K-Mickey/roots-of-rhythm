@@ -18,6 +18,22 @@ class EvidenceFragmentNotReviewed(ValueError):
     pass
 
 
+class EndpointWorkMissing(ValueError):
+    pass
+
+
+class EndpointWorkNotPublished(ValueError):
+    pass
+
+
+class EndpointRecordingMissing(ValueError):
+    pass
+
+
+class EndpointRecordingNotPublished(ValueError):
+    pass
+
+
 class UniqueConstraintViolation(Exception):
     def __init__(self, constraint_name: str | None = None) -> None:
         self.constraint_name = constraint_name

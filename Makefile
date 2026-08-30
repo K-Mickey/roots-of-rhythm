@@ -58,7 +58,7 @@ frontend-dev: ## Run Next.js development server on the host
 migrate: ## Apply backend migrations to the local database
 	cd backend && DATABASE_URL=$(DATABASE_URL) uv run alembic upgrade head
 
-seed: ## Load controlled Genre and Performer corpus (idempotent)
+seed: ## Load the controlled music corpus (idempotent)
 	cd backend && DATABASE_URL=$(DATABASE_URL) PYTHONPATH=src uv run roots-of-rhythm seed
 
 format: ## Format backend and frontend sources

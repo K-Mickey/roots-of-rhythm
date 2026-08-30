@@ -57,3 +57,9 @@ class LyricsVersionRelationPublicationError(MusicCatalogDomainError):
 class LyricsVersionRelationSelfReferenceError(MusicCatalogDomainError):
     def __init__(self) -> None:
         super().__init__("LyricsVersionRelation source and target must differ")
+
+
+class RecordingPublicationError(MusicCatalogDomainError):
+    def __init__(self, missing_fields: tuple[str, ...]) -> None:
+        self.missing_fields = missing_fields
+        super().__init__(f"Recording cannot be published; missing: {', '.join(missing_fields)}")

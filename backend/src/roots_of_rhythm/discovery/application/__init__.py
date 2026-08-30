@@ -31,6 +31,12 @@ from roots_of_rhythm.discovery.application.performer_overview import (
     PerformerOverviewQuery,
     PerformerOverviewReader,
 )
+from roots_of_rhythm.discovery.application.recording_lyrics import (
+    RecordingLyricsProjection,
+    RecordingLyricsProjectionQuery,
+    RecordingLyricsSelection,
+)
+from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery, RecordingOverviewReader
 
 __all__ = [
     "GenreListQuery",
@@ -67,4 +73,9 @@ __all__ = [
     "PerformerOverviewReader",
     "PerformerOverviewResponse",
     "PersonDateView",
+    "RecordingLyricsProjection",
+    "RecordingLyricsProjectionQuery",
+    "RecordingOverviewQuery",
+    "RecordingOverviewReader",
+    "RecordingLyricsSelection",
 ]

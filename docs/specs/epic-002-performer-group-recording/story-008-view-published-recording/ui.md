@@ -7,7 +7,7 @@ Story: [STORY-008](README.md).
 
 ## Страница `/recordings/{id}`
 
-Единственный `h1` — title Recording. Если данные есть, показываются:
+Единственный `h1` — title Recording. На широком viewport metadata, origin badges, Genre, lyrics и ListeningGuide находятся в основном столбце, а Work usages и credits — в правом; sidebar опущен ниже заголовка и metadata и использует те же границы колонок, что Recording-блок на Song page. На мобильном используется одна колонка без дополнительного верхнего отступа. Если данные есть, показываются:
 
 - Work usages как ссылки на `/songs/{id}` с типом partial/medley, когда он не `complete`;
 - primary и дополнительные Person/Group credits;
@@ -18,6 +18,10 @@ Story: [STORY-008](README.md).
 - ListeningGuide.
 
 Пустые опциональные секции скрыты. Нельзя показывать общий badge «Оригинал».
+
+## Каталог `/recordings`
+
+Header содержит ссылку «Записи». Каталог показывает title Recording как ссылку на detail page, опубликованные primary Person/Group, известный период записи и опубликованные Genre. Recording без публичного primary target не показывается; период и Genre могут отсутствовать. Порядок алфавитный по title, затем primary credits. Pagination, поиск и фильтры не добавляются для текущего controlled corpus.
 
 ## Расширение `/songs/{id}`
 
@@ -34,6 +38,7 @@ Recording выбрана автоматически и показана в це�
 ### Несколько Recording
 
 - Центральная область показывает выбранную Recording.
+- Published ListeningGuide выбранной Recording показывается в её центральном блоке; при отсутствии guide секция скрыта.
 - Справа находится «Хронология известных записей».
 - Элемент различается title, primary credits и известным годом; supported origin badges дополняют, но не заменяют эти данные.
 - Список группируется визуально по primary Person/Group без создания отдельной доменной сущности.
@@ -48,9 +53,9 @@ Recording выбрана автоматически и показана в це�
 
 ### Тексты и языки
 
-В центральной области горизонтально показаны фактически звучащие LyricsVersion выбранной Recording и их reading translations. Выбор обновляет `text` без reload. Одинаковые language tags различаются label; machine translation явно маркируется.
+На Song и Recording detail фактически звучащие LyricsVersion и reading translations используют общий горизонтальный switcher. Выбор обновляет `text` без reload и поддерживает history. Видимые tabs — короткие uppercase language tags (`EN`, `RU`), одинаковые языки нумеруются (`EN 1`, `EN 2`), machine translation получает badge `Машинный перевод`; полное название остаётся доступным через `aria-label` и `title`. При нехватке места прокручивается только строка tabs.
 
-Если точный текст Recording неизвестен, показывается первая опубликованная LyricsVersion Work и сообщение «Соответствие текста этой записи не подтверждено».
+Если точный текст Recording неизвестен, показывается первая опубликованная LyricsVersion Work. Сообщение «Соответствие текста этой записи не подтверждено» выводится только при доступном body; если body скрыт по правам, остаётся только сообщение о недоступности.
 
 ### URL и доступность
 
@@ -62,4 +67,4 @@ Recording выбрана автоматически и показана в це�
 
 ## Не входит
 
-Плеер, глобальный каталог Recording, Session/Take/Master UI, дерево covers, автоматическое определение оригинала, обязательные Recording relations и pagination.
+Плеер, Session/Take/Master UI, дерево covers, автоматическое определение оригинала, обязательные Recording relations и pagination.

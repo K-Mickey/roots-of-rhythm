@@ -114,6 +114,18 @@ class SqlAlchemySourceRepository:
     async def add_source(self, source: Source) -> None:
         self._session.add(record_from_source(source))
 
+    async def save_source(self, source: Source) -> None:
+        statement = select(SourceRecord).where(
+            SourceRecord.id == source.id,
+            SourceRecord.deleted.is_(False),
+        )
+        statement = apply_write_lock(statement, for_update=True)
+        result = await self._session.execute(statement)
+        record = result.scalar_one_or_none()
+        if record is None:
+            raise LookupError(str(source.id))
+        record.access_policy = source.access_policy.value
+
     async def add_version(self, version: SourceVersion) -> None:
         self._session.add(record_from_version(version))
 

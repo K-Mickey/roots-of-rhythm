@@ -5,7 +5,7 @@
 Story: [STORY-008](README.md).  
 Контракты: [UI](ui.md), [Data/API](data-api-workshop.md), [ADR-0007](../../../decisions/0007-musical-work-recording-and-origin-boundaries.md).
 
-Цель — реализовать Recording и объединённое изучение исполнений одного Work без глобального каталога и дерева covers. Tracker TASK issues создаются только после dry run и отдельного подтверждения Product Owner.
+Цель — реализовать Recording, публичный каталог и объединённое изучение исполнений одного Work без дерева covers. Tracker TASK issues создаются только после dry run и отдельного подтверждения Product Owner.
 
 ## TASK-001: Recording, credits и Work usages
 
@@ -70,7 +70,7 @@ Tracker: [#51](https://github.com/K-Mickey/roots-of-rhythm/issues/51).
 
 ### Результат
 
-OpenAPI и приложение предоставляют `GET /api/v1/recordings/{id}` и SSR `/recordings/{id}` с Work links, credits, жанрами, текстами и ListeningGuide.
+OpenAPI и приложение предоставляют глобальный каталог и `GET /api/v1/recordings/{id}` / SSR detail с Work links, credits, жанрами, текстами и ListeningGuide.
 
 ### Scope
 
@@ -78,8 +78,8 @@ OpenAPI и приложение предоставляют `GET /api/v1/recordin
 - published related entities only;
 - rights-aware lyrics translations;
 - page sections и safe empty states;
+- `GET /api/v1/recordings`, SSR `/recordings` и header item с title, primary credits, периодом и Genre;
 - API changelog/contract check;
-- без global list endpoint/header item.
 
 ### Покрывает
 
@@ -87,7 +87,7 @@ OpenAPI и приложение предоставляют `GET /api/v1/recordin
 
 ### Проверка
 
-HTTP 200/404, SSR content and links, no draft leakage, empty guide/lyrics, no `/recordings` catalog.
+List/detail HTTP 200/404, SSR content and links, no draft leakage, empty catalog/guide/lyrics.
 
 ### Не входит
 
@@ -166,6 +166,9 @@ Visitor переключает Recording, genre facet и text на `/songs/{id}`
 - accessible `recording`, `genre`, `text` controls;
 - query validation, back/forward, SSR initial state;
 - fallback Work text с явной пометкой;
+- ListeningGuide выбранной Recording в центральном блоке;
+- другие Work usages выбранной Recording без дублирования открытого Work;
+- общий компактный lyrics switcher на Song и Recording detail с query history и безопасной нормализацией;
 - links from Recording and готовность links from Performer/Genre projections.
 
 ### Покрывает
@@ -174,11 +177,11 @@ Visitor переключает Recording, genre facet и text на `/songs/{id}`
 
 ### Проверка
 
-Keyboard navigation, no full reload, direct query URLs, invalid IDs, mobile layout, genre filtering, text switching and SSR content.
+Keyboard navigation, no full reload, direct query URLs, invalid IDs, mobile layout, genre filtering, text switching, ListeningGuide выбранной Recording and SSR content.
 
 ### Не входит
 
-Player, global Recording catalog, pagination и persisted user preferences.
+Player, pagination и persisted user preferences.
 
 ## TASK-007: seed и приёмка STORY-008
 

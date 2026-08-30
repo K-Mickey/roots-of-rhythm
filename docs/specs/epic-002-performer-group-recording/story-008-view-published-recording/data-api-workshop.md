@@ -8,6 +8,14 @@ OpenAPI обновляется отдельной задачей реализа�
 
 ## Public HTTP
 
+`GET /api/v1/recordings`
+
+- `200` — `RecordingListResponse { items[] }`;
+- item содержит `id`, `title`, `recorded_period`, опубликованные primary Person/Group summaries и опубликованные Genre summaries;
+- Recording без published primary target не возвращается; отсутствие Genre допустимо;
+- порядок: title, primary names, id; пустой каталог возвращает `items: []`;
+- `500` `INTERNAL_ERROR` при сбое сборки.
+
 `GET /api/v1/recordings/{recording_id}`
 
 - без авторизации;
@@ -22,7 +30,7 @@ OpenAPI обновляется отдельной задачей реализа�
 - unknown, malformed, draft, archived и deleted id — `404` `RECORDING_NOT_FOUND`;
 - `500` `INTERNAL_ERROR` при сбое сборки.
 
-Глобальный `GET /api/v1/recordings` не добавляется.
+List response не использует pagination, фильтры и поиск до измеренного роста controlled corpus.
 
 ## Расширение Song overview
 

@@ -14,30 +14,31 @@ from roots_of_rhythm.discovery.application.dto import (
     SongPeriodView,
     SongSummary,
     SongWorkCreditView,
-    TemporalBoundView,
 )
 from roots_of_rhythm.discovery.application.errors import SongOverviewNotFound
+from roots_of_rhythm.discovery.application.song_recordings import project_song_recordings
+from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from roots_of_rhythm.music_catalog.application.lyrics_body_projection import LyricsBodyDisclosure
+    from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
     from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import (
         LyricsVersionProjectionService,
     )
-    from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
+    from roots_of_rhythm.music_catalog.application.ports import RecordingUnitOfWork
     from roots_of_rhythm.music_catalog.domain import (
         LyricsVersion,
         LyricsVersionCredit,
         LyricsVersionRelation,
         WorkCredit,
     )
-    from roots_of_rhythm.music_catalog.domain.value_objects import ExistencePeriod, TemporalBound
     from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
     from roots_of_rhythm.people_catalog.domain import Person
 
 type PeopleUnitOfWorkFactory = Callable[[], PeopleCatalogUnitOfWork]
-type MusicUnitOfWorkFactory = Callable[[], MusicCatalogUnitOfWork]
+type RecordingUnitOfWorkFactory = Callable[[], RecordingUnitOfWork]
+type HistoricalKnowledgeUnitOfWorkFactory = Callable[[], HistoricalKnowledgeUnitOfWork]
 
 
 @runtime_checkable
@@ -48,12 +49,14 @@ class SongOverviewReader(Protocol):
 class SongOverviewQuery:
     def __init__(
         self,
-        music_uow_factory: MusicUnitOfWorkFactory,
+        music_uow_factory: RecordingUnitOfWorkFactory,
         people_uow_factory: PeopleUnitOfWorkFactory,
+        hk_uow_factory: HistoricalKnowledgeUnitOfWorkFactory,
         lyrics_projection: LyricsVersionProjectionService,
     ) -> None:
         self._music_uow_factory = music_uow_factory
         self._people_uow_factory = people_uow_factory
+        self._hk_uow_factory = hk_uow_factory
         self._lyrics_projection = lyrics_projection
 
     async def get(self, song_id: UUID) -> SongOverviewResponse:
@@ -87,14 +90,55 @@ class SongOverviewQuery:
             related_lyrics_versions = {
                 version.id: version for version in lyrics_versions
             } | await music_uow.lyrics_versions.get_published_by_ids(other_lyrics_ids)
+            recordings = await music_uow.recordings.list_published_for_work(song_id)
+            recording_ids = [recording.id for recording in recordings]
+            recording_assignments = await music_uow.assignments.list_published_for_recordings(recording_ids)
+            recording_genre_ids = {
+                assignment.concept_id
+                for recording_assignment_list in recording_assignments.values()
+                for assignment in recording_assignment_list
+            }
+            recording_genres = await music_uow.genres.get_published_by_ids(recording_genre_ids)
+            group_ids = {
+                credit.target_id
+                for recording in recordings
+                for credit in recording.credits
+                if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.GROUP
+            }
+            groups = await music_uow.groups.get_published_by_ids(group_ids)
 
         person_ids = {credit.person_id for credit in work_credits}
         for version_credits in lyrics_credits_by_version.values():
             person_ids.update(credit.person_id for credit in version_credits)
+        person_ids.update(
+            credit.target_id
+            for recording in recordings
+            for credit in recording.credits
+            if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.PERSON
+        )
 
         persons, body_disclosures = await gather(
             self._load_persons(person_ids),
-            self._disclose_lyrics_bodies(lyrics_versions),
+            self._lyrics_projection.disclose_bodies_for_versions(lyrics_versions),
+        )
+
+        async with self._hk_uow_factory() as hk_uow:
+            loaded_claims = await hk_uow.recording_origin_claims.list_supported_published_for_recordings(
+                recording_ids,
+            )
+        origin_claims_by_recording = {
+            recording_id: [claim for claim in claims if claim.work_id == song_id]
+            for recording_id, claims in loaded_claims.items()
+        }
+
+        recording_genres_view, recordings_view = project_song_recordings(
+            song_id,
+            recordings,
+            recording_assignments,
+            recording_genres,
+            persons,
+            groups,
+            origin_claims_by_recording,
         )
 
         return SongOverviewResponse(
@@ -102,7 +146,7 @@ class SongOverviewQuery:
             name=work.canonical_title,
             aliases=list(work.aliases),
             description=work.description,
-            period=_period_view(work.period),
+            period=SongPeriodView.from_period(work.period),
             external_identities=[
                 ExternalIdentityView(
                     provider=identity.provider,
@@ -148,6 +192,8 @@ class SongOverviewQuery:
                 )
                 for version, disclosure in zip(lyrics_versions, body_disclosures, strict=True)
             ],
+            recording_genres=recording_genres_view,
+            recordings=recordings_view,
         )
 
     async def _load_persons(self, person_ids: Collection[UUID]) -> dict[UUID, Person]:
@@ -155,9 +201,6 @@ class SongOverviewQuery:
             return {}
         async with self._people_uow_factory() as people_uow:
             return await people_uow.persons.get_published_by_ids(person_ids)
-
-    async def _disclose_lyrics_bodies(self, versions: list[LyricsVersion]) -> list[LyricsBodyDisclosure]:
-        return await self._lyrics_projection.disclose_bodies_for_versions(versions)
 
 
 def _work_credit_views(
@@ -209,18 +252,3 @@ def _other_lyrics_version_id(relation: LyricsVersionRelation, version_id: UUID) 
     if relation.source_lyrics_version_id == version_id:
         return relation.target_lyrics_version_id
     return relation.source_lyrics_version_id
-
-
-def _period_view(period: ExistencePeriod | None) -> SongPeriodView:
-    if period is None:
-        return SongPeriodView(start=None, end=None)
-    return SongPeriodView(
-        start=_bound_view(period.start),
-        end=_bound_view(period.end),
-    )
-
-
-def _bound_view(bound: TemporalBound | None) -> TemporalBoundView | None:
-    if bound is None:
-        return None
-    return TemporalBoundView(year=bound.year, precision=bound.precision)

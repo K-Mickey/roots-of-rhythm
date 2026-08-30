@@ -11,6 +11,10 @@ from sqlalchemy import delete
 from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     ClaimEvidenceReferenceRecord,
     GenreRelationClaimRecord,
+    ListeningGuideRecord,
+    ListeningObservationRecord,
+    RecordingOriginClaimEvidenceReferenceRecord,
+    RecordingOriginClaimRecord,
     SourceFragmentRecord,
     SourceRecord,
     SourceVersionRecord,
@@ -25,6 +29,10 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     LyricsVersionRecord,
     LyricsVersionRelationRecord,
     MusicalWorkRecord,
+    RecordingCreditRecord,
+    RecordingLyricsUsageRecord,
+    RecordingRecord,
+    RecordingWorkUsageRecord,
     WorkCreditRecord,
     WorkRelationRecord,
 )
@@ -36,12 +44,20 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
 _CORPUS_TABLES = (
+    ListeningObservationRecord,
+    ListeningGuideRecord,
+    RecordingOriginClaimEvidenceReferenceRecord,
+    RecordingOriginClaimRecord,
     ClaimEvidenceReferenceRecord,
     GenreRelationClaimRecord,
     SourceFragmentRecord,
     SourceVersionRecord,
     SourceRecord,
     ClassificationAssignmentRecord,
+    RecordingCreditRecord,
+    RecordingLyricsUsageRecord,
+    RecordingWorkUsageRecord,
+    RecordingRecord,
     LyricsVersionRelationRecord,
     LyricsVersionCreditRecord,
     LyricsVersionRecord,

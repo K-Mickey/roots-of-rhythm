@@ -7,7 +7,10 @@ export function SiteHeader() {
     <Box
       component="header"
       bg="pastel.3"
-      style={{ boxShadow: 'var(--mantine-shadow-xs)' }}
+      style={{
+        boxShadow: 'var(--mantine-shadow-xs)',
+        overflowX: 'auto',
+      }}
     >
       <Container fluid px="md" py="md">
         <Group justify="space-between" wrap="nowrap">
@@ -26,6 +29,9 @@ export function SiteHeader() {
             </Anchor>
             <Anchor href="/songs" c="pastel.9" underline="hover">
               Песни
+            </Anchor>
+            <Anchor href="/recordings" c="pastel.9" underline="hover">
+              Записи
             </Anchor>
           </Group>
         </Group>

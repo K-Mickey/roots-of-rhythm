@@ -7,10 +7,20 @@ if TYPE_CHECKING:
 
     from roots_of_rhythm.historical_knowledge.domain import (
         GenreRelationClaim,
+        ListeningGuide,
+        RecordingOriginClaim,
         Source,
         SourceFragment,
         SourceVersion,
     )
+
+
+class ListeningGuideRepository(Protocol):
+    async def add(self, guide: ListeningGuide) -> None: ...
+    async def get(self, guide_id: UUID, *, for_update: bool = False) -> ListeningGuide | None: ...
+    async def get_published_for_recording(self, recording_id: UUID) -> ListeningGuide | None: ...
+    async def save(self, guide: ListeningGuide) -> None: ...
+    async def mark_deleted(self, guide_id: UUID) -> None: ...
 
 
 class ClaimRepository(Protocol):
@@ -25,8 +35,25 @@ class ClaimRepository(Protocol):
     async def list_by_genre(self, genre_id: UUID) -> list[GenreRelationClaim]: ...
 
 
+class RecordingOriginClaimRepository(Protocol):
+    async def add(self, claim: RecordingOriginClaim) -> None: ...
+
+    async def get(self, claim_id: UUID, *, for_update: bool = False) -> RecordingOriginClaim | None: ...
+
+    async def save(self, claim: RecordingOriginClaim) -> None: ...
+
+    async def mark_deleted(self, claim_id: UUID) -> None: ...
+
+    async def list_supported_published_for_recordings(
+        self,
+        recording_ids: Collection[UUID],
+    ) -> dict[UUID, list[RecordingOriginClaim]]: ...
+
+
 class SourceRepository(Protocol):
     async def add_source(self, source: Source) -> None: ...
+
+    async def save_source(self, source: Source) -> None: ...
 
     async def add_version(self, version: SourceVersion) -> None: ...
 
@@ -55,6 +82,8 @@ class SourceRepository(Protocol):
 
 class HistoricalKnowledgeUnitOfWork(Protocol):
     claims: ClaimRepository
+    recording_origin_claims: RecordingOriginClaimRepository
+    listening_guides: ListeningGuideRepository
     sources: SourceRepository
 
     async def __aenter__(self) -> Self: ...

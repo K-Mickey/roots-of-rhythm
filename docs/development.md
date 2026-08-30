@@ -22,11 +22,11 @@
 | `make backend-dev` | корень | PostgreSQL, `make setup` | Запускает Litestar на `127.0.0.1:8000` с hot reload. |
 | `make frontend-dev` | корень | `make setup` | Запускает Next.js на `127.0.0.1:3000`. |
 | `make migrate` | корень | PostgreSQL | Выполняет `alembic upgrade head`. |
-| `make seed` | корень | PostgreSQL, миграции | Идемпотентно загружает controlled Genre corpus, две published relations, шесть published Performer, четыре published Group с membership, Group→Genre assignments и шесть published MusicalWork с WorkCredit. |
+| `make seed` | корень | PostgreSQL, миграции | Идемпотентно загружает controlled Genre/People/Group/Work corpus и три published Recording `Sixteen Tons` с facets, lyrics metadata, origin Claim и ListeningGuide. |
 
 Локальные значения окружения перечислены в `.env.example`. Compose публикует порты только на `127.0.0.1`: PostgreSQL `5432`, backend `8000`, frontend `3000`. Frontend SSR читает `API_BASE_URL` (host default `http://127.0.0.1:8000`, в Compose — `http://backend:8000`).
 
-Публичная главная: `http://127.0.0.1:3000/`. Каталоги: `/genres`, `/performers`, `/groups`, `/songs`. Публичные страницы: `/genres/{genre_id}`, `/performers/{performer_id}`, `/groups/{group_id}`, `/songs/{song_id}`. Публичные API: `GET /api/v1/groups`, `GET /api/v1/groups/{group_id}`, `GET /api/v1/songs`, `GET /api/v1/songs/{song_id}`. Seed Swing: `/genres/01a0147a-8508-74b7-9689-e7c133e4e7a5`; Louis Armstrong: `/performers/01a01a72-1be5-7542-b935-47f617f2cfd3`; Count Basie Orchestra: `/groups/01a01a72-2c01-7000-8000-000000000003`; Sixteen Tons: `/songs/01a01a72-3c01-7000-8000-000000000001`.
+Публичная главная: `http://127.0.0.1:3000/`. Каталоги: `/genres`, `/performers`, `/groups`, `/songs`, `/recordings`. Публичные страницы используют те же пути с `/{id}`. Seed Swing: `/genres/01a0147a-8508-74b7-9689-e7c133e4e7a5`; Louis Armstrong: `/performers/01a01a72-1be5-7542-b935-47f617f2cfd3`; Count Basie Orchestra: `/groups/01a01a72-2c01-7000-8000-000000000003`; Sixteen Tons: `/songs/01a01a72-3c01-7000-8000-000000000001`; Tennessee Ernie Ford Recording: `/recordings/01a01a72-4a01-7000-8000-000000000002`.
 
 ## Проверки
 
@@ -41,7 +41,7 @@
 | `make test-db-setup` | Docker, `make setup` | Идемпотентно создаёт БД `roots_of_rhythm_test` через запущенный сервис `postgres` и применяет к ней Alembic migrations. |
 | `make test-integration` | Docker, `make setup` | Выполняет `make test-db-setup` и проверяет readiness и persistence на изолированной БД `roots_of_rhythm_test`. |
 | `make test-coverage` | Docker, `make setup` | Запускает backend unit/integration и frontend tests; создаёт `backend/coverage.xml` и `frontend/coverage/lcov.info`. |
-| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: `/`, identity/not-found HOME-0, header «Жанры», «Исполнители» и «Группы», каталоги `/genres`, `/performers` и `/groups`, seed Swing page, seed Louis Armstrong page, seed Count Basie Orchestra page и переходы relation-имён Swing→Jazz и Swing→Jump Blues. |
+| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: основные каталоги и detail pages, Recording catalog/detail, интерактивная Song page Sixteen Tons, not-found, browser history и mobile layout. |
 | `make contract-check` | `make setup` | Проверяет OpenAPI через Redocly и отсутствие drift в generated TypeScript contract. |
 | `make build` | Docker | Собирает production images backend и frontend. |
 | `make check` | Docker, `make setup` | Выполняет format-check, lint, typecheck, unit tests, contract-check и Docker build. |

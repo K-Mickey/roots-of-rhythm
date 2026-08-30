@@ -1,6 +1,13 @@
 from enum import StrEnum
 
 
+class RecordingOriginPredicate(StrEnum):
+    FIRST_KNOWN_PERFORMANCE_OF = "first_known_performance_of"
+    FIRST_RECORDING_OF = "first_recording_of"
+    FIRST_RELEASED_RECORDING_OF = "first_released_recording_of"
+    RECORDED_BY_WORK_AUTHOR = "recorded_by_work_author"
+
+
 class RelationType(StrEnum):
     INFLUENCED = "influenced"
     CONTRIBUTED_TO_EMERGENCE_OF = "contributed_to_emergence_of"

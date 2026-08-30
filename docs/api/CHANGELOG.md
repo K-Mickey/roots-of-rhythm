@@ -1,5 +1,46 @@
 # API changelog
 
+## 0.10.1 — 2026-08-29
+
+STORY-008 TASK-005 origin Claims:
+
+- `origin_badges` on `RecordingOverviewResponse` and `SongRecordingSummary` now lists predicate slugs for published `supported` `recording_origin` Claims;
+- supported values: `first_known_performance_of`, `first_recording_of`, `first_released_recording_of`, `recorded_by_work_author`;
+- unverified/disputed Claims and Claims for unpublished endpoints remain omitted.
+
+Breaking changes: none; behavior change for previously empty `origin_badges`.
+
+## 0.10.0 — 2026-08-28
+
+STORY-008 Song overview recording chronology and genre facets:
+
+- extended `GET /api/v1/songs/{song_id}` with `recording_genres` and `recordings`;
+- facets count distinct published Recordings with `complete` or `partial` Work usage;
+- `medley_component` appears in chronology but not in facets;
+- `first_release_date` on recording summaries is `null` until STORY-009; `origin_badges` filled in 0.10.1.
+
+Breaking changes: none; additive required fields on `SongOverviewResponse`.
+
+## 0.9.0 — 2026-08-28
+
+STORY-008 published Recording catalog:
+
+- added `GET /api/v1/recordings` returning `RecordingListResponse` with title, period, primary credits and Genres;
+- Recordings without a published primary Person/Group are omitted from the list;
+- list failures use `INTERNAL_ERROR`.
+
+Breaking changes: none; additive.
+
+## 0.8.0 — 2026-08-28
+
+STORY-008 published Recording overview:
+
+- added `GET /api/v1/recordings/{recording_id}` with published Works, visible credits, Genres, rights-aware lyrics and optional ListeningGuide;
+- non-public Recording and Recording without a published primary Person/Group return `RECORDING_NOT_FOUND`;
+- `first_release_date` is `null` until STORY-009; `origin_badges` filled in 0.10.1.
+
+Breaking changes: none; additive.
+
 ## 0.7.0 — 2026-08-28
 
 STORY-007 published Song catalog and overview:
