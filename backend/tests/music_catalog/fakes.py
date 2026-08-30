@@ -349,20 +349,28 @@ class FakeLyricsVersionRepository:
         }
 
     async def list_published_for_work(self, work_id: UUID) -> list[LyricsVersion]:
+        return (await self.list_published_for_works([work_id])).get(work_id, [])
+
+    async def list_published_for_works(self, work_ids: Collection[UUID]) -> dict[UUID, list[LyricsVersion]]:
         usage_rank = {LyricsUsageKind.PERFORMABLE: 0, LyricsUsageKind.READING_TRANSLATION: 1}
-        return sorted(
+        ids = set(work_ids)
+        versions: dict[UUID, list[LyricsVersion]] = {}
+        for version in sorted(
             (
                 version
                 for version in self._versions.values()
-                if version.work_id == work_id and version.editorial_status is EditorialStatus.PUBLISHED
+                if version.work_id in ids and version.editorial_status is EditorialStatus.PUBLISHED
             ),
             key=lambda version: (
+                version.work_id,
                 usage_rank[version.usage_kind],
                 version.language_tag,
                 version.label or "",
                 version.id,
             ),
-        )
+        ):
+            versions.setdefault(version.work_id, []).append(version)
+        return versions
 
     async def save(self, version: LyricsVersion) -> None:
         if version.id not in self._versions:

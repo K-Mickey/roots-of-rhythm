@@ -51,8 +51,11 @@ class GroupOverviewQuery:
 
         members: list[GroupMemberView] = []
         async with self._people_uow_factory() as people_uow:
+            persons = await people_uow.persons.get_published_by_ids(
+                [membership.person_id for membership in memberships],
+            )
             for membership in memberships:
-                person = await people_uow.persons.get_published(membership.person_id)
+                person = persons.get(membership.person_id)
                 if person is None:
                     continue
                 members.append(

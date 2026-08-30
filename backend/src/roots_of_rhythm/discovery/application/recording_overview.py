@@ -65,18 +65,16 @@ class RecordingOverviewQuery:
             works = await uow.works.get_published_by_ids([item.work_id for item in recording.work_usages])
             assignments = await uow.assignments.list_published_for_recording(recording_id)
             genres = await uow.genres.get_published_by_ids([item.concept_id for item in assignments])
+            group_ids = sorted(
+                item.target_id for item in recording.credits if item.target_kind is RecordingCreditTargetKind.GROUP
+            )
+            groups = await uow.groups.get_published_by_ids(group_ids)
 
         person_ids = {
             item.target_id for item in recording.credits if item.target_kind is RecordingCreditTargetKind.PERSON
         }
         async with self._people() as people:
             persons = await people.persons.get_published_by_ids(person_ids)
-        group_ids = sorted(
-            item.target_id for item in recording.credits if item.target_kind is RecordingCreditTargetKind.GROUP
-        )
-        async with self._music() as uow:
-            groups = await uow.groups.get_published_by_ids(group_ids)
-
         visible_credits = []
         for credit in recording.credits:
             target = (

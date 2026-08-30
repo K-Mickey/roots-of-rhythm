@@ -22,7 +22,6 @@ class SqlAlchemySongMusicReader:
                 return SongMusicReadData(None)
             work_credits = await uow.work_credits.list_published_for_work(song_id)
             assignments = await uow.assignments.list_published_for_work(song_id)
-            genres = await uow.genres.get_published_by_ids([item.concept_id for item in assignments])
             work_relations = await uow.work_relations.list_published_for_work(song_id)
             lyrics_versions = await uow.lyrics_versions.list_published_for_work(song_id)
             version_ids = [version.id for version in lyrics_versions]
@@ -41,8 +40,10 @@ class SqlAlchemySongMusicReader:
             recordings = await uow.recordings.list_published_for_work(song_id)
             recording_ids = [recording.id for recording in recordings]
             recording_assignments = await uow.assignments.list_published_for_recordings(recording_ids)
-            recording_genres = await uow.genres.get_published_by_ids(
-                {item.concept_id for items in recording_assignments.values() for item in items},
+            genre_ids = {item.concept_id for item in assignments}
+            recording_genre_ids = {item.concept_id for items in recording_assignments.values() for item in items}
+            genres_by_id = await uow.genres.get_published_by_ids(
+                genre_ids | recording_genre_ids,
             )
             groups = await uow.groups.get_published_by_ids(
                 {
@@ -56,7 +57,7 @@ class SqlAlchemySongMusicReader:
         return SongMusicReadData(
             work=work,
             work_credits=tuple(work_credits),
-            genres=tuple(genres.values()),
+            genres=tuple(genres_by_id[genre_id] for genre_id in sorted(genre_ids) if genre_id in genres_by_id),
             work_relations=tuple(work_relations),
             related_works=tuple(related_works.values()),
             lyrics_versions=tuple(lyrics_versions),
@@ -67,6 +68,8 @@ class SqlAlchemySongMusicReader:
             ),
             recordings=tuple(recordings),
             recording_assignments=tuple(item for items in recording_assignments.values() for item in items),
-            recording_genres=tuple(recording_genres.values()),
+            recording_genres=tuple(
+                genres_by_id[genre_id] for genre_id in sorted(recording_genre_ids) if genre_id in genres_by_id
+            ),
             groups=tuple(groups.values()),
         )

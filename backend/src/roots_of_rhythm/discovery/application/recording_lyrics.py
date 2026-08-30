@@ -39,8 +39,11 @@ class RecordingLyricsProjectionQuery:
                 if usage.lyrics_version_id in explicit
             ]
             if not selected:
+                versions_by_work = await uow.lyrics_versions.list_published_for_works(
+                    [usage.work_id for usage in recording.work_usages],
+                )
                 for work_usage in recording.work_usages:
-                    versions = await uow.lyrics_versions.list_published_for_work(work_usage.work_id)
+                    versions = versions_by_work.get(work_usage.work_id, ())
                     if version := next(
                         (item for item in versions if item.usage_kind is LyricsUsageKind.PERFORMABLE), None
                     ):

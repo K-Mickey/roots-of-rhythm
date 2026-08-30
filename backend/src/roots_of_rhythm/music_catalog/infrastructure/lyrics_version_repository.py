@@ -44,6 +44,13 @@ class SqlAlchemyLyricsVersionRepository:
         return {record.id: lyrics_version_from_record(record) for record in result.scalars()}
 
     async def list_published_for_work(self, work_id: UUID) -> list[LyricsVersion]:
+        versions = await self.list_published_for_works([work_id])
+        return versions.get(work_id, [])
+
+    async def list_published_for_works(self, work_ids: Collection[UUID]) -> dict[UUID, list[LyricsVersion]]:
+        ids = set(work_ids)
+        if not ids:
+            return {}
         usage_order = case(
             (LyricsVersionRecord.usage_kind == LyricsUsageKind.PERFORMABLE.value, 0),
             else_=1,
@@ -51,14 +58,23 @@ class SqlAlchemyLyricsVersionRepository:
         statement = (
             select(LyricsVersionRecord)
             .where(
-                LyricsVersionRecord.work_id == work_id,
+                LyricsVersionRecord.work_id.in_(ids),
                 LyricsVersionRecord.editorial_status == EditorialStatus.PUBLISHED.value,
                 LyricsVersionRecord.deleted.is_(False),
             )
-            .order_by(usage_order, LyricsVersionRecord.language_tag, LyricsVersionRecord.label, LyricsVersionRecord.id)
+            .order_by(
+                LyricsVersionRecord.work_id,
+                usage_order,
+                LyricsVersionRecord.language_tag,
+                LyricsVersionRecord.label,
+                LyricsVersionRecord.id,
+            )
         )
         result = await self._session.execute(statement)
-        return [lyrics_version_from_record(record) for record in result.scalars()]
+        versions: dict[UUID, list[LyricsVersion]] = {}
+        for record in result.scalars():
+            versions.setdefault(record.work_id, []).append(lyrics_version_from_record(record))
+        return versions
 
     async def save(self, version: LyricsVersion) -> None:
         record = await self._get_record(version.id, for_update=True)

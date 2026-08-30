@@ -22,6 +22,7 @@ from roots_of_rhythm.music_catalog.domain import (
     LyricsVersionRelationType,
 )
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
+from tests.support.postgres import collect_select_statements
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -54,6 +55,7 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
     from roots_of_rhythm.music_catalog.domain import WorkContent
 
     work = await work_service.create(WorkContent.create("One O'Clock Jump", provenance="Seed."))
+    second_work = await work_service.create(WorkContent.create("Jumpin' at the Woodside", provenance="Seed."))
     performable = await lyrics_service.create(
         work.id,
         source_version.id,
@@ -77,6 +79,17 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
     )
     await lyrics_service.publish(performable.id)
     await lyrics_service.publish(reading.id)
+    await work_service.publish(second_work.id)
+    second_performable = await lyrics_service.create(
+        second_work.id,
+        source_version.id,
+        LyricsVersionContent.create(
+            language_tag="en",
+            usage_kind=LyricsUsageKind.PERFORMABLE,
+            creation_method=LyricsCreationMethod.ORIGINAL,
+        ),
+    )
+    second_performable = await lyrics_service.publish(second_performable.id)
 
     relation = await relation_service.create(
         reading.id,
@@ -91,6 +104,7 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         published_versions = await uow.lyrics_versions.list_published_for_work(work.id)
+        published_versions_by_work = await uow.lyrics_versions.list_published_for_works([second_work.id, work.id])
         relations = await uow.lyrics_version_relations.list_published_for_version(reading.id)
 
     assert [version.usage_kind for version in published_versions] == [
@@ -99,12 +113,28 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
     ]
     assert published_versions[0].language_tag == "en"
     assert published_versions[1].language_tag == "ru"
+    assert published_versions_by_work == {
+        work.id: published_versions,
+        second_work.id: [second_performable],
+    }
     assert len(relations) == 1
     assert relations[0].relation_type is LyricsVersionRelationType.TRANSLATION_OF
 
     disclosure = await projection.disclose_body_for_version(published_versions[0])
     assert disclosure.body == "Jumpin' at the woodside"
     assert disclosure.body_unavailable_reason is None
+
+
+@pytest.mark.asyncio
+async def test_lyrics_version_batch_read_skips_empty_input(engine: AsyncEngine) -> None:
+    session_factory = create_session_factory(engine)
+
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+        with collect_select_statements() as selects:
+            versions = await uow.lyrics_versions.list_published_for_works([])
+
+    assert versions == {}
+    assert selects == []
 
 
 @pytest.mark.asyncio
