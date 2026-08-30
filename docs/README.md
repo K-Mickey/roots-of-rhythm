@@ -39,6 +39,7 @@
 - [Учебная последовательность](roadmap/learning-roadmap.md)
 - [GitHub delivery workflow](roadmap/delivery-workflow.md)
 - [Эволюция инфраструктуры](roadmap/infrastructure-evolution.md)
+- [Рефакторинг application architecture](roadmap/application-architecture-refactoring.md) — `accepted`
 - [Архитектура](architecture.md)
 - [Структура модулей и тестов](module-structure.md)
 - [Разработка](development.md)

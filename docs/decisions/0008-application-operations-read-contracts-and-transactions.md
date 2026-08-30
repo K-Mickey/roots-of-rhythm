@@ -135,6 +135,8 @@ Read use case не использует UoW без требования согл
 
 Каждый шаг обратим независимо: operation может временно вернуться к прежнему port, не меняя domain model, database schema или публичный API. Если context readers не уменьшают сложность и query count, текущие repository contracts сохраняются, а дальнейшее распространение подхода прекращается.
 
+Подробная декомпозиция миграции: [рефакторинг application architecture](../roadmap/application-architecture-refactoring.md).
+
 Связанные решения: [ADR-0001](0001-modular-monolith-context-boundaries.md), [ADR-0002](0002-aggregate-and-transaction-boundaries.md), [ADR-0003](0003-extraction-ready-monolith.md), [ADR-0006](0006-pessimistic-write-locks.md), [DDD Workshop 003](../domain/workshops/003-context-map.md), [DDD Workshop 004](../domain/workshops/004-aggregate-boundaries.md).
 
 Решение принято пользователем 2026-08-30.
