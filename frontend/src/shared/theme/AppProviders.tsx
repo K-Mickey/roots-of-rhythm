@@ -8,10 +8,10 @@ import { createAppTheme } from '@/shared/theme/theme';
 export function AppProviders({
   children,
   fontFamily,
-}: {
+}: Readonly<{
   children: ReactNode;
   fontFamily: string;
-}) {
+}>) {
   const theme = createAppTheme(fontFamily);
 
   return <MantineProvider theme={theme}>{children}</MantineProvider>;

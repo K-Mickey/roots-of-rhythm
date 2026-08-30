@@ -5,9 +5,9 @@ import { GenrePageContent } from '@/features/genre-page/GenrePageContent';
 import { PageError } from '@/shared/ui/PageError';
 import { fetchGenrePage } from '@/shared/api/genre';
 
-type PageProps = {
+type PageProps = Readonly<{
   params: Promise<{ genre_id: string }>;
-};
+}>;
 
 export default async function GenrePage({ params }: PageProps) {
   const { genre_id: genreId } = await params;

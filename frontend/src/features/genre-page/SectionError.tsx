@@ -6,11 +6,11 @@ export function SectionError({
   title,
   message,
   retryHref,
-}: {
+}: Readonly<{
   title: string;
   message: string;
   retryHref: string;
-}) {
+}>) {
   return (
     <Stack
       gap="sm"

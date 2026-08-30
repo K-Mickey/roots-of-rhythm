@@ -16,7 +16,9 @@ import { PublicImage } from '@/shared/ui/PublicImage';
 
 import { formatPeriod, hasPeriodBounds } from './labels';
 
-export function GroupPageContent({ group }: { group: GroupOverview }) {
+export function GroupPageContent({
+  group,
+}: Readonly<{ group: GroupOverview }>) {
   const image = group.primary_image;
   const aliases = group.aliases;
   const groupPeriod = hasPeriodBounds(group.period)

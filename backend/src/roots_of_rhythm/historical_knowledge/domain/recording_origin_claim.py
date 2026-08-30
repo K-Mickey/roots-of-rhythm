@@ -15,18 +15,13 @@ from roots_of_rhythm.historical_knowledge.domain.value_objects import (
     ClaimProvenance,
     GeographicContext,
     HistoricalPeriod,
+    _replacement,
     _required_text,
 )
 from roots_of_rhythm.text_lengths import TEXT_1024
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-
-def _replacement[T](current: T | None, replacement: T | None, *, clear: bool) -> T | None:
-    if clear:
-        return None
-    return current if replacement is None else replacement
 
 
 class RecordingOriginClaim(msgspec.Struct, frozen=True):

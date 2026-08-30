@@ -21,8 +21,8 @@ from roots_of_rhythm.text_lengths import TEXT_64, TEXT_1024, TEXT_2048, TEXT_409
 
 _LANGUAGE_SUBTAG = re.compile(r"^[A-Za-z]{2,3}$")
 _SCRIPT_SUBTAG = re.compile(r"^[A-Za-z]{4}$")
-_REGION_SUBTAG = re.compile(r"^([A-Za-z]{2}|[0-9]{3})$")
-_VARIANT_SUBTAG = re.compile(r"^([0-9][A-Za-z0-9]{4,7}|[A-Za-z]{4})$")
+_REGION_SUBTAG = re.compile(r"^([A-Za-z]{2}|\d{3})$", re.ASCII)
+_VARIANT_SUBTAG = re.compile(r"^(\d[A-Za-z0-9]{4,7}|[A-Za-z]{4})$", re.ASCII)
 _ISRC = re.compile(r"^[A-Z]{2}[A-Z\d]{3}\d{7}$", re.ASCII)
 _CREDITED_AS_FIELD = "credited as"
 

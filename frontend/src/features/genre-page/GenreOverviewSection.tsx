@@ -6,9 +6,9 @@ import { PublicImage } from '@/shared/ui/PublicImage';
 
 export function GenreOverviewSection({
   overview,
-}: {
+}: Readonly<{
   overview: GenreOverview;
-}) {
+}>) {
   const hasHistoryBlock =
     overview.historical_context !== null ||
     overview.formation !== null ||
@@ -47,47 +47,59 @@ export function GenreOverviewSection({
         <Grid type="container" gap="md">
           {hasHistoryBlock ? (
             <GridCol span={{ base: 12, md: hasFeatures ? 6 : 12 }}>
-              <Stack gap="sm">
-                <Title order={2} id="genre-history-heading">
-                  Исторический контекст
-                </Title>
-                {overview.geography_or_origin !== null ? (
-                  <Text>{overview.geography_or_origin.summary}</Text>
-                ) : null}
-                {overview.historical_context !== null ? (
-                  <Text>{overview.historical_context}</Text>
-                ) : null}
-                {overview.formation !== null ? (
-                  <Stack gap="xs">
-                    <Title order={3}>Формирование</Title>
-                    <Text>{overview.formation}</Text>
-                  </Stack>
-                ) : null}
-              </Stack>
+              <GenreHistory overview={overview} />
             </GridCol>
           ) : null}
           {hasFeatures ? (
             <GridCol span={{ base: 12, md: hasHistoryBlock ? 6 : 12 }}>
-              <Stack gap="sm">
-                <Title order={2} id="genre-features-heading">
-                  Характерные черты
-                </Title>
-                <Stack
-                  gap="xs"
-                  component="ul"
-                  style={{ paddingInlineStart: '1.25rem', margin: 0 }}
-                >
-                  {overview.characteristic_features.map((feature) => (
-                    <Text component="li" key={feature}>
-                      {feature}
-                    </Text>
-                  ))}
-                </Stack>
-              </Stack>
+              <GenreFeatures features={overview.characteristic_features} />
             </GridCol>
           ) : null}
         </Grid>
       ) : null}
+    </Stack>
+  );
+}
+
+function GenreHistory({ overview }: Readonly<{ overview: GenreOverview }>) {
+  return (
+    <Stack gap="sm">
+      <Title order={2} id="genre-history-heading">
+        Исторический контекст
+      </Title>
+      {overview.geography_or_origin !== null ? (
+        <Text>{overview.geography_or_origin.summary}</Text>
+      ) : null}
+      {overview.historical_context !== null ? (
+        <Text>{overview.historical_context}</Text>
+      ) : null}
+      {overview.formation !== null ? (
+        <Stack gap="xs">
+          <Title order={3}>Формирование</Title>
+          <Text>{overview.formation}</Text>
+        </Stack>
+      ) : null}
+    </Stack>
+  );
+}
+
+function GenreFeatures({ features }: Readonly<{ features: string[] }>) {
+  return (
+    <Stack gap="sm">
+      <Title order={2} id="genre-features-heading">
+        Характерные черты
+      </Title>
+      <Stack
+        gap="xs"
+        component="ul"
+        style={{ paddingInlineStart: '1.25rem', margin: 0 }}
+      >
+        {features.map((feature) => (
+          <Text component="li" key={feature}>
+            {feature}
+          </Text>
+        ))}
+      </Stack>
     </Stack>
   );
 }

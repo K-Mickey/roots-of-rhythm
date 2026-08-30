@@ -18,9 +18,9 @@ import { formatPersonDate, safeExternalHref } from './labels';
 
 export function PerformerPageContent({
   performer,
-}: {
+}: Readonly<{
   performer: PerformerOverview;
-}) {
+}>) {
   const image = performer.primary_image;
   const aliases = performer.aliases;
   const birthDate = performer.birth_date;

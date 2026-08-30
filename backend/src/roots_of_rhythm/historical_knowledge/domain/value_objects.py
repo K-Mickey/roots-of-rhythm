@@ -20,6 +20,12 @@ def _optional_text(value: str | None, field: str, *, max_length: int) -> str | N
     return None if value is None else _required_text(value, field, max_length=max_length)
 
 
+def _replacement[T](current: T | None, replacement: T | None, *, clear: bool) -> T | None:
+    if clear:
+        return None
+    return current if replacement is None else replacement
+
+
 class TemporalBound(msgspec.Struct, frozen=True):
     year: int
     precision: TemporalPrecision

@@ -19,10 +19,10 @@ type Source = components['schemas']['SourceView'];
 export function GenreRelationsSection({
   relations,
   sources,
-}: {
+}: Readonly<{
   relations: GenreRelations['relations'];
   sources: Source[];
-}) {
+}>) {
   if (relations.length === 0) {
     return null;
   }
@@ -56,10 +56,10 @@ export function GenreRelationsSection({
 function RelationCard({
   relation,
   sources,
-}: {
+}: Readonly<{
   relation: Relation;
   sources: Source[];
-}) {
+}>) {
   const label = relationPerspectiveLabel(
     relation.relation_type,
     relation.perspective,

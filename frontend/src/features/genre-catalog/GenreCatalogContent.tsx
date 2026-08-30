@@ -5,7 +5,9 @@ import Link from 'next/link';
 
 import type { GenreList } from '@/shared/api/genre';
 
-export function GenreCatalogContent({ items }: { items: GenreList['items'] }) {
+export function GenreCatalogContent({
+  items,
+}: Readonly<{ items: GenreList['items'] }>) {
   return (
     <Stack gap="md">
       <Title order={1}>Жанры</Title>

@@ -4,9 +4,9 @@ import type { GenreSources } from '@/shared/api/genre';
 
 export function GenreSourcesSection({
   sources,
-}: {
+}: Readonly<{
   sources: GenreSources['sources'];
-}) {
+}>) {
   if (sources.length === 0) {
     return null;
   }

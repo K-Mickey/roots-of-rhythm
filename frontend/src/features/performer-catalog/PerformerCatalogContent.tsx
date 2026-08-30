@@ -7,9 +7,9 @@ import type { PerformerList } from '@/shared/api/performer';
 
 export function PerformerCatalogContent({
   items,
-}: {
+}: Readonly<{
   items: PerformerList['items'];
-}) {
+}>) {
   return (
     <Stack gap="md">
       <Title order={1}>Исполнители</Title>

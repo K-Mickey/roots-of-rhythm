@@ -9,7 +9,7 @@ type PublicImageView = components['schemas']['PublicImageView'];
 
 type ImageStatus = 'pending' | 'ready' | 'broken';
 
-export function PublicImage({ image }: { image: PublicImageView }) {
+export function PublicImage({ image }: Readonly<{ image: PublicImageView }>) {
   const [status, setStatus] = useState<ImageStatus>('pending');
 
   useEffect(() => {

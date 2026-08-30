@@ -15,6 +15,7 @@ from roots_of_rhythm.historical_knowledge.domain.value_objects import (
     ClaimProvenance,
     GeographicContext,
     HistoricalPeriod,
+    _replacement,
     _required_text,
     canonicalize_relation_endpoints,
 )
@@ -67,12 +68,12 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
     ) -> "GenreRelationClaim":
         next_type = self.relation_type if relation_type is None else relation_type
         subject, target = canonicalize_relation_endpoints(self.subject_genre_id, self.target_genre_id, next_type)
-        next_explanation = None if clear_explanation else (self.explanation if explanation is None else explanation)
+        next_explanation = _replacement(self.explanation, explanation, clear=clear_explanation)
         if next_explanation is not None:
             next_explanation = _required_text(next_explanation, "explanation", max_length=TEXT_1024)
-        next_temporal = None if clear_temporal else (self.temporal if temporal is None else temporal)
-        next_geographic = None if clear_geographic else (self.geographic if geographic is None else geographic)
-        next_provenance = None if clear_provenance else (self.provenance if provenance is None else provenance)
+        next_temporal = _replacement(self.temporal, temporal, clear=clear_temporal)
+        next_geographic = _replacement(self.geographic, geographic, clear=clear_geographic)
+        next_provenance = _replacement(self.provenance, provenance, clear=clear_provenance)
         next_evidence_status = self.evidence_status if evidence_status is None else evidence_status
         updated = GenreRelationClaim(
             id=self.id,

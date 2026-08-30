@@ -5,7 +5,9 @@ import Link from 'next/link';
 
 import type { SongList } from '@/shared/api/song';
 
-export function SongCatalogContent({ items }: { items: SongList['items'] }) {
+export function SongCatalogContent({
+  items,
+}: Readonly<{ items: SongList['items'] }>) {
   return (
     <Stack gap="md">
       <Title order={1}>Песни</Title>

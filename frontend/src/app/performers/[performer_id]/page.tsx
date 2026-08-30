@@ -5,9 +5,9 @@ import { PageError } from '@/shared/ui/PageError';
 import { PerformerPageContent } from '@/features/performer-page/PerformerPageContent';
 import { fetchPerformerOverview } from '@/shared/api/performer';
 
-type PageProps = {
+type PageProps = Readonly<{
   params: Promise<{ performer_id: string }>;
-};
+}>;
 
 export default async function PerformerPage({ params }: PageProps) {
   const { performer_id: performerId } = await params;

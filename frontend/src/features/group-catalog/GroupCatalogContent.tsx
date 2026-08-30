@@ -5,7 +5,9 @@ import Link from 'next/link';
 
 import type { GroupList } from '@/shared/api/group';
 
-export function GroupCatalogContent({ items }: { items: GroupList['items'] }) {
+export function GroupCatalogContent({
+  items,
+}: Readonly<{ items: GroupList['items'] }>) {
   return (
     <Stack gap="md">
       <Title order={1}>Группы</Title>

@@ -5,9 +5,9 @@ import { PageError } from '@/shared/ui/PageError';
 import { GroupPageContent } from '@/features/group-page/GroupPageContent';
 import { fetchGroupOverview } from '@/shared/api/group';
 
-type PageProps = {
+type PageProps = Readonly<{
   params: Promise<{ group_id: string }>;
-};
+}>;
 
 export default async function GroupPage({ params }: PageProps) {
   const { group_id: groupId } = await params;
