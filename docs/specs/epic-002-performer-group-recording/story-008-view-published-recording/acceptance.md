@@ -1,6 +1,6 @@
 # STORY-008 приёмка TASK-007
 
-Статус: `draft`
+Статус: `accepted`
 
 Владелец: Product Owner.
 
@@ -8,7 +8,7 @@ Story: [STORY-008](README.md).
 Task: [TASK-007](tasks.md#task-007-seed-и-приёмка-story-008).  
 Tracker: story [#34](https://github.com/K-Mickey/roots-of-rhythm/issues/34), task [#55](https://github.com/K-Mickey/roots-of-rhythm/issues/55).
 
-Дата прогона: 2026-08-30. База кода: `b7fff94` (TASK-007A) плюс локальные изменения TASK-007B.
+Дата прогона: 2026-08-30. База кода: merge commit `761ad7b` (PR [#57](https://github.com/K-Mickey/roots-of-rhythm/pull/57)).
 
 ## Команды и результаты
 
@@ -75,8 +75,9 @@ Tracker: story [#34](https://github.com/K-Mickey/roots-of-rhythm/issues/34), tas
 
 ## Tracker
 
-Story [#34](https://github.com/K-Mickey/roots-of-rhythm/issues/34) и task [#55](https://github.com/K-Mickey/roots-of-rhythm/issues/55) не закрываются автоматически. Документ остаётся `draft` до утверждения Product Owner.
+Story [#34](https://github.com/K-Mickey/roots-of-rhythm/issues/34) и tasks [#49–55](https://github.com/K-Mickey/roots-of-rhythm/issues/49) закрыты merge PR [#57](https://github.com/K-Mickey/roots-of-rhythm/pull/57) и переведены в `Done` после утверждения Product Owner.
 
 ## История
 
 - 2026-08-30: controlled Recording corpus, browser acceptance и итоговый прогон STORY-008.
+- 2026-08-30: Product Owner утвердил приёмку; STORY-008 и TASK-001–007 синхронизированы в `Done`.
