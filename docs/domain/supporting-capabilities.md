@@ -73,7 +73,9 @@ Discovery отвечает за чтение, которое объединяе�
 
 Read models производны и должны быть перестраиваемыми. Discovery не принимает write-команды, не определяет истинность Claim и не меняет lifecycle объекта.
 
-В первой версии допустим отдельный query-код с оптимизированным read-only SQL к общей БД. Он не должен импортировать чужие ORM-модели как способ записи. Материализованные projections, cache и Elasticsearch добавляются только по измеренной необходимости.
+Discovery query является read use case и оркестрирует публичные application/query contracts владельцев данных. Для сложной страницы каждый context может предоставить предметный public reader, который пакетно загружает и проецирует только собственные данные. Discovery применяет межконтекстные правила видимости и собирает конечный DTO, но не импортирует чужие ORM-модели и не выполняет прямой SQL по нескольким contexts.
+
+Context-владелец фильтрует собственные `published`, `deleted` и access rules. Чистый mapper/projector может отделять сборку DTO от I/O, но не является обязательным классом. Материализованные projections, cache, отдельная read database и Elasticsearch добавляются только по измеренной необходимости. Политика application operations и read contracts определена в [ADR-0008](../decisions/0008-application-operations-read-contracts-and-transactions.md).
 
 ## AI Research
 
@@ -149,7 +151,7 @@ flowchart LR
     AI --> HK
 ```
 
-Каталоги и Historical Knowledge не зависят от UI, Discovery или AI Research. Они могут предоставлять application/query contracts, но не знают, какой transport или workflow их вызвал.
+Каталоги и Historical Knowledge не зависят от UI, Discovery или AI Research. Они могут предоставлять application/query contracts и предметные public readers, но не знают, какой transport или workflow их вызвал. Reader возвращает application-owned read DTO и скрывает локальный persistence plan; универсальный фасад всех данных контекста не вводится.
 
 ## Почему без event bus
 

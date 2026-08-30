@@ -23,6 +23,10 @@ Historical Knowledge владеет Claims и историческими свя�
 
 Editorial, Discovery и AI Research планируются как логические supporting capabilities, но не как bounded contexts или сервисы. Editorial оркестрирует редакционный lifecycle, Discovery является read side, AI Research владеет только техническими индексами, AI-запусками и proposals. Их физические code/module boundaries не фиксируются до использующей story.
 
+Application operations следуют [ADR-0008](decisions/0008-application-operations-read-contracts-and-transactions.md). Связный lifecycle одного aggregate может оставаться application service; самостоятельный сценарий с отличающимися зависимостями, правами или транзакцией оформляется отдельным use case. Это роли, а не обязательная цепочка классов: дополнительный service или projector вводится только при содержательной пользе.
+
+Discovery queries являются read use cases. Они объединяют публичные проекции контекстов, но не читают чужие ORM-модели и не владеют исходными данными. Для составного чтения context-владелец может предоставить предметный public reader с batch-загрузкой в пределах своих таблиц. Целевая ответственность UoW — write-транзакция; repositories внедряются отдельно. Текущие pair scopes ADR-0006 остаются переходным механизмом до инкрементальной миграции write-path.
+
 ## Принятый application stack
 
 - backend: Python, Litestar, msgspec и Uvicorn;

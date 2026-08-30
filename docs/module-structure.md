@@ -151,12 +151,14 @@ backend/tests/
 ```text
 <module>/
 ├── domain/          # entities, value objects, policies
-├── application/     # use cases, orchestration, owned ports
+├── application/     # cohesive services, use cases, read contracts, owned ports
 ├── infrastructure/  # DB, SDK, filesystem and network adapters
 └── presentation/    # только принадлежащий модулю transport mapping, если нужен
 ```
 
 Не создавать четыре пустых слоя для простого модуля. Dependency direction важнее одинакового дерева директорий.
+
+Application service может группировать связный lifecycle одного aggregate. Отдельный command use case нужен при самостоятельном сценарии или отличающихся зависимостях, правах и транзакции; отдельный класс на каждый тривиальный метод не требуется. Discovery query является read use case и зависит от публичных context readers, а не от ORM другого модуля. Mapper/projector остаётся обычной функцией, если отдельный объект не даёт самостоятельной пользы. Подробности: [ADR-0008](decisions/0008-application-operations-read-contracts-and-transactions.md).
 
 ## Правила зависимостей
 
@@ -168,6 +170,8 @@ backend/tests/
 6. Media и AI Research не используют общую ORM session для изменения данных Core.
 7. Entrypoint преобразует transport DTO и вызывает use case; доменные правила в transport не дублируются.
 8. Общая папка `shared` не создаётся заранее. Код переносится туда только при нескольких реальных потребителях и отсутствии предметного владельца.
+9. UoW определяет write-транзакцию, а operation получает используемые repositories отдельно; существующие registry-style UoW мигрируют инкрементально.
+10. Public reader читает и оптимизирует только данные владеющего context; межконтекстную публичную видимость вычисляет Discovery.
 
 ## Структура тестов
 

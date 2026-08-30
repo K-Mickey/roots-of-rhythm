@@ -13,3 +13,4 @@
 - [ADR-0005: сервисные колонки persistence и soft-delete](0005-persistence-service-columns-and-soft-delete.md) — `proposed`.
 - [ADR-0006: пессимистические lock на write-path](0006-pessimistic-write-locks.md) — `proposed`.
 - [ADR-0007: границы MusicalWork, Recording и происхождения исполнений](0007-musical-work-recording-and-origin-boundaries.md) — `proposed`.
+- [ADR-0008: application operations, read contracts and transaction boundaries](0008-application-operations-read-contracts-and-transactions.md) — `accepted`.
