@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import GenreSourcesResponse, SourceView
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.dto.genres import GenreSourcesResponse, SourceView
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreSourcesAssemblyError,
     GenreSourcesNotFound,
 )

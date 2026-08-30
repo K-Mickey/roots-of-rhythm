@@ -3,18 +3,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from roots_of_rhythm.discovery.application.dto import (
+    from roots_of_rhythm.discovery.application.dto.genres import (
         GenreListResponse,
         GenreOverviewResponse,
         GenreRelationsResponse,
         GenreSourcesResponse,
-        GroupListResponse,
-        GroupOverviewResponse,
-        PerformerListResponse,
-        PerformerOverviewResponse,
-        SongListResponse,
-        SongOverviewResponse,
     )
+    from roots_of_rhythm.discovery.application.dto.groups import GroupListResponse, GroupOverviewResponse
+    from roots_of_rhythm.discovery.application.dto.performers import PerformerListResponse, PerformerOverviewResponse
+    from roots_of_rhythm.discovery.application.dto.songs import SongListResponse, SongOverviewResponse
 
 
 class StubGenreListReader:

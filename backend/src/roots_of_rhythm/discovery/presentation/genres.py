@@ -6,13 +6,13 @@ from litestar.di import NamedDependency  # noqa: TC002 - Litestar inspects handl
 from litestar.params import FromPath  # noqa: TC002 - required at runtime for Litestar path binding
 from litestar.response import Response
 
-from roots_of_rhythm.discovery.application.dto import (
-    GenreListResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-    GenreOverviewResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-    GenreRelationsResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-    GenreSourcesResponse,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-)
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.dto.genres import (
+    GenreListResponse,  # noqa: TC001
+    GenreOverviewResponse,  # noqa: TC001
+    GenreRelationsResponse,  # noqa: TC001
+    GenreSourcesResponse,  # noqa: TC001
+)  # noqa: TC001 - Litestar resolves handler annotations at runtime
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreOverviewNotFound,
     GenreRelationsNotFound,
     GenreSourcesNotFound,

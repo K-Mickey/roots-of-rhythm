@@ -1,17 +1,19 @@
 from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import (
-    EvidenceReferenceView,
-    GenreRelationsResponse,
-    GenreRelationView,
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
     GeographicContextView,
     RelationHistoricalPeriodView,
     RelationPerspective,
     RelationTemporalBoundView,
 )
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.dto.genres import (
+    EvidenceReferenceView,
+    GenreRelationsResponse,
+    GenreRelationView,
+)
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreRelationsAssemblyError,
     GenreRelationsNotFound,
 )

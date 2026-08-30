@@ -1,8 +1,10 @@
 from typing import TYPE_CHECKING
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     GroupSummary,
     PerformerSummary,
+)
+from roots_of_rhythm.discovery.application.dto.recordings import (
     RecordingPrimaryCreditView,
 )
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind

@@ -1,44 +1,40 @@
 from asyncio import gather
-from collections.abc import Callable, Collection
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     ExternalIdentityView,
     GenreSummary,
+    PerformerSummary,
+    SongSummary,
+)
+from roots_of_rhythm.discovery.application.dto.songs import (
     LyricsVersionRelationView,
     LyricsVersionSummary,
-    PerformerSummary,
     RelatedWorkView,
     SongLyricsVersionView,
     SongOverviewResponse,
     SongPeriodView,
-    SongSummary,
     SongWorkCreditView,
 )
-from roots_of_rhythm.discovery.application.errors import SongOverviewNotFound
-from roots_of_rhythm.discovery.application.song_recordings import project_song_recordings
+from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
+from roots_of_rhythm.discovery.application.projections.song_recordings import project_song_recordings
+from roots_of_rhythm.music_catalog.application.lyrics_body_projection import project_lyrics_version_body
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     from uuid import UUID
 
-    from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
-    from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import (
-        LyricsVersionProjectionService,
-    )
-    from roots_of_rhythm.music_catalog.application.ports import RecordingUnitOfWork
+    from roots_of_rhythm.historical_knowledge.public.song_context_reader import SongHistoricalKnowledgeReader
     from roots_of_rhythm.music_catalog.domain import (
         LyricsVersion,
         LyricsVersionCredit,
         LyricsVersionRelation,
         WorkCredit,
     )
-    from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
+    from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReader
     from roots_of_rhythm.people_catalog.domain import Person
-
-type PeopleUnitOfWorkFactory = Callable[[], PeopleCatalogUnitOfWork]
-type RecordingUnitOfWorkFactory = Callable[[], RecordingUnitOfWork]
-type HistoricalKnowledgeUnitOfWorkFactory = Callable[[], HistoricalKnowledgeUnitOfWork]
+    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
 
 
 @runtime_checkable
@@ -49,83 +45,66 @@ class SongOverviewReader(Protocol):
 class SongOverviewQuery:
     def __init__(
         self,
-        music_uow_factory: RecordingUnitOfWorkFactory,
-        people_uow_factory: PeopleUnitOfWorkFactory,
-        hk_uow_factory: HistoricalKnowledgeUnitOfWorkFactory,
-        lyrics_projection: LyricsVersionProjectionService,
+        music: SongMusicReader,
+        people: PublishedPeopleReader,
+        knowledge: SongHistoricalKnowledgeReader,
     ) -> None:
-        self._music_uow_factory = music_uow_factory
-        self._people_uow_factory = people_uow_factory
-        self._hk_uow_factory = hk_uow_factory
-        self._lyrics_projection = lyrics_projection
+        self._music = music
+        self._people = people
+        self._knowledge = knowledge
 
     async def get(self, song_id: UUID) -> SongOverviewResponse:
-        async with self._music_uow_factory() as music_uow:
-            work = await music_uow.works.get_published(song_id)
-            if work is None:
-                raise SongOverviewNotFound(str(song_id))
-            work_credits = await music_uow.work_credits.list_published_for_work(song_id)
-            assignments = await music_uow.assignments.list_published_for_work(song_id)
-            genres = await music_uow.genres.get_published_by_ids(
-                [assignment.concept_id for assignment in assignments],
-            )
-            work_relations = await music_uow.work_relations.list_published_for_work(song_id)
-            lyrics_versions = await music_uow.lyrics_versions.list_published_for_work(song_id)
-            version_ids = [version.id for version in lyrics_versions]
-            lyrics_credits_by_version = await music_uow.lyrics_version_credits.list_published_for_versions(
-                version_ids,
-            )
-            lyrics_relations_by_version = await music_uow.lyrics_version_relations.list_published_for_versions(
-                version_ids,
-            )
-            outbound_relations = [relation for relation in work_relations if relation.source_work_id == song_id]
-            related_works = await music_uow.works.get_published_by_ids(
-                [relation.target_work_id for relation in outbound_relations],
-            )
-            other_lyrics_ids = {
-                _other_lyrics_version_id(relation, version.id)
-                for version in lyrics_versions
-                for relation in lyrics_relations_by_version.get(version.id, ())
-            } - set(version_ids)
-            related_lyrics_versions = {
-                version.id: version for version in lyrics_versions
-            } | await music_uow.lyrics_versions.get_published_by_ids(other_lyrics_ids)
-            recordings = await music_uow.recordings.list_published_for_work(song_id)
-            recording_ids = [recording.id for recording in recordings]
-            recording_assignments = await music_uow.assignments.list_published_for_recordings(recording_ids)
-            recording_genre_ids = {
-                assignment.concept_id
-                for recording_assignment_list in recording_assignments.values()
-                for assignment in recording_assignment_list
-            }
-            recording_genres = await music_uow.genres.get_published_by_ids(recording_genre_ids)
-            group_ids = {
-                credit.target_id
-                for recording in recordings
-                for credit in recording.credits
-                if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.GROUP
-            }
-            groups = await music_uow.groups.get_published_by_ids(group_ids)
+        music = await self._music.get_song_data(song_id)
+        work = music.work
+        if work is None:
+            raise SongOverviewNotFound(str(song_id))
+        outbound_relations = [relation for relation in music.work_relations if relation.source_work_id == song_id]
+        lyrics_credits_by_version = {
+            version.id: [credit for credit in music.lyrics_credits if credit.lyrics_version_id == version.id]
+            for version in music.lyrics_versions
+        }
+        lyrics_relations_by_version = {
+            version.id: [
+                relation
+                for relation in music.lyrics_relations
+                if version.id in {relation.source_lyrics_version_id, relation.target_lyrics_version_id}
+            ]
+            for version in music.lyrics_versions
+        }
+        related_works = {item.id: item for item in music.related_works}
+        related_lyrics_versions = {item.id: item for item in (*music.lyrics_versions, *music.related_lyrics_versions)}
+        recording_assignments = {
+            recording.id: [item for item in music.recording_assignments if item.target_id == recording.id]
+            for recording in music.recordings
+        }
 
-        person_ids = {credit.person_id for credit in work_credits}
+        person_ids = {credit.person_id for credit in music.work_credits}
         for version_credits in lyrics_credits_by_version.values():
             person_ids.update(credit.person_id for credit in version_credits)
         person_ids.update(
             credit.target_id
-            for recording in recordings
+            for recording in music.recordings
             for credit in recording.credits
             if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.PERSON
         )
 
-        persons, body_disclosures = await gather(
-            self._load_persons(person_ids),
-            self._lyrics_projection.disclose_bodies_for_versions(lyrics_versions),
+        people, knowledge = await gather(
+            self._people.get_published_by_ids(person_ids),
+            self._knowledge.get_song_data(
+                [version.source_version_id for version in music.lyrics_versions],
+                [recording.id for recording in music.recordings],
+            ),
         )
-
-        async with self._hk_uow_factory() as hk_uow:
-            loaded_claims = await hk_uow.recording_origin_claims.list_supported_published_for_recordings(
-                recording_ids,
-            )
+        persons = {person.id: person for person in people.persons}
+        source_access_by_version = dict(knowledge.source_access_by_version)
+        body_disclosures = [
+            project_lyrics_version_body(version, source_access_by_version.get(version.source_version_id))
+            for version in music.lyrics_versions
+        ]
+        loaded_claims = {
+            recording.id: [claim for claim in knowledge.origin_claims if claim.recording_id == recording.id]
+            for recording in music.recordings
+        }
         origin_claims_by_recording = {
             recording_id: [claim for claim in claims if claim.work_id == song_id]
             for recording_id, claims in loaded_claims.items()
@@ -133,11 +112,11 @@ class SongOverviewQuery:
 
         recording_genres_view, recordings_view = project_song_recordings(
             song_id,
-            recordings,
+            list(music.recordings),
             recording_assignments,
-            recording_genres,
+            {item.id: item for item in music.recording_genres},
             persons,
-            groups,
+            {item.id: item for item in music.groups},
             origin_claims_by_recording,
         )
 
@@ -155,9 +134,9 @@ class SongOverviewQuery:
                 )
                 for identity in work.external_identities
             ],
-            credits=_work_credit_views(work_credits, persons),
+            credits=_work_credit_views(music.work_credits, persons),
             classifications=sorted(
-                (GenreSummary(id=str(genre.id), name=genre.content.canonical_name) for genre in genres.values()),
+                (GenreSummary(id=str(genre.id), name=genre.content.canonical_name) for genre in music.genres),
                 key=lambda item: item.name,
             ),
             related_works=sorted(
@@ -190,17 +169,11 @@ class SongOverviewQuery:
                         related_lyrics_versions,
                     ),
                 )
-                for version, disclosure in zip(lyrics_versions, body_disclosures, strict=True)
+                for version, disclosure in zip(music.lyrics_versions, body_disclosures, strict=True)
             ],
             recording_genres=recording_genres_view,
             recordings=recordings_view,
         )
-
-    async def _load_persons(self, person_ids: Collection[UUID]) -> dict[UUID, Person]:
-        if not person_ids:
-            return {}
-        async with self._people_uow_factory() as people_uow:
-            return await people_uow.persons.get_published_by_ids(person_ids)
 
 
 def _work_credit_views(

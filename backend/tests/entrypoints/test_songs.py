@@ -4,16 +4,18 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
     PerformerSummary,
+    SongSummary,
+)
+from roots_of_rhythm.discovery.application.dto.songs import (
     SongListResponse,
     SongOverviewResponse,
     SongPeriodView,
-    SongSummary,
     SongWorkCreditView,
 )
-from roots_of_rhythm.discovery.application.errors import SongOverviewNotFound
+from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
 from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.entrypoints.dependencies import (
     SONG_LIST_READER_DEPENDENCY,

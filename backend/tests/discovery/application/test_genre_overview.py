@@ -2,7 +2,7 @@ from uuid import uuid7
 
 import pytest
 
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreOverviewAssemblyError,
     GenreOverviewNotFound,
 )

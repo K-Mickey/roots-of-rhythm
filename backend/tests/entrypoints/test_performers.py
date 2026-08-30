@@ -4,15 +4,17 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     ExternalIdentityView,
     GenreSummary,
-    PerformerListResponse,
-    PerformerOverviewResponse,
     PerformerSummary,
     PersonDateView,
 )
-from roots_of_rhythm.discovery.application.errors import PerformerOverviewNotFound
+from roots_of_rhythm.discovery.application.dto.performers import (
+    PerformerListResponse,
+    PerformerOverviewResponse,
+)
+from roots_of_rhythm.discovery.application.errors.performers import PerformerOverviewNotFound
 from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.entrypoints.dependencies import (
     PERFORMER_LIST_READER_DEPENDENCY,

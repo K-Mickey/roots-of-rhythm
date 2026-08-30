@@ -1,23 +1,33 @@
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     ExternalIdentityView,
+    PersonDateView,
+)
+from roots_of_rhythm.discovery.application.dto.genres import (
     GenreListResponse,
     GenreOverviewResponse,
     GenreRelationsResponse,
     GenreSourcesResponse,
+)
+from roots_of_rhythm.discovery.application.dto.groups import (
     GroupListResponse,
     GroupOverviewResponse,
+)
+from roots_of_rhythm.discovery.application.dto.performers import (
     PerformerListResponse,
     PerformerOverviewResponse,
-    PersonDateView,
 )
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreOverviewAssemblyError,
     GenreOverviewNotFound,
     GenreRelationsAssemblyError,
     GenreRelationsNotFound,
     GenreSourcesAssemblyError,
     GenreSourcesNotFound,
+)
+from roots_of_rhythm.discovery.application.errors.groups import (
     GroupOverviewNotFound,
+)
+from roots_of_rhythm.discovery.application.errors.performers import (
     PerformerOverviewNotFound,
 )
 from roots_of_rhythm.discovery.application.genre_list import GenreListQuery, GenreListReader

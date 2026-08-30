@@ -11,18 +11,21 @@ from roots_of_rhythm.discovery.application.group_list import GroupListQuery
 from roots_of_rhythm.discovery.application.group_overview import GroupOverviewQuery
 from roots_of_rhythm.discovery.application.performer_list import PerformerListQuery
 from roots_of_rhythm.discovery.application.performer_overview import PerformerOverviewQuery
+from roots_of_rhythm.discovery.application.queries.song_overview import SongOverviewQuery
 from roots_of_rhythm.discovery.application.recording_list import RecordingListQuery
 from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery
 from roots_of_rhythm.discovery.application.song_list import SongListQuery
-from roots_of_rhythm.discovery.application.song_overview import SongOverviewQuery
 from roots_of_rhythm.historical_knowledge.application import ClaimService, RecordingOriginClaimService, SourceService
+from roots_of_rhythm.historical_knowledge.infrastructure.song_reader import SqlAlchemySongHistoricalKnowledgeReader
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import GroupMembershipService, GroupService
 from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import LyricsVersionProjectionService
+from roots_of_rhythm.music_catalog.infrastructure.song_reader import SqlAlchemySongMusicReader
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
+from roots_of_rhythm.people_catalog.infrastructure.song_reader import SqlAlchemyPublishedPeopleReader
 from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
 if TYPE_CHECKING:
@@ -68,7 +71,11 @@ def create_api_dependencies(
     group_overview_query = GroupOverviewQuery(music_uow_factory, people_uow_factory)
     lyrics_projection = LyricsVersionProjectionService(music_uow_factory, hk_uow_factory)
     song_list_query = SongListQuery(music_uow_factory)
-    song_overview_query = SongOverviewQuery(music_uow_factory, people_uow_factory, hk_uow_factory, lyrics_projection)
+    song_overview_query = SongOverviewQuery(
+        SqlAlchemySongMusicReader(music_uow_factory),
+        SqlAlchemyPublishedPeopleReader(people_uow_factory),
+        SqlAlchemySongHistoricalKnowledgeReader(hk_uow_factory),
+    )
     recording_list_query = RecordingListQuery(music_uow_factory, people_uow_factory)
     recording_overview_query = RecordingOverviewQuery(
         music_uow_factory, people_uow_factory, hk_uow_factory, lyrics_projection

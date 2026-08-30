@@ -1,13 +1,15 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     ExternalIdentityView,
     GenreSummary,
-    PerformerOverviewResponse,
     PersonDateView,
 )
-from roots_of_rhythm.discovery.application.errors import PerformerOverviewNotFound
+from roots_of_rhythm.discovery.application.dto.performers import (
+    PerformerOverviewResponse,
+)
+from roots_of_rhythm.discovery.application.errors.performers import PerformerOverviewNotFound
 
 if TYPE_CHECKING:
     from uuid import UUID

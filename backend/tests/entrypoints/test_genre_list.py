@@ -2,7 +2,8 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import GenreListResponse, GenreSummary
+from roots_of_rhythm.discovery.application.dto.common import GenreSummary
+from roots_of_rhythm.discovery.application.dto.genres import GenreListResponse
 from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.entrypoints.dependencies import GENRE_LIST_READER_DEPENDENCY
 from tests.discovery.fakes import StubGenreListReader

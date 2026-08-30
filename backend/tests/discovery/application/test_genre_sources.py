@@ -2,8 +2,8 @@ from uuid import UUID, uuid7
 
 import pytest
 
-from roots_of_rhythm.discovery.application.dto import GenreSourcesResponse
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.dto.genres import GenreSourcesResponse
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreSourcesAssemblyError,
     GenreSourcesNotFound,
 )

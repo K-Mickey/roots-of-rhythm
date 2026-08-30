@@ -2,7 +2,7 @@ from uuid import uuid7
 
 import pytest
 
-from roots_of_rhythm.discovery.application.errors import PerformerOverviewNotFound
+from roots_of_rhythm.discovery.application.errors.performers import PerformerOverviewNotFound
 from roots_of_rhythm.discovery.application.performer_overview import PerformerOverviewQuery
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationAssignment,

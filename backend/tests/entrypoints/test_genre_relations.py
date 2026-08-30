@@ -4,13 +4,15 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import (
-    GenreRelationsResponse,
-    GenreRelationView,
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
     RelationPerspective,
 )
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.dto.genres import (
+    GenreRelationsResponse,
+    GenreRelationView,
+)
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreRelationsAssemblyError,
     GenreRelationsNotFound,
 )

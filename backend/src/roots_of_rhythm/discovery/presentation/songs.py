@@ -6,16 +6,16 @@ from litestar.di import NamedDependency  # noqa: TC002 - Litestar inspects handl
 from litestar.params import FromPath  # noqa: TC002 - required at runtime for Litestar path binding
 from litestar.response import Response
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.songs import (
     SongListResponse,  # noqa: TC001
     SongOverviewResponse,  # noqa: TC001
+)  # noqa: TC001 - Litestar resolves handler annotations at runtime
+from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
+from roots_of_rhythm.discovery.application.queries.song_overview import (
+    SongOverviewReader,  # noqa: TC001
 )
-from roots_of_rhythm.discovery.application.errors import SongOverviewNotFound
 from roots_of_rhythm.discovery.application.song_list import (
     SongListReader,  # noqa: TC001
-)
-from roots_of_rhythm.discovery.application.song_overview import (
-    SongOverviewReader,  # noqa: TC001
 )
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse
 

@@ -2,7 +2,7 @@ from uuid import uuid7
 
 import pytest
 
-from roots_of_rhythm.discovery.application.errors import RecordingOverviewNotFound
+from roots_of_rhythm.discovery.application.errors.recordings import RecordingOverviewNotFound
 from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery
 from roots_of_rhythm.music_catalog.application.lyrics_body_projection import LyricsBodyDisclosure
 from roots_of_rhythm.music_catalog.domain import (

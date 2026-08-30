@@ -1,18 +1,19 @@
-from uuid import UUID, uuid7
+from uuid import uuid7
 
 import pytest
 
-from roots_of_rhythm.discovery.application.errors import SongOverviewNotFound
-from roots_of_rhythm.discovery.application.song_overview import SongOverviewQuery
-from roots_of_rhythm.music_catalog.application.lyrics_body_projection import LyricsBodyDisclosure
+from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
+from roots_of_rhythm.discovery.application.queries.song_overview import SongOverviewQuery
 from roots_of_rhythm.music_catalog.domain import (
-    ClassificationAssignment,
     ClassificationContent,
-    ClassificationTargetKind,
     EditorialStatus,
     ExistencePeriod,
     Genre,
+    LyricsCreationMethod,
+    LyricsUsageKind,
     LyricsVersion,
+    LyricsVersionRelation,
+    LyricsVersionRelationType,
     MusicalWork,
     TemporalBound,
     TemporalPrecision,
@@ -24,21 +25,17 @@ from roots_of_rhythm.music_catalog.domain import (
     WorkRelationContent,
     WorkRelationType,
 )
+from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReadData
 from roots_of_rhythm.people_catalog.domain import (
     EditorialStatus as PersonEditorialStatus,
 )
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
-from tests.historical_knowledge.fakes import StubHistoricalKnowledgeUnitOfWork
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
-from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
-
-
-class StubLyricsProjection:
-    async def disclose_bodies_for_versions(
-        self,
-        versions: tuple[LyricsVersion, ...],
-    ) -> list[LyricsBodyDisclosure]:
-        return [LyricsBodyDisclosure(body=version.body, body_unavailable_reason=None) for version in versions]
+from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
+from tests.discovery.application.song_reader_stubs import (
+    StubPublishedPeopleReader,
+    StubSongHistoricalKnowledgeReader,
+    StubSongMusicReader,
+)
 
 
 @pytest.mark.asyncio
@@ -77,7 +74,6 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
     )
     jazz = _genre("Jazz", EditorialStatus.PUBLISHED)
     swing = _genre("Swing", EditorialStatus.PUBLISHED)
-    hidden_genre = _genre("Hidden", EditorialStatus.DRAFT)
     composer_credit = WorkCredit.create(
         uuid7(),
         work_id,
@@ -93,13 +89,6 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
         WorkCreditContent.create(role=WorkCreditRole.LYRICIST),
         editorial_status=EditorialStatus.PUBLISHED,
     )
-    draft_credit = WorkCredit.create(
-        uuid7(),
-        work_id,
-        merle_travis_id,
-        WorkCreditRole.LYRICIST,
-        editorial_status=EditorialStatus.DRAFT,
-    )
     relation = WorkRelation.create(
         uuid7(),
         work_id,
@@ -111,32 +100,18 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
         ),
         editorial_status=EditorialStatus.PUBLISHED,
     )
-    assignments = {
-        assignment.id: assignment
-        for assignment in (
-            _assignment(work_id, swing, EditorialStatus.PUBLISHED),
-            _assignment(work_id, jazz, EditorialStatus.PUBLISHED),
-            _assignment(work_id, hidden_genre, EditorialStatus.PUBLISHED),
-            _assignment(work_id, jazz, EditorialStatus.DRAFT),
-        )
-    }
     query = SongOverviewQuery(
-        lambda: FakeMusicCatalogUnitOfWork(
-            {genre.id: genre for genre in (jazz, swing, hidden_genre)},
-            assignments,
-            works={work_id: work, related_work_id: related_work},
-            work_credits={
-                composer_credit.id: composer_credit,
-                hidden_credit.id: hidden_credit,
-                draft_credit.id: draft_credit,
-            },
-            work_relations={relation.id: relation},
+        StubSongMusicReader(
+            SongMusicReadData(
+                work,
+                work_credits=(composer_credit, hidden_credit),
+                genres=(jazz, swing),
+                work_relations=(relation,),
+                related_works=(related_work,),
+            )
         ),
-        lambda: FakePeopleCatalogUnitOfWork(
-            {merle_travis_id: merle_travis, hidden_person.id: hidden_person},
-        ),
-        lambda: StubHistoricalKnowledgeUnitOfWork(),
-        StubLyricsProjection(),  # type: ignore[arg-type]
+        StubPublishedPeopleReader(PublishedPeopleReadData((merle_travis,))),
+        StubSongHistoricalKnowledgeReader(),
     )
 
     response = await query.get(work_id)
@@ -166,25 +141,57 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
 
 
 @pytest.mark.asyncio
+async def test_song_overview_shows_each_relation_once_for_each_published_endpoint() -> None:
+    work_id = uuid7()
+    first = LyricsVersion(
+        uuid7(),
+        work_id,
+        uuid7(),
+        "en",
+        LyricsUsageKind.PERFORMABLE,
+        LyricsCreationMethod.ORIGINAL,
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    second = LyricsVersion(
+        uuid7(),
+        work_id,
+        uuid7(),
+        "ru",
+        LyricsUsageKind.READING_TRANSLATION,
+        LyricsCreationMethod.HUMAN_TRANSLATION,
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    relation = LyricsVersionRelation(
+        uuid7(),
+        first.id,
+        second.id,
+        LyricsVersionRelationType.TRANSLATION_OF,
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    work = MusicalWork.create(
+        work_id,
+        WorkContent.create("Song", provenance="Editorial review."),
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    response = await SongOverviewQuery(
+        StubSongMusicReader(
+            SongMusicReadData(work, lyrics_versions=(first, second), lyrics_relations=(relation,)),
+        ),
+        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        StubSongHistoricalKnowledgeReader(),
+    ).get(work_id)
+
+    assert [len(item.relations) for item in response.lyrics_versions] == [1, 1]
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("status", [None, EditorialStatus.DRAFT, EditorialStatus.ARCHIVED])
 async def test_song_overview_hides_missing_and_non_public_works(status: EditorialStatus | None) -> None:
     work_id = uuid7()
-    works = (
-        {}
-        if status is None
-        else {
-            work_id: MusicalWork.create(
-                work_id,
-                WorkContent.create("Hidden Song", provenance="Editorial review."),
-                editorial_status=status,
-            ),
-        }
-    )
     query = SongOverviewQuery(
-        lambda: FakeMusicCatalogUnitOfWork({}, works=works),
-        lambda: FakePeopleCatalogUnitOfWork({}),
-        lambda: StubHistoricalKnowledgeUnitOfWork(),
-        StubLyricsProjection(),  # type: ignore[arg-type]
+        StubSongMusicReader(SongMusicReadData(None)),
+        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        StubSongHistoricalKnowledgeReader(),
     )
 
     with pytest.raises(SongOverviewNotFound):
@@ -204,11 +211,6 @@ async def test_song_overview_related_works_include_only_outbound_source_relation
     original = MusicalWork.create(
         original_id,
         WorkContent.create("Original Song", provenance="Editorial review."),
-        editorial_status=EditorialStatus.PUBLISHED,
-    )
-    derivative = MusicalWork.create(
-        derivative_id,
-        WorkContent.create("Derivative Song", provenance="Editorial review."),
         editorial_status=EditorialStatus.PUBLISHED,
     )
     outbound = WorkRelation.create(
@@ -234,14 +236,15 @@ async def test_song_overview_related_works_include_only_outbound_source_relation
         editorial_status=EditorialStatus.PUBLISHED,
     )
     query = SongOverviewQuery(
-        lambda: FakeMusicCatalogUnitOfWork(
-            {},
-            works={song_id: song, original_id: original, derivative_id: derivative},
-            work_relations={outbound.id: outbound, inbound.id: inbound},
+        StubSongMusicReader(
+            SongMusicReadData(
+                song,
+                work_relations=(outbound, inbound),
+                related_works=(original,),
+            )
         ),
-        lambda: FakePeopleCatalogUnitOfWork({}),
-        lambda: StubHistoricalKnowledgeUnitOfWork(),
-        StubLyricsProjection(),  # type: ignore[arg-type]
+        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        StubSongHistoricalKnowledgeReader(),
     )
 
     response = await query.get(song_id)
@@ -255,17 +258,5 @@ def _genre(name: str, status: EditorialStatus) -> Genre:
     return Genre(
         id=uuid7(),
         content=ClassificationContent.create(name, definition="Published definition."),
-        editorial_status=status,
-    )
-
-
-def _assignment(work_id: UUID, genre: Genre, status: EditorialStatus) -> ClassificationAssignment:
-    return ClassificationAssignment(
-        id=uuid7(),
-        target_kind=ClassificationTargetKind.MUSICAL_WORK,
-        target_id=work_id,
-        concept_id=genre.id,
-        explanation="Classification explanation.",
-        provenance="Editorial review.",
         editorial_status=status,
     )

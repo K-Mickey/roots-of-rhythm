@@ -4,8 +4,8 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import GenreSourcesResponse, SourceView
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.dto.genres import GenreSourcesResponse, SourceView
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreSourcesAssemblyError,
     GenreSourcesNotFound,
 )

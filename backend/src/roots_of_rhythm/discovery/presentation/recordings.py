@@ -6,11 +6,11 @@ from litestar.di import NamedDependency  # noqa: TC002 - Litestar inspects annot
 from litestar.params import FromPath  # noqa: TC002 - Litestar inspects annotations
 from litestar.response import Response
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.recordings import (
     RecordingListResponse,  # noqa: TC001
     RecordingOverviewResponse,  # noqa: TC001
-)
-from roots_of_rhythm.discovery.application.errors import RecordingOverviewNotFound
+)  # noqa: TC001 - Litestar resolves handler annotations at runtime
+from roots_of_rhythm.discovery.application.errors.recordings import RecordingOverviewNotFound
 from roots_of_rhythm.discovery.application.recording_list import RecordingListReader  # noqa: TC001
 from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewReader  # noqa: TC001
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse

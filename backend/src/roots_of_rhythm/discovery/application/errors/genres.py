@@ -20,19 +20,3 @@ class GenreSourcesNotFound(Exception):
 
 class GenreSourcesAssemblyError(Exception):
     """Published Genre exists but sources cannot be safely projected."""
-
-
-class PerformerOverviewNotFound(Exception):
-    """Published Performer overview is absent or not publicly visible."""
-
-
-class GroupOverviewNotFound(Exception):
-    """Published Group overview is absent or not publicly visible."""
-
-
-class SongOverviewNotFound(Exception):
-    """Published Song overview is absent or not publicly visible."""
-
-
-class RecordingOverviewNotFound(Exception):
-    """Published Recording overview is absent or not publicly visible."""

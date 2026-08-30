@@ -1,13 +1,15 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
+)
+from roots_of_rhythm.discovery.application.dto.groups import (
     GroupMemberView,
     GroupOverviewResponse,
     GroupPeriodView,
 )
-from roots_of_rhythm.discovery.application.errors import GroupOverviewNotFound
+from roots_of_rhythm.discovery.application.errors.groups import GroupOverviewNotFound
 
 if TYPE_CHECKING:
     from uuid import UUID

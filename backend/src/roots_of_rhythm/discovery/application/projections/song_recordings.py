@@ -1,8 +1,10 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
+)
+from roots_of_rhythm.discovery.application.dto.songs import (
     SongPeriodView,
     SongRecordingGenreFacet,
     SongRecordingSummary,

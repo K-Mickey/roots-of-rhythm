@@ -4,16 +4,18 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
+    GroupSummary,
+    TemporalBoundView,
+)
+from roots_of_rhythm.discovery.application.dto.groups import (
     GroupListResponse,
     GroupMemberView,
     GroupOverviewResponse,
     GroupPeriodView,
-    GroupSummary,
-    TemporalBoundView,
 )
-from roots_of_rhythm.discovery.application.errors import GroupOverviewNotFound
+from roots_of_rhythm.discovery.application.errors.groups import GroupOverviewNotFound
 from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.entrypoints.dependencies import (
     GROUP_LIST_READER_DEPENDENCY,

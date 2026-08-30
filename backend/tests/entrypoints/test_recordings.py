@@ -5,12 +5,14 @@ from litestar.di import Provide
 from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.recordings import (
     RecordingListResponse,
     RecordingOverviewResponse,
+)
+from roots_of_rhythm.discovery.application.dto.songs import (
     SongPeriodView,
 )
-from roots_of_rhythm.discovery.application.errors import RecordingOverviewNotFound
+from roots_of_rhythm.discovery.application.errors.recordings import RecordingOverviewNotFound
 from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.entrypoints.dependencies import (
     RECORDING_LIST_READER_DEPENDENCY,

@@ -2,7 +2,7 @@ from uuid import UUID, uuid7
 
 import pytest
 
-from roots_of_rhythm.discovery.application.errors import GroupOverviewNotFound
+from roots_of_rhythm.discovery.application.errors.groups import GroupOverviewNotFound
 from roots_of_rhythm.discovery.application.group_overview import GroupOverviewQuery
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationAssignment,

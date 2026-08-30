@@ -119,11 +119,37 @@ Tracker: [#62](https://github.com/K-Mickey/roots-of-rhythm/issues/62).
 
 Прежние ошибки и транзакции Recording, узкие constructor dependencies, отсутствие дополнительного промежуточного service без самостоятельного правила.
 
+## ARCH-005B: rollout command use cases
+
+Tracker: `TBD` до следующей синхронизации tracker.
+
+Зависит от `ARCH-005`.
+
+### Результат
+
+Подход, проверенный на `RecordingService`, применяется к оставшимся сложным lifecycle services. Вместе `ARCH-005` и `ARCH-005B` охватывают пять объектов: `Recording`, `ClassificationAssignment`, `GenreRelationClaim`, `RecordingOriginClaim` и `ListeningGuide`.
+
+### Изменения
+
+- выделить `PublishClassificationAssignment` из `ClassificationAssignmentService`; create, replace и archive оставить связным lifecycle service;
+- выделить create-draft и publish operations из `ClaimService` для aggregate `GenreRelationClaim`; редактирование content/evidence и archive оставить сервису;
+- выделить create-draft и publish operations из `RecordingOriginClaimService`; редактирование content/evidence и archive оставить сервису;
+- выделить `PublishListeningGuide` из `ListeningGuideService`; create, replace observations и archive оставить сервису, при этом изменение уже published guide сохраняет повторную проверку Recording;
+- каждому use case передавать только необходимые repositories и transaction boundary; не создавать общий command facade или класс на каждый простой lifecycle method;
+- сохранить одну PostgreSQL-транзакцию для cross-context writes, существующий порядок `FOR UPDATE`, атомарный rollback и прежние application errors;
+- после переноса удалить более не используемые pair scopes и registry-style UoW dependencies только при отсутствии callers.
+
+`WorkRelationService`, `LyricsVersionRelationService` и `SourceService.set_access_policy` в эту задачу не входят: их зависимости пока недостаточно отличаются для обязательного выделения use case.
+
+### Проверка
+
+Прежнее поведение create/edit/publish/archive, узкие constructor dependencies, атомарность при ошибке второго context, write locks, rollback и отсутствие новых pair/god UoW.
+
 ## ARCH-006: wiring и архитектурные guardrails
 
 Tracker: [#63](https://github.com/K-Mickey/roots-of-rhythm/issues/63).
 
-Зависит от `ARCH-002`, `ARCH-004` и `ARCH-005`.
+Зависит от `ARCH-002`, `ARCH-004` и `ARCH-005B`.
 
 ### Результат
 
@@ -145,7 +171,7 @@ Architecture tests, typecheck, полный поиск callers удаляемы�
 
 Tracker: [#64](https://github.com/K-Mickey/roots-of-rhythm/issues/64).
 
-Зависит от стабилизации interfaces в `ARCH-002`, `ARCH-004` и `ARCH-005`.
+Зависит от стабилизации interfaces в `ARCH-002`, `ARCH-004` и `ARCH-005B`.
 
 ### Результат
 
@@ -192,14 +218,38 @@ Tracker: [#65](https://github.com/K-Mickey/roots-of-rhythm/issues/65).
 
 Upgrade с текущей schema, downgrade новой migration, повторный metadata/schema audit, timestamp bump после UPDATE, soft-delete visibility и partial uniqueness.
 
+## ARCH-009: финальная организация application packages
+
+Tracker: `TBD` до следующей синхронизации tracker.
+
+Зависит от `ARCH-006`, `ARCH-007` и завершения `ARCH-008`. Выполняется последней перед итоговой приёмкой архитектурного рефакторинга.
+
+### Результат
+
+Оставшиеся application-файлы разложены по устойчивым предметным каталогам после стабилизации readers, use cases и transaction contracts. Навигация отражает ответственность кода, а не историю его появления.
+
+### Изменения
+
+- завершить перенос Discovery operations в `queries/`, чистых сборщиков DTO в `projections/`, DTO и errors — в предметные модули соответствующих packages;
+- в каждом bounded context собрать связные lifecycle services в `application/services/`, а самостоятельные command operations из `ARCH-005/005B` — в `application/use_cases/`;
+- ports, public read contracts и infrastructure adapters оставить в их собственных существующих границах, не смешивать их с services/use cases;
+- обновить imports, package exports, dependency wiring, tests и architecture documentation без compatibility-фасадов и массовых re-export;
+- удалить пустые и устаревшие модули только после проверки всех callers;
+- не объединять несвязанные services в один файл и не создавать базовые классы, registry или новый framework ради структуры каталогов.
+
+### Проверка
+
+Полный поиск старых import paths и callers, architecture checks, отсутствие циклических imports, неизменные public contracts/query budgets и полный project quality gate.
+
 ## Зависимости и порядок
 
 ```text
 ARCH-001 baseline ─┬─> ARCH-002 readers ─┐
                    └─> ARCH-003 N+1 ─────┼─> ARCH-006 guardrails ─> ARCH-007 test cleanup
-ARCH-004 UoW ─────────> ARCH-005 use cases ┘
+ARCH-004 UoW ─────────> ARCH-005 pilot ─> ARCH-005B rollout ┘
 
-ARCH-008 service columns — независимая задача
+ARCH-008 service columns ─────────────────────────────────────────┐
+ARCH-006 + ARCH-007 ────────────────────────────────> ARCH-009 package layout ─> acceptance
 ```
 
 Correctness tests изменяются вместе с каждой production-задачей. В `ARCH-007` откладывается только общий structural cleanup test doubles и дублирования, а не проверка промежуточных рефакторингов.

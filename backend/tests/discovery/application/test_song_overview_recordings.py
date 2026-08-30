@@ -2,7 +2,7 @@ from uuid import UUID, uuid7
 
 import pytest
 
-from roots_of_rhythm.discovery.application.song_overview import SongOverviewQuery
+from roots_of_rhythm.discovery.application.queries.song_overview import SongOverviewQuery
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
     ClassificationAssignment,
@@ -24,10 +24,13 @@ from roots_of_rhythm.music_catalog.domain import (
     TemporalPrecision,
     WorkContent,
 )
-from tests.discovery.application.test_song_overview import StubLyricsProjection
-from tests.historical_knowledge.fakes import StubHistoricalKnowledgeUnitOfWork
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
-from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
+from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReadData
+from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
+from tests.discovery.application.song_reader_stubs import (
+    StubPublishedPeopleReader,
+    StubSongHistoricalKnowledgeReader,
+    StubSongMusicReader,
+)
 
 
 def _genre(name: str) -> Genre:
@@ -128,30 +131,18 @@ async def test_song_overview_builds_recording_facets_and_chronology() -> None:
     swing_assignment = _assignment(newer.id, swing)
     medley_jazz = _assignment(medley.id, jazz)
     hidden_jazz = _assignment(hidden_primary.id, jazz)
-    assignments = {
-        first_jazz.id: first_jazz,
-        second_jazz.id: second_jazz,
-        swing_assignment.id: swing_assignment,
-        medley_jazz.id: medley_jazz,
-        hidden_jazz.id: hidden_jazz,
-    }
-
     query = SongOverviewQuery(
-        lambda: FakeMusicCatalogUnitOfWork(
-            {jazz.id: jazz, swing.id: swing},
-            assignments,
-            groups={group.id: group, draft_group.id: draft_group},
-            works={work_id: work},
-            recordings={
-                older.id: older,
-                newer.id: newer,
-                medley.id: medley,
-                hidden_primary.id: hidden_primary,
-            },
+        StubSongMusicReader(
+            SongMusicReadData(
+                work,
+                recordings=(older, newer, medley, hidden_primary),
+                recording_assignments=(first_jazz, second_jazz, swing_assignment, medley_jazz, hidden_jazz),
+                recording_genres=(jazz, swing),
+                groups=(group,),
+            )
         ),
-        lambda: FakePeopleCatalogUnitOfWork({}),
-        lambda: StubHistoricalKnowledgeUnitOfWork(),
-        StubLyricsProjection(),  # type: ignore[arg-type]
+        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        StubSongHistoricalKnowledgeReader(),
     )
 
     response = await query.get(work_id)

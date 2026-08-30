@@ -1,7 +1,8 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import SongListResponse, SongSummary
+from roots_of_rhythm.discovery.application.dto.common import SongSummary
+from roots_of_rhythm.discovery.application.dto.songs import SongListResponse
 
 if TYPE_CHECKING:
     from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork

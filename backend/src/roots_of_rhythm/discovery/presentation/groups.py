@@ -6,11 +6,11 @@ from litestar.di import NamedDependency  # noqa: TC002 - Litestar inspects handl
 from litestar.params import FromPath  # noqa: TC002 - required at runtime for Litestar path binding
 from litestar.response import Response
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.groups import (
     GroupListResponse,  # noqa: TC001
     GroupOverviewResponse,  # noqa: TC001
-)
-from roots_of_rhythm.discovery.application.errors import GroupOverviewNotFound
+)  # noqa: TC001 - Litestar resolves handler annotations at runtime
+from roots_of_rhythm.discovery.application.errors.groups import GroupOverviewNotFound
 from roots_of_rhythm.discovery.application.group_list import (
     GroupListReader,  # noqa: TC001
 )

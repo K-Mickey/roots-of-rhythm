@@ -2,14 +2,15 @@ from uuid import UUID, uuid7
 
 import pytest
 
+from roots_of_rhythm.discovery.application.queries.song_overview import SongOverviewQuery
 from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery
-from roots_of_rhythm.discovery.application.song_overview import SongOverviewQuery
 from roots_of_rhythm.historical_knowledge.domain import (
     EditorialStatus,
     EvidenceStatus,
     RecordingOriginClaim,
     RecordingOriginPredicate,
 )
+from roots_of_rhythm.historical_knowledge.public.song_context_reader import SongHistoricalKnowledgeReadData
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
     Group,
@@ -26,8 +27,14 @@ from roots_of_rhythm.music_catalog.domain import (
 from roots_of_rhythm.music_catalog.domain import (
     EditorialStatus as MusicEditorialStatus,
 )
+from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReadData
+from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
+from tests.discovery.application.song_reader_stubs import (
+    StubPublishedPeopleReader,
+    StubSongHistoricalKnowledgeReader,
+    StubSongMusicReader,
+)
 from tests.discovery.application.test_recording_overview import StubLyricsProjection
-from tests.discovery.application.test_song_overview import StubLyricsProjection as SongStubLyricsProjection
 from tests.discovery.application.test_song_overview_recordings import (
     _assignment,
     _genre,
@@ -144,16 +151,19 @@ async def test_song_overview_shows_origin_badges_only_for_current_work() -> None
         ]
     }
     query = SongOverviewQuery(
-        lambda: FakeMusicCatalogUnitOfWork(
-            {jazz.id: jazz},
-            {assignment.id: assignment},
-            groups={group.id: group},
-            works={work_id: work},
-            recordings={recording.id: recording},
+        StubSongMusicReader(
+            SongMusicReadData(
+                work,
+                recordings=(recording,),
+                recording_assignments=(assignment,),
+                recording_genres=(jazz,),
+                groups=(group,),
+            )
         ),
-        lambda: FakePeopleCatalogUnitOfWork({}),
-        lambda: StubHistoricalKnowledgeUnitOfWork(claims),
-        SongStubLyricsProjection(),  # type: ignore[arg-type]
+        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        StubSongHistoricalKnowledgeReader(
+            SongHistoricalKnowledgeReadData((), tuple(claim for items in claims.values() for claim in items)),
+        ),
     )
 
     response = await query.get(work_id)

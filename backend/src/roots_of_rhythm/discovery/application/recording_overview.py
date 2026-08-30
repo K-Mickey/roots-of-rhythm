@@ -1,20 +1,24 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
     GroupSummary,
+    PerformerSummary,
+    SongSummary,
+)
+from roots_of_rhythm.discovery.application.dto.recordings import (
     ListeningGuideView,
     ListeningObservationView,
-    PerformerSummary,
     RecordingCreditView,
     RecordingLyricsVersionView,
     RecordingOverviewResponse,
     RecordingWorkView,
-    SongPeriodView,
-    SongSummary,
 )
-from roots_of_rhythm.discovery.application.errors import RecordingOverviewNotFound
+from roots_of_rhythm.discovery.application.dto.songs import (
+    SongPeriodView,
+)
+from roots_of_rhythm.discovery.application.errors.recordings import RecordingOverviewNotFound
 from roots_of_rhythm.discovery.application.recording_lyrics import RecordingLyricsProjectionQuery
 from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind

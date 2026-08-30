@@ -1,10 +1,14 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import (
+from roots_of_rhythm.discovery.application.dto.common import (
     GenreSummary,
+)
+from roots_of_rhythm.discovery.application.dto.recordings import (
     RecordingListItem,
     RecordingListResponse,
+)
+from roots_of_rhythm.discovery.application.dto.songs import (
     SongPeriodView,
 )
 from roots_of_rhythm.discovery.application.recording_credits import project_primary_credits

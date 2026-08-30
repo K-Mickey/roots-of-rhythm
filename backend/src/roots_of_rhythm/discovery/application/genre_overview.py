@@ -1,13 +1,15 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from roots_of_rhythm.discovery.application.dto import (
-    GenreOverviewResponse,
+from roots_of_rhythm.discovery.application.dto.common import (
     GeographicContextView,
     HistoricalPeriodView,
     TemporalBoundView,
 )
-from roots_of_rhythm.discovery.application.errors import (
+from roots_of_rhythm.discovery.application.dto.genres import (
+    GenreOverviewResponse,
+)
+from roots_of_rhythm.discovery.application.errors.genres import (
     GenreOverviewAssemblyError,
     GenreOverviewNotFound,
 )
