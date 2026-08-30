@@ -41,7 +41,7 @@
 | `make test-db-setup` | Docker, `make setup` | Идемпотентно создаёт БД `roots_of_rhythm_test` через запущенный сервис `postgres` и применяет к ней Alembic migrations. |
 | `make test-integration` | Docker, `make setup` | Выполняет `make test-db-setup` и проверяет readiness и persistence на изолированной БД `roots_of_rhythm_test`. |
 | `make test-coverage` | Docker, `make setup` | Запускает backend unit/integration и frontend tests; создаёт `backend/coverage.xml` и `frontend/coverage/lcov.info`. |
-| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: `/`, identity/not-found HOME-0, header «Жанры», «Исполнители» и «Группы», каталоги `/genres`, `/performers` и `/groups`, seed Swing page, seed Louis Armstrong page, seed Count Basie Orchestra page и переходы relation-имён Swing→Jazz и Swing→Jump Blues. |
+| `make test-e2e` | запущенный `make up` + `make seed`, Chromium | Playwright: основные каталоги и detail pages, Recording catalog/detail, интерактивная Song page Sixteen Tons, not-found, browser history и mobile layout. |
 | `make contract-check` | `make setup` | Проверяет OpenAPI через Redocly и отсутствие drift в generated TypeScript contract. |
 | `make build` | Docker | Собирает production images backend и frontend. |
 | `make check` | Docker, `make setup` | Выполняет format-check, lint, typecheck, unit tests, contract-check и Docker build. |

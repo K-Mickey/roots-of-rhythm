@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  formatLyricsVersionTabLabel,
   formatPeriod,
   formatWorkCreditRole,
   formatWorkRelationType,
-  resolveSelectedLyricsVersionId,
 } from './labels';
+import {
+  formatLyricsVersionLabel,
+  formatLyricsVersionShortLabels,
+  resolveSelectedLyricsVersionId,
+} from '../recording-page/labels';
 
 describe('song page labels', () => {
   it('formats temporal bounds by precision', () => {
@@ -31,7 +34,7 @@ describe('song page labels', () => {
 
   it('builds lyrics tab labels with machine translation marker', () => {
     expect(
-      formatLyricsVersionTabLabel({
+      formatLyricsVersionLabel({
         language_tag: 'en',
         label: 'Original',
         creation_method: 'original',
@@ -39,12 +42,23 @@ describe('song page labels', () => {
     ).toBe('en · Original');
 
     expect(
-      formatLyricsVersionTabLabel({
+      formatLyricsVersionLabel({
         language_tag: 'ru',
         label: null,
         creation_method: 'machine_translation',
       }),
     ).toBe('ru · машинный перевод');
+  });
+
+  it('uses short uppercase labels and numbers duplicate languages', () => {
+    expect(
+      formatLyricsVersionShortLabels([
+        { language_tag: 'en' },
+        { language_tag: 'ru' },
+        { language_tag: 'en' },
+        { language_tag: 'fr' },
+      ]),
+    ).toEqual(['EN 1', 'RU', 'EN 2', 'FR']);
   });
 
   it('resolves selected lyrics version from query param', () => {

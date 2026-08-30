@@ -29,6 +29,7 @@ ORNITHOLOGY_ID = UUID("01a01a72-3c01-7000-8000-000000000003")
 SING_SING_SING_ID = UUID("01a01a72-3c01-7000-8000-000000000004")
 SHAKE_RATTLE_AND_ROLL_ID = UUID("01a01a72-3c01-7000-8000-000000000005")
 WEST_END_BLUES_ID = UUID("01a01a72-3c01-7000-8000-000000000006")
+NOBODY_KNOWS_TROUBLE_ID = UUID("01a01a72-3c01-7000-8000-000000000007")
 
 SEED_WORK_PROVENANCE = SEED_ASSIGNMENT_PROVENANCE
 
@@ -56,6 +57,14 @@ SEED_MUSICAL_WORKS: tuple[tuple[UUID, WorkContent], ...] = (
     (
         WEST_END_BLUES_ID,
         WorkContent.create("West End Blues", provenance=SEED_WORK_PROVENANCE),
+    ),
+    (
+        NOBODY_KNOWS_TROUBLE_ID,
+        WorkContent.create(
+            "Nobody Knows the Trouble I've Seen",
+            aliases=("Nobody Knows the Trouble I've Had",),
+            provenance="Traditional African American spiritual; first published in 1867.",
+        ),
     ),
 )
 

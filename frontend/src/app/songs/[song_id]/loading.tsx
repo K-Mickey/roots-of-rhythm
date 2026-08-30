@@ -3,7 +3,7 @@ import { Container, Skeleton, Stack, VisuallyHidden } from '@mantine/core';
 export default function SongLoading() {
   return (
     <Container
-      size="52rem"
+      size="72rem"
       py="xl"
       aria-busy="true"
       aria-live="polite"

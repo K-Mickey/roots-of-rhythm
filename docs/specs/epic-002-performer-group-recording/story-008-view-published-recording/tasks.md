@@ -167,6 +167,8 @@ Visitor переключает Recording, genre facet и text на `/songs/{id}`
 - query validation, back/forward, SSR initial state;
 - fallback Work text с явной пометкой;
 - ListeningGuide выбранной Recording в центральном блоке;
+- другие Work usages выбранной Recording без дублирования открытого Work;
+- общий компактный lyrics switcher на Song и Recording detail с query history и безопасной нормализацией;
 - links from Recording and готовность links from Performer/Genre projections.
 
 ### Покрывает

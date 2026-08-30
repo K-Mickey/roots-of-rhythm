@@ -102,7 +102,7 @@ async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
     await runner.run()
     second = await _counts(engine)
 
-    assert first == second == (5, 12, 4, 4, 14, 2, 3, 3, 5, 4, 6, 7, 2, 1, 3, 3, 3, 1, 1, 1, 1, 1)
+    assert first == second == (5, 13, 4, 4, 14, 2, 4, 4, 5, 4, 7, 7, 4, 2, 5, 5, 5, 1, 1, 1, 1, 1)
 
     async with engine.connect() as connection:
         tables = set(await connection.run_sync(lambda sync: sync.dialect.get_table_names(sync)))

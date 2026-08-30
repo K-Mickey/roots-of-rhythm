@@ -53,6 +53,9 @@ class Source(msgspec.Struct, frozen=True):
             access_policy=access_policy,
         )
 
+    def with_access_policy(self, access_policy: SourceAccessPolicy) -> Self:
+        return msgspec.structs.replace(self, access_policy=access_policy)
+
 
 class SourceVersion(msgspec.Struct, frozen=True):
     id: UUID

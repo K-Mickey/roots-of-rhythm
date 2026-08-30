@@ -1,0 +1,20 @@
+.detailGrid {
+  display: grid;
+  gap: var(--mantine-spacing-xl);
+  min-width: 0;
+}
+
+.main,
+.sidebar {
+  min-width: 0;
+}
+
+@container (min-width: 48rem) {
+  .detailGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+  }
+
+  .sidebar {
+    padding-block-start: 7rem;
+  }
+}

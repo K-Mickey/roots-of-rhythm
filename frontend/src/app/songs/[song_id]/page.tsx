@@ -29,7 +29,7 @@ export default async function SongPage({ params, searchParams }: PageProps) {
 
   if (result.status === 'error') {
     return (
-      <Container size="52rem" py="xl">
+      <Container size="72rem" py="xl">
         <PageError message={result.message} retryHref={retryHref} />
       </Container>
     );
@@ -45,7 +45,7 @@ export default async function SongPage({ params, searchParams }: PageProps) {
   );
   if (recordingResult.status !== 'ok') {
     return (
-      <Container size="52rem" py="xl">
+      <Container size="72rem" py="xl">
         <PageError
           message={
             recordingResult.status === 'error'

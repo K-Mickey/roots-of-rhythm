@@ -5,29 +5,26 @@ import {
   Badge,
   Box,
   Container,
-  Skeleton,
   Stack,
-  Tabs,
   Text,
   Title,
 } from '@mantine/core';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import type { SongOverview } from '@/shared/api/song';
 import type { RecordingOverview } from '@/shared/api/recording';
 import { RecordingDetails } from '@/features/recording-page/RecordingPageContent';
+import { RecordingLyricsSection } from '@/features/recording-page/RecordingLyricsSection';
 import { formatOriginBadge } from '@/features/recording-page/labels';
 
 import {
-  formatLyricsVersionTabLabel,
   formatPeriod,
   formatTemporalBound,
   formatWorkCreditRole,
   formatWorkRelationType,
   hasPeriodBounds,
-  resolveSelectedLyricsVersionId,
   safeExternalHref,
 } from './labels';
 import {
@@ -73,7 +70,7 @@ export function SongPageContent({
   }, [canonicalHref, pathname, router, searchParams]);
 
   return (
-    <Container size="52rem" py="xl" style={{ containerType: 'inline-size' }}>
+    <Container size="72rem" py="xl" style={{ containerType: 'inline-size' }}>
       <Stack gap="xl" component="article">
         <Stack gap="md" component="section">
           <Title order={1}>{song.name}</Title>
@@ -242,12 +239,10 @@ export function SongPageContent({
             pathname={pathname}
           />
         ) : lyricsVersions.length > 0 ? (
-          <Suspense fallback={<SongLyricsSectionFallback />}>
-            <SongLyricsSection
-              versions={lyricsVersions}
-              selectedId={selection.textId}
-            />
-          </Suspense>
+          <RecordingLyricsSection
+            versions={lyricsVersions}
+            selectedId={selection.textId}
+          />
         ) : null}
       </Stack>
     </Container>
@@ -286,16 +281,10 @@ function RecordingStudyArea({
         <RecordingDetails
           recording={recording}
           headingOrder={2}
-          showWorks={false}
-          showLyrics={false}
+          excludeWorkId={song.id}
+          lyricsSelectedId={selection.textId}
           originBadges={summary?.origin_badges ?? []}
         />
-        {recording.lyrics.length ? (
-          <SongLyricsSection
-            versions={recording.lyrics}
-            selectedId={selection.textId}
-          />
-        ) : null}
       </Box>
     </div>
   );
@@ -411,101 +400,6 @@ function RecordingChronology({
           })}
         </div>
       </Stack>
-    </Stack>
-  );
-}
-
-function SongLyricsSection({
-  versions,
-  selectedId,
-}: {
-  versions: Array<
-    | SongOverview['lyrics_versions'][number]
-    | RecordingOverview['lyrics'][number]
-  >;
-  selectedId: string | null;
-}) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const selectedVersionId = resolveSelectedLyricsVersionId(
-    versions,
-    selectedId,
-  );
-  const selectedVersion =
-    versions.find((version) => version.id === selectedVersionId) ?? null;
-
-  const handleTabChange = (versionId: string | null) => {
-    if (versionId === null) {
-      return;
-    }
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('text', versionId);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
-
-  if (selectedVersion === null) {
-    return null;
-  }
-
-  return (
-    <Stack gap="sm" component="section" aria-labelledby="lyrics-heading">
-      <Title order={2} id="lyrics-heading">
-        Текст
-      </Title>
-      <Tabs
-        value={selectedVersion.id}
-        onChange={handleTabChange}
-        keepMounted={false}
-      >
-        <Tabs.List aria-label="Версии текста">
-          {versions.map((version) => (
-            <Tabs.Tab
-              key={version.id}
-              value={version.id}
-              aria-selected={version.id === selectedVersion.id}
-            >
-              {formatLyricsVersionTabLabel(version)}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-
-        {versions.map((version) => (
-          <Tabs.Panel key={version.id} value={version.id} pt="md">
-            {'confirmed_for_recording' in version &&
-            !version.confirmed_for_recording ? (
-              <Text size="sm" mb="xs">
-                Соответствие текста этой записи не подтверждено
-              </Text>
-            ) : null}
-            {version.body !== null ? (
-              <Text style={{ whiteSpace: 'pre-wrap' }}>{version.body}</Text>
-            ) : (
-              <Text c="pastel.8">
-                {version.body_unavailable_reason ??
-                  'Текст недоступен для просмотра.'}
-              </Text>
-            )}
-          </Tabs.Panel>
-        ))}
-      </Tabs>
-    </Stack>
-  );
-}
-
-function SongLyricsSectionFallback() {
-  return (
-    <Stack
-      gap="sm"
-      component="section"
-      aria-labelledby="lyrics-heading"
-      aria-busy="true"
-    >
-      <Title order={2} id="lyrics-heading">
-        Текст
-      </Title>
-      <Skeleton height={36} width="60%" />
-      <Skeleton height={80} />
     </Stack>
   );
 }

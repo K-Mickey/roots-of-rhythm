@@ -23,6 +23,7 @@ async def test_song_list_integration_returns_seeded_titles_in_order(seeded_engin
     assert response.status_code == 200
     assert response.json() == {
         "items": [
+            {"id": str(work_data.NOBODY_KNOWS_TROUBLE_ID), "name": "Nobody Knows the Trouble I've Seen"},
             {"id": str(work_data.ONE_O_CLOCK_JUMP_ID), "name": "One O'Clock Jump"},
             {"id": str(work_data.ORNITHOLOGY_ID), "name": "Ornithology"},
             {"id": str(work_data.SHAKE_RATTLE_AND_ROLL_ID), "name": "Shake, Rattle and Roll"},
@@ -30,6 +31,23 @@ async def test_song_list_integration_returns_seeded_titles_in_order(seeded_engin
             {"id": str(work_data.SIXTEEN_TONS_ID), "name": "Sixteen Tons"},
             {"id": str(work_data.WEST_END_BLUES_ID), "name": "West End Blues"},
         ],
+    }
+
+
+async def test_spiritual_overview_exposes_fallback_lyrics(seeded_engine: AsyncEngine) -> None:
+    database_url = seeded_engine.url.render_as_string(hide_password=False)
+    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+        response = client.get(f"/api/v1/songs/{work_data.NOBODY_KNOWS_TROUBLE_ID}")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [item["id"] for item in payload["recordings"]] == [
+        str(recording_data.MARIAN_RECORDING_ID),
+        str(recording_data.LOUIS_RECORDING_ID),
+    ]
+    assert {item["body"] for item in payload["lyrics_versions"]} == {
+        recording_data.ENGLISH_BODY,
+        recording_data.RUSSIAN_BODY,
     }
 
 

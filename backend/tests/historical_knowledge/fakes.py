@@ -93,6 +93,9 @@ class FakeSourceRepository:
     async def add_source(self, source: Source) -> None:
         self.sources[source.id] = source
 
+    async def save_source(self, source: Source) -> None:
+        self.sources[source.id] = source
+
     async def add_version(self, version: SourceVersion) -> None:
         self.versions[version.id] = version
 

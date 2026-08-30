@@ -8,6 +8,8 @@
 }
 
 .recordingContent {
+  display: grid;
+  gap: var(--mantine-spacing-xl);
   min-width: 0;
 }
 

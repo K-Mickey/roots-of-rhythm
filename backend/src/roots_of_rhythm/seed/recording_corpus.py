@@ -1,4 +1,4 @@
-"""The controlled Sixteen Tons recording corpus."""
+"""Controlled recordings, lyrics, evidence, and listening-guide corpus."""
 
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
@@ -20,6 +20,7 @@ from roots_of_rhythm.historical_knowledge.domain import (
     ListeningGuide,
     ListeningObservation,
     RecordingOriginPredicate,
+    SourceAccessPolicy,
     TemporalBound,
     TemporalPrecision,
 )
@@ -54,8 +55,10 @@ from roots_of_rhythm.music_catalog.domain import TemporalBound as MusicTemporalB
 from roots_of_rhythm.music_catalog.domain import TemporalPrecision as MusicTemporalPrecision
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.seed.genre_knowledge import COUNTRY_ID, RHYTHM_AND_BLUES_ID, SOURCE_VERSION_LABEL
-from roots_of_rhythm.seed.musical_works import SIXTEEN_TONS_ID
+from roots_of_rhythm.seed.musical_works import NOBODY_KNOWS_TROUBLE_ID, SIXTEEN_TONS_ID
 from roots_of_rhythm.seed.people_and_groups import (
+    LOUIS_ARMSTRONG_ID,
+    MARIAN_ANDERSON_ID,
     MERLE_TRAVIS_ID,
     SEED_ASSIGNMENT_PROVENANCE,
     STEVIE_WONDER_ID,
@@ -239,6 +242,132 @@ FORD_LISTENING_GUIDE = ListeningGuide.create_draft(
     guide_id=FORD_LISTENING_GUIDE_ID,
 )
 
+# --- Public-domain lyrics recording corpus ---------------------------------
+PUBLIC_DOMAIN_SOURCE_ID = UUID("01a01a72-5a01-7000-8000-000000000001")
+PUBLIC_DOMAIN_SOURCE_VERSION_ID = UUID("01a01a72-5a01-7000-8000-000000000002")
+ENGLISH_LYRICS_ID = UUID("01a01a72-5a01-7000-8000-000000000003")
+RUSSIAN_TRANSLATION_ID = UUID("01a01a72-5a01-7000-8000-000000000004")
+TRANSLATION_RELATION_ID = UUID("01a01a72-5a01-7000-8000-000000000005")
+
+MARIAN_RECORDING_ID = UUID("01a01a72-5a01-7000-8000-000000000011")
+LOUIS_RECORDING_ID = UUID("01a01a72-5a01-7000-8000-000000000012")
+MARIAN_CREDIT_ID = UUID("01a01a72-5a01-7000-8000-000000000013")
+LOUIS_CREDIT_ID = UUID("01a01a72-5a01-7000-8000-000000000014")
+MARIAN_WORK_USAGE_ID = UUID("01a01a72-5a01-7000-8000-000000000015")
+LOUIS_WORK_USAGE_ID = UUID("01a01a72-5a01-7000-8000-000000000016")
+
+PUBLIC_DOMAIN_SOURCE_URL = "https://www.loc.gov/collections/songs-of-america/articles-and-essays/timeline/1850-to-1899/"
+
+ENGLISH_BODY = """Nobody knows the trouble I've seen,
+Nobody knows but Jesus;
+Nobody knows the trouble I've seen,
+Glory, hallelujah!
+
+Sometimes I'm up, sometimes I'm down,
+Oh, yes, Lord;
+Sometimes I'm almost to the ground,
+Oh, yes, Lord.
+
+Although you see me going along,
+Oh, yes, Lord;
+I have my trials here below,
+Oh, yes, Lord.
+
+If you get there before I do,
+Oh, yes, Lord;
+Tell all my friends I'm coming too,
+Oh, yes, Lord."""
+
+RUSSIAN_BODY = """Никто не знает бед, что я познал,
+Никто не знает — только Иисус;
+Никто не знает бед, что я познал,
+Слава, аллилуйя!
+
+То я наверху, то я внизу,
+О да, Господь;
+Порой я почти лежу на земле,
+О да, Господь.
+
+Пусть видят, что я продолжаю путь,
+О да, Господь;
+Здесь, внизу, мне выпали испытания,
+О да, Господь.
+
+Если ты придёшь туда прежде меня,
+О да, Господь;
+Скажи всем друзьям, что я тоже иду,
+О да, Господь."""
+
+ENGLISH_LYRICS = LyricsVersionContent.create(
+    language_tag="en",
+    usage_kind=LyricsUsageKind.PERFORMABLE,
+    creation_method=LyricsCreationMethod.ORIGINAL,
+    label="Traditional English text",
+    body=ENGLISH_BODY,
+    provenance="Public-domain traditional text, based on the version published in 1867.",
+)
+RUSSIAN_TRANSLATION = LyricsVersionContent.create(
+    language_tag="ru",
+    usage_kind=LyricsUsageKind.READING_TRANSLATION,
+    creation_method=LyricsCreationMethod.MACHINE_TRANSLATION,
+    label="Русский перевод",
+    body=RUSSIAN_BODY,
+    provenance="Project-created machine reading translation of public-domain lyrics.",
+)
+TRANSLATION_RELATION = LyricsVersionRelationContent.create(
+    relation_type=LyricsVersionRelationType.TRANSLATION_OF,
+    provenance="Controlled corpus relation between the public-domain text and its reading translation.",
+)
+
+
+def _public_domain_recording(
+    recording_id: UUID,
+    performer_id: UUID,
+    credit_id: UUID,
+    work_usage_id: UUID,
+    year: int,
+) -> tuple[UUID, RecordingContent]:
+    return (
+        recording_id,
+        RecordingContent.create(
+            "Nobody Knows the Trouble I've Seen",
+            recorded_period=ExistencePeriod.create(start=MusicTemporalBound(year, MusicTemporalPrecision.EXACT_YEAR)),
+            recording_credits=(
+                RecordingCredit.create(
+                    credit_id,
+                    RecordingCreditTargetKind.PERSON,
+                    performer_id,
+                    BillingRole.PRIMARY,
+                ),
+            ),
+            work_usages=(
+                RecordingWorkUsage.create(
+                    work_usage_id,
+                    NOBODY_KNOWS_TROUBLE_ID,
+                    RecordingWorkUsageKind.COMPLETE,
+                ),
+            ),
+        ),
+    )
+
+
+PUBLIC_DOMAIN_RECORDINGS = (
+    _public_domain_recording(
+        MARIAN_RECORDING_ID,
+        MARIAN_ANDERSON_ID,
+        MARIAN_CREDIT_ID,
+        MARIAN_WORK_USAGE_ID,
+        1924,
+    ),
+    _public_domain_recording(
+        LOUIS_RECORDING_ID,
+        LOUIS_ARMSTRONG_ID,
+        LOUIS_CREDIT_ID,
+        LOUIS_WORK_USAGE_ID,
+        1938,
+    ),
+)
+
 
 class RecordingCorpusSeed:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
@@ -258,7 +387,7 @@ class RecordingCorpusSeed:
     async def run(self) -> None:
         await self._ensure_source_material()
         await self._ensure_lyrics_versions()
-        await self._ensure_lyrics_relation()
+        await self._ensure_lyrics_relations()
         await self._ensure_recordings()
         await self._ensure_recording_genre_assignments()
         await self._ensure_recording_origin_claim()
@@ -280,6 +409,19 @@ class RecordingCorpusSeed:
             locator_text="История Sixteen Tons и известных записей",
             external_url=SIXTEEN_TONS_FRAGMENT_URL,
         )
+        await self._ensure_source(
+            PUBLIC_DOMAIN_SOURCE_ID,
+            "Slave Songs of the United States",
+            responsible_organization="Library of Congress",
+            publication="A. Simpson & Co.",
+            publication_date="1867",
+            external_url=PUBLIC_DOMAIN_SOURCE_URL,
+        )
+        await self._ensure_version(
+            PUBLIC_DOMAIN_SOURCE_ID,
+            PUBLIC_DOMAIN_SOURCE_VERSION_ID,
+            "1867 first edition",
+        )
 
     async def _ensure_source(
         self,
@@ -289,6 +431,7 @@ class RecordingCorpusSeed:
         author: str | None = None,
         responsible_organization: str | None = None,
         publication: str | None = None,
+        publication_date: str | None = None,
         external_url: str | None = None,
     ) -> None:
         async with self._hk_uow() as uow:
@@ -299,9 +442,13 @@ class RecordingCorpusSeed:
                 author=author,
                 responsible_organization=responsible_organization,
                 publication=publication,
+                publication_date=publication_date,
                 external_url=external_url,
+                access_policy=SourceAccessPolicy.ALLOW_PUBLIC_BODY,
                 source_id=source_id,
             )
+        elif existing.access_policy is not SourceAccessPolicy.ALLOW_PUBLIC_BODY:
+            await self._sources.set_access_policy(source_id, SourceAccessPolicy.ALLOW_PUBLIC_BODY)
 
     async def _ensure_version(self, source_id: UUID, version_id: UUID, label: str) -> None:
         async with self._hk_uow() as uow:
@@ -340,20 +487,35 @@ class RecordingCorpusSeed:
             SIXTEEN_TONS_RU_READING,
             requires_review=True,
         )
+        await self._ensure_published_lyrics_version(
+            ENGLISH_LYRICS_ID,
+            ENGLISH_LYRICS,
+            work_id=NOBODY_KNOWS_TROUBLE_ID,
+            source_version_id=PUBLIC_DOMAIN_SOURCE_VERSION_ID,
+        )
+        await self._ensure_published_lyrics_version(
+            RUSSIAN_TRANSLATION_ID,
+            RUSSIAN_TRANSLATION,
+            work_id=NOBODY_KNOWS_TROUBLE_ID,
+            source_version_id=PUBLIC_DOMAIN_SOURCE_VERSION_ID,
+            requires_review=True,
+        )
 
     async def _ensure_published_lyrics_version(
         self,
         version_id: UUID,
         content: LyricsVersionContent,
         *,
+        work_id: UUID = SIXTEEN_TONS_ID,
+        source_version_id: UUID = SIXTEEN_TONS_SOURCE_VERSION_ID,
         requires_review: bool = False,
     ) -> None:
         async with self._music_uow() as uow:
             existing = await uow.lyrics_versions.get(version_id)
         if existing is None:
             await self._lyrics_versions.create(
-                SIXTEEN_TONS_ID,
-                SIXTEEN_TONS_SOURCE_VERSION_ID,
+                work_id,
+                source_version_id,
                 content,
                 version_id=version_id,
             )
@@ -371,27 +533,46 @@ class RecordingCorpusSeed:
                 await self._lyrics_versions.submit_for_review(version_id)
             await self._lyrics_versions.publish(version_id)
 
-    async def _ensure_lyrics_relation(self) -> None:
-        relation_id = SIXTEEN_TONS_TRANSLATION_RELATION_ID
+    async def _ensure_lyrics_relations(self) -> None:
+        await self._ensure_published_lyrics_relation(
+            SIXTEEN_TONS_TRANSLATION_RELATION_ID,
+            SIXTEEN_TONS_RU_READING_ID,
+            SIXTEEN_TONS_EN_LYRICS_ID,
+            SIXTEEN_TONS_TRANSLATION_RELATION,
+        )
+        await self._ensure_published_lyrics_relation(
+            TRANSLATION_RELATION_ID,
+            RUSSIAN_TRANSLATION_ID,
+            ENGLISH_LYRICS_ID,
+            TRANSLATION_RELATION,
+        )
+
+    async def _ensure_published_lyrics_relation(
+        self,
+        relation_id: UUID,
+        source_version_id: UUID,
+        target_version_id: UUID,
+        content: LyricsVersionRelationContent,
+    ) -> None:
         async with self._music_uow() as uow:
             existing = await uow.lyrics_version_relations.get(relation_id)
         if existing is None:
             await self._lyrics_relations.create(
-                SIXTEEN_TONS_RU_READING_ID,
-                SIXTEEN_TONS_EN_LYRICS_ID,
+                source_version_id,
+                target_version_id,
                 LyricsVersionRelationType.TRANSLATION_OF,
-                SIXTEEN_TONS_TRANSLATION_RELATION,
+                content,
                 relation_id=relation_id,
             )
-        elif existing.provenance != SIXTEEN_TONS_TRANSLATION_RELATION.provenance:
-            await self._lyrics_relations.replace_content(relation_id, SIXTEEN_TONS_TRANSLATION_RELATION)
+        elif existing.provenance != content.provenance:
+            await self._lyrics_relations.replace_content(relation_id, content)
         async with self._music_uow() as uow:
             current = await uow.lyrics_version_relations.get(relation_id)
         if current is not None and current.editorial_status is not GenreEditorialStatus.PUBLISHED:
             await self._lyrics_relations.publish(relation_id)
 
     async def _ensure_recordings(self) -> None:
-        for recording_id, content in SEED_RECORDINGS:
+        for recording_id, content in (*SEED_RECORDINGS, *PUBLIC_DOMAIN_RECORDINGS):
             async with self._music_uow() as uow:
                 existing = await uow.recordings.get(recording_id)
             if existing is None:

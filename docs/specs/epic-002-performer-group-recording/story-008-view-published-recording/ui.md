@@ -7,7 +7,7 @@ Story: [STORY-008](README.md).
 
 ## Страница `/recordings/{id}`
 
-Единственный `h1` — title Recording. Если данные есть, показываются:
+Единственный `h1` — title Recording. На широком viewport metadata, origin badges, Genre, lyrics и ListeningGuide находятся в основном столбце, а Work usages и credits — в правом; sidebar опущен ниже заголовка и metadata и использует те же границы колонок, что Recording-блок на Song page. На мобильном используется одна колонка без дополнительного верхнего отступа. Если данные есть, показываются:
 
 - Work usages как ссылки на `/songs/{id}` с типом partial/medley, когда он не `complete`;
 - primary и дополнительные Person/Group credits;
@@ -53,9 +53,9 @@ Recording выбрана автоматически и показана в це�
 
 ### Тексты и языки
 
-В центральной области горизонтально показаны фактически звучащие LyricsVersion выбранной Recording и их reading translations. Выбор обновляет `text` без reload. Одинаковые language tags различаются label; machine translation явно маркируется.
+На Song и Recording detail фактически звучащие LyricsVersion и reading translations используют общий горизонтальный switcher. Выбор обновляет `text` без reload и поддерживает history. Видимые tabs — короткие uppercase language tags (`EN`, `RU`), одинаковые языки нумеруются (`EN 1`, `EN 2`), machine translation получает badge `Машинный перевод`; полное название остаётся доступным через `aria-label` и `title`. При нехватке места прокручивается только строка tabs.
 
-Если точный текст Recording неизвестен, показывается первая опубликованная LyricsVersion Work и сообщение «Соответствие текста этой записи не подтверждено».
+Если точный текст Recording неизвестен, показывается первая опубликованная LyricsVersion Work. Сообщение «Соответствие текста этой записи не подтверждено» выводится только при доступном body; если body скрыт по правам, остаётся только сообщение о недоступности.
 
 ### URL и доступность
 

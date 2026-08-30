@@ -1,11 +1,17 @@
 import { MantineProvider } from '@mantine/core';
 import { render, screen } from '@testing-library/react';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 
 import type { RecordingOverview } from '@/shared/api/recording';
 import { createAppTheme } from '@/shared/theme/theme';
 
 import { RecordingPageContent } from './RecordingPageContent';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => '/recordings/recording-1',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 it('renders recording links, machine and fallback labels, and hides empty sections', () => {
   const recording: RecordingOverview = {

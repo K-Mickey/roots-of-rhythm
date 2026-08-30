@@ -37,7 +37,12 @@ it('renders recording links with primary credits, period, and genres', () => {
     'href',
     '/recordings/recording-1',
   );
-  expect(screen.getByText('Dave Brubeck Quartet')).toBeInTheDocument();
+  expect(
+    screen.getByRole('link', { name: 'Dave Brubeck Quartet' }),
+  ).toHaveAttribute('href', '/groups/group-1');
   expect(screen.getByText(/Период записи: 1959/)).toBeInTheDocument();
-  expect(screen.getByText('Jazz')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Jazz' })).toHaveAttribute(
+    'href',
+    '/genres/genre-1',
+  );
 });

@@ -1,3 +1,5 @@
+'use client';
+
 import { Anchor, Stack, Text, Title } from '@mantine/core';
 import Link from 'next/link';
 
@@ -22,12 +24,6 @@ export function RecordingCatalogContent({
             const period = hasPeriodBounds(recording.period)
               ? formatPeriod(recording.period)
               : null;
-            const performers = recording.primary_credits
-              .map((credit) => credit.target.name)
-              .join(', ');
-            const genres = recording.genres
-              .map((genre) => genre.name)
-              .join(', ');
             return (
               <li key={recording.id}>
                 <Stack gap={4}>
@@ -40,15 +36,39 @@ export function RecordingCatalogContent({
                   >
                     {recording.title}
                   </Anchor>
-                  {performers ? <Text size="sm">{performers}</Text> : null}
+                  {recording.primary_credits.length ? (
+                    <Text size="sm">
+                      {recording.primary_credits.map((credit, index) => (
+                        <span key={`${credit.target_kind}:${credit.target.id}`}>
+                          {index > 0 ? ', ' : null}
+                          <Anchor
+                            component={Link}
+                            href={`/${credit.target_kind === 'person' ? 'performers' : 'groups'}/${encodeURIComponent(credit.target.id)}`}
+                          >
+                            {credit.target.name}
+                          </Anchor>
+                        </span>
+                      ))}
+                    </Text>
+                  ) : null}
                   {period ? (
                     <Text size="sm" c="pastel.8">
                       Период записи: {period}
                     </Text>
                   ) : null}
-                  {genres ? (
+                  {recording.genres.length ? (
                     <Text size="sm" c="pastel.8">
-                      {genres}
+                      {recording.genres.map((genre, index) => (
+                        <span key={genre.id}>
+                          {index > 0 ? ', ' : null}
+                          <Anchor
+                            component={Link}
+                            href={`/genres/${encodeURIComponent(genre.id)}`}
+                          >
+                            {genre.name}
+                          </Anchor>
+                        </span>
+                      ))}
                     </Text>
                   ) : null}
                 </Stack>

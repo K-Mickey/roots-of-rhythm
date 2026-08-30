@@ -15,7 +15,7 @@ export default async function RecordingPage({
   if (result.status === 'not_found') notFound();
   if (result.status === 'error') {
     return (
-      <Container size="52rem" py="xl">
+      <Container size="72rem" py="xl">
         <PageError
           message={result.message}
           retryHref={`/recordings/${encodeURIComponent(id)}`}

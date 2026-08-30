@@ -12,7 +12,7 @@ Epic: [EPIC-002](../README.md).
 
 ## Проблема и измеримый результат
 
-Запись ≠ песня ≠ релиз. Каталога записей нет: вход со страницы песни, Performer/Group и позже Genre/Release. Story успешна, если published Recording открывается по `/recordings/{id}`, имеет минимум один Work usage, а `/songs/{id}` показывает хронологию, жанровые фасеты и выбранную Recording. Историческое первенство подтверждается Claims, а не положением в списке.
+Запись ≠ песня ≠ релиз. Published Recording доступны из глобального каталога, со страницы песни и позже из Performer/Group, Genre или Release. Story успешна, если Recording открывается по `/recordings/{id}`, имеет минимум один Work usage, а `/songs/{id}` показывает хронологию, жанровые фасеты и выбранную Recording. Историческое первенство подтверждается Claims, а не положением в списке.
 
 ## Контекст
 
@@ -21,7 +21,7 @@ Epic: [EPIC-002](../README.md).
 ## Functional requirements
 
 - `FR-001` `/recordings` и `/recordings/{id}` доступны без авторизации; header содержит пункт «Записи».
-- `FR-002` Recording нельзя опубликовать без хотя бы одного published Work usage. Страница записи содержит ссылки на все её published Works.
+- `FR-002` Recording нельзя опубликовать без хотя бы одного published Work usage. Страница записи содержит ссылки на все её published Works; центральный блок Recording на странице песни показывает остальные Works, не дублируя открытое произведение.
 - `FR-003` Primary credits — ссылки на published Performer/Group.
 - `FR-004` Поля обзора по [mvp-scope Recording](../../../product/mvp-scope.md): период, значение, жанры; пустые скрыты. Провайдеры не обязательны.
 - `FR-005` Published ListeningGuide показывается на `/recordings/{id}` и в центральном блоке выбранной Recording на `/songs/{id}`; если наблюдений нет, секция скрыта.
@@ -30,7 +30,7 @@ Epic: [EPIC-002](../README.md).
 - `FR-008` Непубличный id — безопасный not-found.
 - `FR-009` Seed: минимум одна published Recording с Work и primary credit.
 - `FR-010` RecordingWorkUsage имеет `complete | partial | medley_component` и optional position; обычная Recording имеет один `complete`, medley допускает несколько упорядоченных usages.
-- `FR-011` RecordingLyricsUsage хранит упорядоченные ссылки только на фактически звучащие `performable` LyricsVersion Works этой Recording. Переводы для чтения подтягиваются через LyricsVersionRelation и выбираются через `?text=<id>`.
+- `FR-011` RecordingLyricsUsage хранит упорядоченные ссылки только на фактически звучащие `performable` LyricsVersion Works этой Recording. Переводы для чтения подтягиваются через LyricsVersionRelation и выбираются через `?text=<id>` без reload на `/songs/{id}` и `/recordings/{id}`. Tabs используют короткий uppercase language tag, нумерацию повторяющихся языков и читаемый badge `Машинный перевод`; fallback-предупреждение показывается только вместе с доступным body.
 - `FR-012` Страница Work раздельно показывает независимую классификацию произведения и фасеты `{ genre, recording_count }` по distinct published Recording. Фасеты учитывают `complete`/`partial`, исключают `medley_component` и фильтруют список через `?genre=<id>`.
 - `FR-013` Recording сортируются по дате записи, затем по дате первого выпуска; неизвестные даты идут последними. Список называется хронологией известных записей и не назначает original.
 - `FR-014` Claims `recording_origin` показывают отдельные бейджи `first_known_performance_of`, `first_recording_of`, `first_released_recording_of`, `recorded_by_work_author` только при `published + supported`. `is_original` и обязательный parent Recording не вводятся.
@@ -47,7 +47,7 @@ Epic: [EPIC-002](../README.md).
 
 ## Acceptance criteria
 
-1. Given seed Recording, when Visitor открывает `/recordings/{id}`, then видит `h1`, credits, жанры и ссылки на Works.
+1. Given seed Recording, when Visitor открывает `/recordings/{id}`, then видит `h1`, metadata/origin/genres/lyrics/ListeningGuide в основном столбце и credits/Works в правом столбце без горизонтального overflow.
 2. Given Work с одной Recording, then страница песни показывает её в центре без правой колонки.
 3. Given Work с несколькими Recording, then справа видна хронология; выбор меняет центр и query без полной перезагрузки.
 4. Given попытка published Recording без Work usage или primary credit, then публикация невозможна.
@@ -90,3 +90,4 @@ STORY-007; STORY-005/006 для credits; EPIC-001 для Genre assignments; Hist
 - 2026-08-27: story принята; добавлены Work/Lyrics usages, жанровые фасеты, хронология без featured/original, origin Claims и интерактивное переключение на странице песни.
 - 2026-08-28: по решению Product Owner добавлены глобальный каталог Recording и пункт header «Записи».
 - 2026-08-30: по решению Product Owner ListeningGuide выбранной Recording также показывается в центральном блоке Song page.
+- 2026-08-30: detail Recording сохранён публичным; Song показывает остальные Works выбранной Recording, а общий компактный lyrics switcher используется на обеих страницах.

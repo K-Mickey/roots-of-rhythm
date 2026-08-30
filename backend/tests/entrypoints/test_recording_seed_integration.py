@@ -19,10 +19,13 @@ async def test_recording_endpoints_return_seeded_corpus(seeded_engine: AsyncEngi
     with TestClient(app=create_app(Settings(database_url=database_url))) as client:
         listing = client.get("/api/v1/recordings")
         ford = client.get(f"/api/v1/recordings/{recording_data.TENNESSEE_ERNIE_FORD_RECORDING_ID}")
+        marian = client.get(f"/api/v1/recordings/{recording_data.MARIAN_RECORDING_ID}")
 
     assert listing.status_code == 200
     items = listing.json()["items"]
     assert [item["primary_credits"][0]["target"]["name"] for item in items] == [
+        "Louis Armstrong",
+        "Marian Anderson",
         "Merle Travis",
         "Stevie Wonder",
         "Tennessee Ernie Ford",
@@ -50,3 +53,15 @@ async def test_recording_endpoints_return_seeded_corpus(seeded_engine: AsyncEngi
     assert all(item["body"] is None for item in payload["lyrics"])
     assert payload["origin_badges"] == []
     assert payload["listening_guide"]["observations"][0]["feature"] == "Щелчки пальцами и пульс"
+
+    assert marian.status_code == 200
+    spiritual = marian.json()
+    assert spiritual["period"]["start"] == {"year": 1924, "precision": "exact_year"}
+    assert [(item["language_tag"], item["confirmed_for_recording"]) for item in spiritual["lyrics"]] == [
+        ("en", False),
+        ("ru", False),
+    ]
+    assert {item["body"] for item in spiritual["lyrics"]} == {
+        recording_data.ENGLISH_BODY,
+        recording_data.RUSSIAN_BODY,
+    }

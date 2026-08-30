@@ -131,6 +131,11 @@ const selectedRecording: RecordingOverview = {
       usage_kind: 'complete',
       position: null,
     },
+    {
+      work: { id: 'song-4', name: 'Second Work' },
+      usage_kind: 'medley_component',
+      position: 2,
+    },
   ],
   credits: [
     {
@@ -324,6 +329,36 @@ describe('SongPageContent', () => {
     ).toBeGreaterThan(0);
     expect(screen.queryByText(/^Оригинал$/)).not.toBeInTheDocument();
     expect(screen.getByText('Recorded words')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Second Work' })).toHaveAttribute(
+      'href',
+      '/songs/song-4',
+    );
+    expect(
+      screen.queryByRole('link', { name: "One O'Clock Jump" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders one Recording in the center without chronology', () => {
+    searchParams.set('recording', 'recording-1');
+    renderWithProviders(
+      <SongPageContent
+        song={{
+          ...overviewWithRecordings,
+          recordings: [overviewWithRecordings.recordings[0]],
+          recording_genres: [],
+        }}
+        recording={selectedRecording}
+      />,
+    );
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: '1937 Studio Take' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('navigation', {
+        name: 'Хронология известных записей',
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it('scopes origin badges to the Work and renders the selected Recording guide', () => {
@@ -380,6 +415,27 @@ describe('SongPageContent', () => {
     expect(
       screen.getByText('Соответствие текста этой записи не подтверждено'),
     ).toBeInTheDocument();
+
+    cleanup();
+    renderWithProviders(
+      <SongPageContent
+        song={overviewWithRecordings}
+        recording={{
+          ...fallbackRecording,
+          lyrics: [
+            {
+              ...fallbackRecording.lyrics[0],
+              body: null,
+              body_unavailable_reason: 'Текст недоступен по правам.',
+            },
+          ],
+        }}
+      />,
+    );
+    expect(
+      screen.queryByText('Соответствие текста этой записи не подтверждено'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Текст недоступен по правам.')).toBeInTheDocument();
 
     cleanup();
     renderWithProviders(
