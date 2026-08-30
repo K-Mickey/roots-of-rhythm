@@ -7,9 +7,9 @@ import { PageError } from '@/shared/ui/PageError';
 
 export default async function RecordingPage({
   params,
-}: {
+}: Readonly<{
   params: Promise<{ recording_id: string }>;
-}) {
+}>) {
   const { recording_id: id } = await params;
   const result = await fetchRecordingOverview(id);
   if (result.status === 'not_found') notFound();

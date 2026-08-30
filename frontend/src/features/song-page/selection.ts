@@ -35,12 +35,14 @@ export function resolveSongSelection(
     recordings.find((item) => item.id === query.recording) ??
     recordings[0] ??
     null;
-  const versions =
-    recording !== null && selected !== null && recording.id === selected.id
-      ? recording.lyrics
-      : selected === null
-        ? song.lyrics_versions
+  let versions: RecordingOverview['lyrics'] | SongOverview['lyrics_versions'] =
+    song.lyrics_versions;
+  if (selected !== null) {
+    versions =
+      recording !== null && recording.id === selected.id
+        ? recording.lyrics
         : [];
+  }
   const textId =
     versions.find((version) => version.id === query.text)?.id ??
     versions[0]?.id ??

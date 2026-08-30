@@ -21,12 +21,12 @@ export function RecordingLyricsSection({
   selectedId,
   headingOrder = 2,
   normalizeQuery = false,
-}: {
+}: Readonly<{
   versions: LyricsVersion[];
   selectedId?: string | null;
   headingOrder?: 2 | 3;
   normalizeQuery?: boolean;
-}) {
+}>) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

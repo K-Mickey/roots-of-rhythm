@@ -8,9 +8,9 @@ import type { RecordingList } from '@/shared/api/recording';
 
 export function RecordingCatalogContent({
   items,
-}: {
+}: Readonly<{
   items: RecordingList['items'];
-}) {
+}>) {
   return (
     <Stack gap="md">
       <Title order={1}>Записи</Title>

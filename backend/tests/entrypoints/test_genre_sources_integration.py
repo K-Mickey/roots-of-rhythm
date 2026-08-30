@@ -43,7 +43,7 @@ async def test_genre_sources_integration_returns_seeded_swing_bibliography(seede
     assert first["publication"] is None
     assert first["publication_date"] is None
     assert first["external_url"] == genre_data.SMITHSONIAN_EXTERNAL_URL
-    assert second["title"] == genre_data.LOC_TITLE
+    assert second["title"] == genre_data.RHYTHM_AND_BLUES_NAME
     assert second["responsible_organization"] == genre_data.LOC_RESPONSIBLE_ORGANIZATION
     assert second["external_url"] == genre_data.LOC_EXTERNAL_URL
 

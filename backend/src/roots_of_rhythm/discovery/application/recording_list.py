@@ -3,13 +3,11 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from roots_of_rhythm.discovery.application.dto import (
     GenreSummary,
-    GroupSummary,
-    PerformerSummary,
     RecordingListItem,
     RecordingListResponse,
-    RecordingPrimaryCreditView,
     SongPeriodView,
 )
+from roots_of_rhythm.discovery.application.recording_credits import project_primary_credits
 from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
@@ -63,31 +61,16 @@ class RecordingListQuery:
 
         items: list[RecordingListItem] = []
         for recording in recordings:
-            primary_credits: list[RecordingPrimaryCreditView] = []
-            for credit in recording.credits:
-                if credit.billing_role is not BillingRole.PRIMARY:
-                    continue
-                target = (
-                    persons.get(credit.target_id)
-                    if credit.target_kind is RecordingCreditTargetKind.PERSON
-                    else groups.get(credit.target_id)
-                )
-                if target is None:
-                    continue
-                summary = (
-                    PerformerSummary(str(target.id), target.canonical_name)
-                    if credit.target_kind is RecordingCreditTargetKind.PERSON
-                    else GroupSummary(str(target.id), target.canonical_name)
-                )
-                primary_credits.append(RecordingPrimaryCreditView(credit.target_kind, summary))
+            primary_credits = project_primary_credits(recording, persons, groups)
             if not primary_credits:
                 continue
+            recording_genres = []
+            for assignment in assignments_by_recording.get(recording.id, ()):
+                genre = genres.get(assignment.concept_id)
+                if genre is not None:
+                    recording_genres.append(GenreSummary(str(genre.id), genre.content.canonical_name))
             recording_genres = sorted(
-                (
-                    GenreSummary(str(genre.id), genre.content.canonical_name)
-                    for assignment in assignments_by_recording.get(recording.id, ())
-                    if (genre := genres.get(assignment.concept_id)) is not None
-                ),
+                recording_genres,
                 key=lambda item: item.name,
             )
             items.append(

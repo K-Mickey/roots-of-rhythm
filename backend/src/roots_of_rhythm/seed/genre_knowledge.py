@@ -37,6 +37,7 @@ SWING_ID = UUID("01a0147a-8508-74b7-9689-e7c133e4e7a5")
 JUMP_BLUES_ID = UUID("01a0147a-8508-74b7-9689-e7c272039bac")
 COUNTRY_ID = UUID("01a0147a-8508-74b7-9689-e7cd00000001")
 RHYTHM_AND_BLUES_ID = UUID("01a0147a-8508-74b7-9689-e7cd00000002")
+RHYTHM_AND_BLUES_NAME = "Rhythm and Blues"
 
 JAZZ_CONTENT = ClassificationContent.create(
     "Jazz",
@@ -63,7 +64,7 @@ COUNTRY_CONTENT = ClassificationContent.create(
     definition="Американская музыкальная традиция, связанная с folk, ballad и string-band music.",
 )
 RHYTHM_AND_BLUES_CONTENT = ClassificationContent.create(
-    "Rhythm and Blues",
+    RHYTHM_AND_BLUES_NAME,
     definition="Афроамериканская популярная музыкальная традиция, объединяющая blues, jazz и gospel influences.",
 )
 
@@ -76,7 +77,6 @@ LOC_VERSION_ID = UUID("01a0147a-8508-74b7-9689-e7c6043bca04")
 SMITHSONIAN_TITLE = "Jazz"
 SMITHSONIAN_RESPONSIBLE_ORGANIZATION = "Smithsonian Music"
 SMITHSONIAN_EXTERNAL_URL = "https://music.si.edu/story/jazz"
-LOC_TITLE = "Rhythm and Blues"
 LOC_RESPONSIBLE_ORGANIZATION = "Library of Congress"
 LOC_EXTERNAL_URL = (
     "https://www.loc.gov/collections/songs-of-america/articles-and-essays/"
@@ -208,7 +208,7 @@ class GenreKnowledgeSeed:
         )
         await self._ensure_source(
             LOC_SOURCE_ID,
-            LOC_TITLE,
+            RHYTHM_AND_BLUES_NAME,
             responsible_organization=LOC_RESPONSIBLE_ORGANIZATION,
             external_url=LOC_EXTERNAL_URL,
         )
@@ -238,7 +238,7 @@ class GenreKnowledgeSeed:
         await self._ensure_reviewed_fragment(
             LOC_VERSION_ID,
             LOC_RNB_FRAGMENT_ID,
-            locator_text="Rhythm and Blues",
+            locator_text=RHYTHM_AND_BLUES_NAME,
             external_url=LOC_RNB_URL,
         )
 

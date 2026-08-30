@@ -23,6 +23,8 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
 )
 from roots_of_rhythm.text_lengths import TEXT_16, TEXT_32, TEXT_64, TEXT_1024
 
+_RECORDING_ID_FOREIGN_KEY = "recordings.id"
+
 
 class RecordingRecord(ServiceColumnsMixin, MusicCatalogBase):
     __tablename__ = "recordings"
@@ -71,7 +73,9 @@ class RecordingCreditRecord(ServiceColumnsMixin, MusicCatalogBase):
     )
 
     id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
-    recording_id: Mapped[UUID] = mapped_column(ForeignKey("recordings.id", ondelete="CASCADE"), nullable=False)
+    recording_id: Mapped[UUID] = mapped_column(
+        ForeignKey(_RECORDING_ID_FOREIGN_KEY, ondelete="CASCADE"), nullable=False
+    )
     target_kind: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)
     target_id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), nullable=False)
     billing_role: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)
@@ -92,7 +96,9 @@ class RecordingWorkUsageRecord(ServiceColumnsMixin, MusicCatalogBase):
     )
 
     id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
-    recording_id: Mapped[UUID] = mapped_column(ForeignKey("recordings.id", ondelete="CASCADE"), nullable=False)
+    recording_id: Mapped[UUID] = mapped_column(
+        ForeignKey(_RECORDING_ID_FOREIGN_KEY, ondelete="CASCADE"), nullable=False
+    )
     work_id: Mapped[UUID] = mapped_column(ForeignKey("musical_works.id", ondelete="RESTRICT"), nullable=False)
     usage_kind: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)
     position: Mapped[int | None]
@@ -115,7 +121,9 @@ class RecordingLyricsUsageRecord(ServiceColumnsMixin, MusicCatalogBase):
     __table_args__ = (CheckConstraint("position > 0", name="ck_recording_lyrics_usages_position"),)
 
     id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
-    recording_id: Mapped[UUID] = mapped_column(ForeignKey("recordings.id", ondelete="CASCADE"), nullable=False)
+    recording_id: Mapped[UUID] = mapped_column(
+        ForeignKey(_RECORDING_ID_FOREIGN_KEY, ondelete="CASCADE"), nullable=False
+    )
     lyrics_version_id: Mapped[UUID] = mapped_column(
         ForeignKey("lyrics_versions.id", ondelete="RESTRICT"), nullable=False
     )

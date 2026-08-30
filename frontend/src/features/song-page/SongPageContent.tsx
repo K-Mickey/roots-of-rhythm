@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 import type { SongOverview } from '@/shared/api/song';
 import type { RecordingOverview } from '@/shared/api/recording';
@@ -37,10 +37,10 @@ import classes from './SongPageContent.module.css';
 export function SongPageContent({
   song,
   recording = null,
-}: {
+}: Readonly<{
   song: SongOverview;
   recording?: RecordingOverview | null;
-}) {
+}>) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -60,6 +60,28 @@ export function SongPageContent({
     ? formatPeriod(song.period)
     : null;
   const lyricsVersions = song.lyrics_versions;
+  let studyContent: ReactNode = null;
+  if (
+    selection.recordingId !== null &&
+    recording !== null &&
+    recording.id === selection.recordingId
+  ) {
+    studyContent = (
+      <RecordingStudyArea
+        song={song}
+        recording={recording}
+        selection={selection}
+        pathname={pathname}
+      />
+    );
+  } else if (lyricsVersions.length > 0) {
+    studyContent = (
+      <RecordingLyricsSection
+        versions={lyricsVersions}
+        selectedId={selection.textId}
+      />
+    );
+  }
 
   useEffect(() => {
     const current = searchParams.toString();
@@ -229,21 +251,7 @@ export function SongPageContent({
           </Stack>
         ) : null}
 
-        {selection.recordingId !== null &&
-        recording !== null &&
-        recording.id === selection.recordingId ? (
-          <RecordingStudyArea
-            song={song}
-            recording={recording}
-            selection={selection}
-            pathname={pathname}
-          />
-        ) : lyricsVersions.length > 0 ? (
-          <RecordingLyricsSection
-            versions={lyricsVersions}
-            selectedId={selection.textId}
-          />
-        ) : null}
+        {studyContent}
       </Stack>
     </Container>
   );
@@ -254,12 +262,12 @@ function RecordingStudyArea({
   recording,
   selection,
   pathname,
-}: {
+}: Readonly<{
   song: SongOverview;
   recording: RecordingOverview;
   selection: ReturnType<typeof resolveSongSelection>;
   pathname: string;
-}) {
+}>) {
   const hasChronology = song.recordings.length > 1;
   const summary = song.recordings.find(
     (item) => item.id === selection.recordingId,
@@ -294,16 +302,16 @@ function RecordingChronology({
   song,
   selection,
   pathname,
-}: {
+}: Readonly<{
   song: SongOverview;
   selection: ReturnType<typeof resolveSongSelection>;
   pathname: string;
-}) {
+}>) {
   const groups = new Map<string, SongOverview['recordings']>();
   for (const item of selection.recordings) {
     const key = item.primary_credits
       .map((credit) => `${credit.target_kind}:${credit.target.id}`)
-      .sort()
+      .sort((left, right) => left.localeCompare(right))
       .join('|');
     groups.set(key, [...(groups.get(key) ?? []), item]);
   }

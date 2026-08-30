@@ -23,7 +23,8 @@ _LANGUAGE_SUBTAG = re.compile(r"^[A-Za-z]{2,3}$")
 _SCRIPT_SUBTAG = re.compile(r"^[A-Za-z]{4}$")
 _REGION_SUBTAG = re.compile(r"^([A-Za-z]{2}|[0-9]{3})$")
 _VARIANT_SUBTAG = re.compile(r"^([0-9][A-Za-z0-9]{4,7}|[A-Za-z]{4})$")
-_ISRC = re.compile(r"^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$")
+_ISRC = re.compile(r"^[A-Z]{2}[A-Z\d]{3}\d{7}$", re.ASCII)
+_CREDITED_AS_FIELD = "credited as"
 
 
 def _required_text(value: str, field: str, *, max_length: int) -> str:
@@ -302,7 +303,7 @@ class WorkCreditContent(msgspec.Struct, frozen=True):
     ) -> "WorkCreditContent":
         return cls(
             role=role,
-            credited_as=optional_text(credited_as, "credited as", max_length=TEXT_64),
+            credited_as=optional_text(credited_as, _CREDITED_AS_FIELD, max_length=TEXT_64),
             provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
         )
 
@@ -370,7 +371,7 @@ class LyricsVersionCreditContent(msgspec.Struct, frozen=True):
     ) -> "LyricsVersionCreditContent":
         return cls(
             role=role,
-            credited_as=optional_text(credited_as, "credited as", max_length=TEXT_64),
+            credited_as=optional_text(credited_as, _CREDITED_AS_FIELD, max_length=TEXT_64),
             provenance=optional_text(provenance, "provenance", max_length=TEXT_1024),
         )
 
@@ -444,7 +445,7 @@ class RecordingCredit(msgspec.Struct, frozen=True):
             billing_role=billing_role,
             contribution_kind=contribution_kind,
             instrument=optional_text(instrument, "instrument", max_length=TEXT_64),
-            credited_as=optional_text(credited_as, "credited as", max_length=TEXT_64),
+            credited_as=optional_text(credited_as, _CREDITED_AS_FIELD, max_length=TEXT_64),
         )
 
 

@@ -68,7 +68,7 @@ async def test_genre_knowledge_seed(engine: AsyncEngine) -> None:
     assert smithsonian is not None and smithsonian.title == data.SMITHSONIAN_TITLE
     assert smithsonian.responsible_organization == data.SMITHSONIAN_RESPONSIBLE_ORGANIZATION
     assert smithsonian.external_url == data.SMITHSONIAN_EXTERNAL_URL
-    assert loc is not None and loc.title == data.LOC_TITLE
+    assert loc is not None and loc.title == data.RHYTHM_AND_BLUES_NAME
     assert loc.responsible_organization == data.LOC_RESPONSIBLE_ORGANIZATION
     assert loc.external_url == data.LOC_EXTERNAL_URL
     assert all(fragment is not None for fragment in fragments)

@@ -11,9 +11,9 @@ import classes from './RecordingPageContent.module.css';
 
 export function RecordingPageContent({
   recording,
-}: {
+}: Readonly<{
   recording: RecordingOverview;
-}) {
+}>) {
   return (
     <Container size="72rem" py="xl" style={{ containerType: 'inline-size' }}>
       <div className={classes.detailGrid}>
@@ -42,7 +42,7 @@ export function RecordingDetails({
   lyricsSelectedId,
   normalizeLyricsQuery = false,
   originBadges = recording.origin_badges,
-}: {
+}: Readonly<{
   recording: RecordingOverview;
   headingOrder?: 1 | 2;
   showWorks?: boolean;
@@ -52,10 +52,11 @@ export function RecordingDetails({
   lyricsSelectedId?: string | null;
   normalizeLyricsQuery?: boolean;
   originBadges?: RecordingOverview['origin_badges'];
-}) {
+}>) {
   const period = [recording.period.start?.year, recording.period.end?.year]
     .filter((year) => year !== undefined)
     .join(' — ');
+  const sectionOrder = headingOrder === 1 ? 2 : 3;
   return (
     <Stack
       gap="xl"
@@ -78,57 +79,23 @@ export function RecordingDetails({
       {showWorks ? (
         <RecordingWorks
           recording={recording}
-          order={headingOrder === 1 ? 2 : 3}
+          order={sectionOrder}
           excludeWorkId={excludeWorkId}
         />
       ) : null}
       {showCredits ? (
-        <RecordingCredits
-          recording={recording}
-          order={headingOrder === 1 ? 2 : 3}
-        />
+        <RecordingCredits recording={recording} order={sectionOrder} />
       ) : null}
-      {recording.genres.length ? (
-        <Section title="Жанры" order={headingOrder === 1 ? 2 : 3}>
-          {recording.genres.map((item) => (
-            <li key={item.id}>
-              <Anchor
-                component={Link}
-                href={`/genres/${encodeURIComponent(item.id)}`}
-              >
-                {item.name}
-              </Anchor>
-            </li>
-          ))}
-        </Section>
-      ) : null}
+      <RecordingGenres recording={recording} order={sectionOrder} />
       {showLyrics && recording.lyrics.length ? (
         <RecordingLyricsSection
           versions={recording.lyrics}
           selectedId={lyricsSelectedId}
-          headingOrder={headingOrder === 1 ? 2 : 3}
+          headingOrder={sectionOrder}
           normalizeQuery={normalizeLyricsQuery}
         />
       ) : null}
-      {recording.listening_guide ? (
-        <Section
-          title="На что обратить внимание"
-          order={headingOrder === 1 ? 2 : 3}
-        >
-          {recording.listening_guide.observations.map((item) => (
-            <li key={item.position}>
-              <Text fw={600}>{item.feature}</Text>
-              <Text>{item.explanation}</Text>
-              {item.context ? <Text size="sm">{item.context}</Text> : null}
-              {item.start_seconds !== null && item.end_seconds !== null ? (
-                <Text size="sm">
-                  {item.start_seconds}–{item.end_seconds} сек.
-                </Text>
-              ) : null}
-            </li>
-          ))}
-        </Section>
-      ) : null}
+      <RecordingListeningGuide recording={recording} order={sectionOrder} />
     </Stack>
   );
 }
@@ -137,11 +104,11 @@ function RecordingWorks({
   recording,
   order,
   excludeWorkId,
-}: {
+}: Readonly<{
   recording: RecordingOverview;
   order: 2 | 3;
   excludeWorkId?: string;
-}) {
+}>) {
   const works = recording.works.filter(
     (item) => item.work.id !== excludeWorkId,
   );
@@ -168,10 +135,10 @@ function RecordingWorks({
 function RecordingCredits({
   recording,
   order,
-}: {
+}: Readonly<{
   recording: RecordingOverview;
   order: 2 | 3;
-}) {
+}>) {
   return recording.credits.length ? (
     <Section title="Исполнители" order={order}>
       {recording.credits.map((item) => (
@@ -194,11 +161,11 @@ function Section({
   title,
   children,
   order = 2,
-}: {
+}: Readonly<{
   title: string;
   children: React.ReactNode;
   order?: 2 | 3;
-}) {
+}>) {
   return (
     <Stack component="section" gap="sm">
       <Title order={order}>{title}</Title>
@@ -210,5 +177,50 @@ function Section({
         {children}
       </Stack>
     </Stack>
+  );
+}
+
+function RecordingGenres({
+  recording,
+  order,
+}: Readonly<{ recording: RecordingOverview; order: 2 | 3 }>) {
+  if (!recording.genres.length) return null;
+  return (
+    <Section title="Жанры" order={order}>
+      {recording.genres.map((item) => (
+        <li key={item.id}>
+          <Anchor
+            component={Link}
+            href={`/genres/${encodeURIComponent(item.id)}`}
+          >
+            {item.name}
+          </Anchor>
+        </li>
+      ))}
+    </Section>
+  );
+}
+
+function RecordingListeningGuide({
+  recording,
+  order,
+}: Readonly<{ recording: RecordingOverview; order: 2 | 3 }>) {
+  const guide = recording.listening_guide;
+  if (!guide) return null;
+  return (
+    <Section title="На что обратить внимание" order={order}>
+      {guide.observations.map((item) => (
+        <li key={item.position}>
+          <Text fw={600}>{item.feature}</Text>
+          <Text>{item.explanation}</Text>
+          {item.context ? <Text size="sm">{item.context}</Text> : null}
+          {item.start_seconds !== null && item.end_seconds !== null ? (
+            <Text size="sm">
+              {item.start_seconds}–{item.end_seconds} сек.
+            </Text>
+          ) : null}
+        </li>
+      ))}
+    </Section>
   );
 }

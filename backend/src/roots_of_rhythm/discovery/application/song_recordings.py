@@ -3,19 +3,13 @@ from typing import TYPE_CHECKING
 
 from roots_of_rhythm.discovery.application.dto import (
     GenreSummary,
-    GroupSummary,
-    PerformerSummary,
-    RecordingPrimaryCreditView,
     SongPeriodView,
     SongRecordingGenreFacet,
     SongRecordingSummary,
 )
+from roots_of_rhythm.discovery.application.recording_credits import project_primary_credits
 from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
-from roots_of_rhythm.music_catalog.domain import (
-    BillingRole,
-    RecordingCreditTargetKind,
-    RecordingWorkUsageKind,
-)
+from roots_of_rhythm.music_catalog.domain import RecordingWorkUsageKind
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -46,23 +40,7 @@ def project_song_recordings(
         if usage_kind is None:
             continue
 
-        primary_credits: list[RecordingPrimaryCreditView] = []
-        for credit in recording.credits:
-            if credit.billing_role is not BillingRole.PRIMARY:
-                continue
-            target = (
-                persons.get(credit.target_id)
-                if credit.target_kind is RecordingCreditTargetKind.PERSON
-                else groups.get(credit.target_id)
-            )
-            if target is None:
-                continue
-            summary = (
-                PerformerSummary(str(target.id), target.canonical_name)
-                if credit.target_kind is RecordingCreditTargetKind.PERSON
-                else GroupSummary(str(target.id), target.canonical_name)
-            )
-            primary_credits.append(RecordingPrimaryCreditView(credit.target_kind, summary))
+        primary_credits = project_primary_credits(recording, persons, groups)
         if not primary_credits:
             continue
 

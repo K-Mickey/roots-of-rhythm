@@ -7,10 +7,10 @@ import { fetchRecordingOverview } from '@/shared/api/recording';
 import { PageError } from '@/shared/ui/PageError';
 import { fetchSongOverview } from '@/shared/api/song';
 
-type PageProps = {
+type PageProps = Readonly<{
   params: Promise<{ song_id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
+}>;
 
 export default async function SongPage({ params, searchParams }: PageProps) {
   const { song_id: songId } = await params;
