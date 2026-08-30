@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from os import environ
 from typing import TYPE_CHECKING
 
 import pytest
-from sqlalchemy import delete
+from sqlalchemy import delete, event
+from sqlalchemy.engine import Engine
 
 from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     ClaimEvidenceReferenceRecord,
@@ -39,7 +41,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
 from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Iterator
 
     from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -79,6 +81,21 @@ async def _wipe_corpus(engine: AsyncEngine) -> None:
     async with engine.begin() as connection:
         for table in _CORPUS_TABLES:
             await connection.execute(delete(table))
+
+
+@contextmanager
+def collect_select_statements() -> Iterator[list[str]]:
+    statements: list[str] = []
+
+    def _collect_statement(_conn: object, _cursor: object, statement: str, *_args: object, **_kwargs: object) -> None:
+        if statement.lstrip().upper().startswith("SELECT"):
+            statements.append(statement)
+
+    event.listen(Engine, "before_cursor_execute", _collect_statement)
+    try:
+        yield statements
+    finally:
+        event.remove(Engine, "before_cursor_execute", _collect_statement)
 
 
 @pytest.fixture

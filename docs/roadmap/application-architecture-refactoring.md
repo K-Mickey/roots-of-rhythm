@@ -18,14 +18,20 @@ Tracker: [#58](https://github.com/K-Mickey/roots-of-rhythm/issues/58).
 
 ### Изменения
 
-- добавить characterization tests для существующих projection и visibility rules;
-- измерять query count на representative seeded scenarios без жёсткой привязки к случайным служебным запросам;
-- записать baseline и целевой budget перед оптимизацией;
+- измерять query count только для HTTP-запроса внутри запущенного `TestClient`, исключая seed и setup;
+- сохранить существующие DTO и visibility assertions без отдельных дублирующих characterization tests;
+- записать baseline и ceilings перед оптимизацией:
+
+| Operation | Music | People | Historical/rights | Ceiling |
+| --- | ---: | ---: | ---: | ---: |
+| Song overview (`Sixteen Tons`) | 13 | 1 | 4 | 18 |
+| Recording overview (`Tennessee Ernie Ford`) | 10 | 1 | 5 | 16 |
+
 - не менять production query plan в этой задаче.
 
 ### Проверка
 
-Повторяемый query count, одинаковый DTO до и после instrumentation, отсутствие draft/deleted leakage.
+Повторяемый query count, одинаковый DTO до и после instrumentation, отсутствие draft/deleted leakage. `ARCH-002` и `ARCH-003` не превышают эти ceilings и могут снизить их только после измеренного рефакторинга.
 
 ## ARCH-002: пилот context public readers
 

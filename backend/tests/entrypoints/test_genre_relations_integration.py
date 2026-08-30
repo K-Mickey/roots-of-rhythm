@@ -2,12 +2,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 from litestar.testing import TestClient
-from sqlalchemy import event
-from sqlalchemy.engine import Engine
 
 from roots_of_rhythm.config import Settings
 from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.seed import genre_knowledge as genre_data
+from tests.support.postgres import collect_select_statements
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -16,18 +15,12 @@ pytestmark = pytest.mark.integration
 
 
 async def test_genre_relations_integration_returns_seeded_swing_cards(seeded_engine: AsyncEngine) -> None:
-    statements: list[str] = []
-
-    def _count_statement(_conn: object, _cursor: object, statement: str, *_args: object, **_kwargs: object) -> None:
-        statements.append(statement)
-
-    event.listen(Engine, "before_cursor_execute", _count_statement)
-    try:
-        database_url = seeded_engine.url.render_as_string(hide_password=False)
-        with TestClient(app=create_app(Settings(database_url=database_url))) as client:
-            response = client.get(f"/api/v1/genres/{genre_data.SWING_ID}/relations")
-    finally:
-        event.remove(Engine, "before_cursor_execute", _count_statement)
+    database_url = seeded_engine.url.render_as_string(hide_password=False)
+    with (
+        TestClient(app=create_app(Settings(database_url=database_url))) as client,
+        collect_select_statements() as selects,
+    ):
+        response = client.get(f"/api/v1/genres/{genre_data.SWING_ID}/relations")
 
     assert response.status_code == 200
     body = response.json()
@@ -47,5 +40,4 @@ async def test_genre_relations_integration_returns_seeded_swing_cards(seeded_eng
     assert second["related_genre"]["name"] == "Jump Blues"
     assert second["relation_type"] == "contributed_to_emergence_of"
     assert second["perspective"] == "subject"
-    selects = [statement for statement in statements if statement.lstrip().upper().startswith("SELECT")]
     assert len(selects) == 6

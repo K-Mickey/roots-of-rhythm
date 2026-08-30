@@ -7,6 +7,7 @@ from roots_of_rhythm.config import Settings
 from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.seed import musical_works as work_data
 from roots_of_rhythm.seed import recording_corpus as recording_data
+from tests.support.postgres import collect_select_statements
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -18,7 +19,8 @@ async def test_recording_endpoints_return_seeded_corpus(seeded_engine: AsyncEngi
     database_url = seeded_engine.url.render_as_string(hide_password=False)
     with TestClient(app=create_app(Settings(database_url=database_url))) as client:
         listing = client.get("/api/v1/recordings")
-        ford = client.get(f"/api/v1/recordings/{recording_data.TENNESSEE_ERNIE_FORD_RECORDING_ID}")
+        with collect_select_statements() as selects:
+            ford = client.get(f"/api/v1/recordings/{recording_data.TENNESSEE_ERNIE_FORD_RECORDING_ID}")
         marian = client.get(f"/api/v1/recordings/{recording_data.MARIAN_RECORDING_ID}")
 
     assert listing.status_code == 200
@@ -53,6 +55,7 @@ async def test_recording_endpoints_return_seeded_corpus(seeded_engine: AsyncEngi
     assert all(item["body"] is None for item in payload["lyrics"])
     assert payload["origin_badges"] == []
     assert payload["listening_guide"]["observations"][0]["feature"] == "Щелчки пальцами и пульс"
+    assert len(selects) <= 16
 
     assert marian.status_code == 200
     spiritual = marian.json()

@@ -8,6 +8,7 @@ from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.seed import genre_knowledge as genre_data
 from roots_of_rhythm.seed import musical_works as work_data
 from roots_of_rhythm.seed import recording_corpus as recording_data
+from tests.support.postgres import collect_select_statements
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -53,7 +54,10 @@ async def test_spiritual_overview_exposes_fallback_lyrics(seeded_engine: AsyncEn
 
 async def test_song_overview_integration_returns_seeded_credits(seeded_engine: AsyncEngine) -> None:
     database_url = seeded_engine.url.render_as_string(hide_password=False)
-    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+    with (
+        TestClient(app=create_app(Settings(database_url=database_url))) as client,
+        collect_select_statements() as selects,
+    ):
         response = client.get(f"/api/v1/songs/{work_data.SIXTEEN_TONS_ID}")
 
     assert response.status_code == 200
@@ -84,3 +88,4 @@ async def test_song_overview_integration_returns_seeded_credits(seeded_engine: A
         ("Merle Travis", "composer"),
         ("Merle Travis", "lyricist"),
     ]
+    assert len(selects) <= 18
