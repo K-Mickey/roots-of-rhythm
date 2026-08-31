@@ -25,7 +25,7 @@ Editorial, Discovery и AI Research планируются как логичес
 
 Application operations следуют [ADR-0008](decisions/0008-application-operations-read-contracts-and-transactions.md). Связный lifecycle одного aggregate может оставаться application service; самостоятельный сценарий с отличающимися зависимостями, правами или транзакцией оформляется отдельным use case. Это роли, а не обязательная цепочка классов: дополнительный service или projector вводится только при содержательной пользе.
 
-Discovery queries являются read use cases. Они объединяют публичные проекции контекстов, но не читают чужие ORM-модели и не владеют исходными данными. Для составного чтения context-владелец может предоставить предметный public reader с batch-загрузкой в пределах своих таблиц. Целевая ответственность UoW — write-транзакция; repositories внедряются отдельно. Текущие pair scopes ADR-0006 остаются переходным механизмом до инкрементальной миграции write-path.
+Discovery queries являются read use cases. Они объединяют публичные проекции контекстов, но не читают чужие ORM-модели и не владеют исходными данными. Для составного чтения context-владелец может предоставить предметный public reader с batch-загрузкой в пределах своих таблиц. Целевая ответственность UoW — write-транзакция; repositories внедряются отдельно. Использовавшие несколько контекстов pair scopes удалены после миграции write-path на общую transaction boundary.
 
 ## Принятый application stack
 

@@ -7,13 +7,10 @@ from roots_of_rhythm.historical_knowledge.application.errors import (
     EndpointWorkMissing,
     EndpointWorkNotPublished,
     EvidenceFragmentNotReviewed,
-    SourceNotFound,
-    UniqueConstraintViolation,
-)
-from roots_of_rhythm.historical_knowledge.application.listening_guide_service import (
     ListeningGuideNotFound,
     ListeningGuideRecordingNotPublished,
-    ListeningGuideService,
+    SourceNotFound,
+    UniqueConstraintViolation,
 )
 from roots_of_rhythm.historical_knowledge.application.ports import (
     ClaimRepository,
@@ -23,6 +20,7 @@ from roots_of_rhythm.historical_knowledge.application.ports import (
 )
 from roots_of_rhythm.historical_knowledge.application.services import (
     GenreRelationClaimService,
+    ListeningGuideService,
     RecordingOriginClaimService,
 )
 from roots_of_rhythm.historical_knowledge.application.source_service import SourceService
@@ -30,7 +28,9 @@ from roots_of_rhythm.historical_knowledge.application.use_cases import (
     CreateGenreRelationClaim,
     CreateRecordingOriginClaim,
     PublishGenreRelationClaim,
+    PublishListeningGuide,
     PublishRecordingOriginClaim,
+    ReplaceListeningGuideObservations,
 )
 
 __all__ = [
@@ -51,7 +51,9 @@ __all__ = [
     "ListeningGuideRecordingNotPublished",
     "ListeningGuideService",
     "PublishGenreRelationClaim",
+    "PublishListeningGuide",
     "PublishRecordingOriginClaim",
+    "ReplaceListeningGuideObservations",
     "RecordingOriginClaimRepository",
     "RecordingOriginClaimService",
     "SourceNotFound",

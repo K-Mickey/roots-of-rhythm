@@ -12,6 +12,12 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models.base import (
 from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
 from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
+LISTENING_GUIDE_ACTIVE_RECORDING_INDEX = "uq_listening_guides_active_recording"
+LISTENING_OBSERVATION_ACTIVE_POSITION_INDEX = "uq_listening_observations_active_position"
+LISTENING_GUIDE_UNIQUE_CONSTRAINTS = frozenset(
+    {LISTENING_GUIDE_ACTIVE_RECORDING_INDEX, LISTENING_OBSERVATION_ACTIVE_POSITION_INDEX}
+)
+
 
 class ListeningGuideRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):
     __tablename__ = "listening_guides"
@@ -23,7 +29,7 @@ class ListeningGuideRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):
 
 
 Index(
-    "uq_listening_guides_active_recording",
+    LISTENING_GUIDE_ACTIVE_RECORDING_INDEX,
     ListeningGuideRecord.recording_id,
     unique=True,
     postgresql_where=ListeningGuideRecord.deleted.is_(False),
@@ -54,7 +60,7 @@ class ListeningObservationRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):
 
 Index("ix_listening_observations_guide_id", ListeningObservationRecord.guide_id)
 Index(
-    "uq_listening_observations_active_position",
+    LISTENING_OBSERVATION_ACTIVE_POSITION_INDEX,
     ListeningObservationRecord.guide_id,
     ListeningObservationRecord.position,
     unique=True,

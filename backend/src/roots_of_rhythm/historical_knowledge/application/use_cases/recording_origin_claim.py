@@ -85,11 +85,11 @@ class PublishRecordingOriginClaim:
             if claim is None:
                 raise ClaimNotFound(str(claim_id))
 
-            published = await self._recording_repository_factory(transaction).get_published(
-                    claim.recording_id,
-                    for_update=True,
-                )
-            if published is None:
+            published_recording = await self._recording_repository_factory(transaction).get_published(
+                claim.recording_id,
+                for_update=True,
+            )
+            if published_recording is None:
                 raise EndpointRecordingNotPublished(str(claim.recording_id))
 
             if await self._work_repository_factory(transaction).get_published(claim.work_id, for_update=True) is None:

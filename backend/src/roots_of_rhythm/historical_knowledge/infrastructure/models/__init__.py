@@ -17,6 +17,9 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models.claims import (
     RecordingOriginClaimRecord,
 )
 from roots_of_rhythm.historical_knowledge.infrastructure.models.listening_guides import (
+    LISTENING_GUIDE_ACTIVE_RECORDING_INDEX,
+    LISTENING_GUIDE_UNIQUE_CONSTRAINTS,
+    LISTENING_OBSERVATION_ACTIVE_POSITION_INDEX,
     ListeningGuideRecord,
     ListeningObservationRecord,
 )
@@ -37,6 +40,9 @@ __all__ = [
     "HistoricalKnowledgeBase",
     "ListeningGuideRecord",
     "ListeningObservationRecord",
+    "LISTENING_GUIDE_ACTIVE_RECORDING_INDEX",
+    "LISTENING_GUIDE_UNIQUE_CONSTRAINTS",
+    "LISTENING_OBSERVATION_ACTIVE_POSITION_INDEX",
     "RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX",
     "RECORDING_ORIGIN_PREDICATE_CHECK",
     "RecordingOriginClaimEvidenceReferenceRecord",

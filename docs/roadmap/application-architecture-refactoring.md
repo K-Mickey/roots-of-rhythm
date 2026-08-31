@@ -96,7 +96,7 @@ Tracker: [#61](https://github.com/K-Mickey/roots-of-rhythm/issues/61).
 - действующие registry-style UoW и scopes оставить для ещё не мигрировавших операций;
 - не переносить child-session/ContextVar infrastructure из `ncip-api`.
 
-Пилот выполнен для всего lifecycle `RecordingService`: transaction scope создаёт одну SQLAlchemy session на operation, а repositories создаются явно только для нужной operation и привязываются к этой session. `music_people_scope` и registry-style UoW остаются для остальных services.
+Пилот выполнен для всего lifecycle `RecordingService`: transaction scope создаёт одну SQLAlchemy session на operation, а repositories создаются явно только для нужной operation и привязываются к этой session. Последующий rollout ARCH-005B удалил pair scopes; registry-style UoW остаются только в ещё не мигрированных одноконтекстных services.
 
 В мигрированном write-path repository выполняет `flush` и переводит только принадлежащие ему unique constraints во внутреннюю application-ошибку; transaction scope отвечает за общий rollback. Остальные repositories проверяются по мере переноса их services/use cases.
 
@@ -135,7 +135,7 @@ Tracker: `TBD` до следующей синхронизации tracker.
 
 Зависит от `ARCH-005`.
 
-Статус: `in_progress` (`ClassificationAssignment`, `GenreRelationClaim`, `RecordingOriginClaim`, 2026-09-01).
+Статус: `completed` (`ClassificationAssignment`, `GenreRelationClaim`, `RecordingOriginClaim`, `ListeningGuide`, 2026-09-01).
 
 ### Результат
 
@@ -146,7 +146,7 @@ Tracker: `TBD` до следующей синхронизации tracker.
 - выделить `PublishClassificationAssignment` из `ClassificationAssignmentService`; create, replace и archive оставить связным lifecycle service;
 - выделить create-draft и publish operations из `ClaimService` для aggregate `GenreRelationClaim`; редактирование content/evidence и archive оставить сервису;
 - выделить create-draft и publish operations из `RecordingOriginClaimService`; редактирование content/evidence и archive оставить сервису;
-- выделить `PublishListeningGuide` из `ListeningGuideService`; create, replace observations и archive оставить сервису, при этом изменение уже published guide сохраняет повторную проверку Recording;
+- выделить `PublishListeningGuide` и `ReplaceListeningGuideObservations` из `ListeningGuideService`; create и archive оставить сервису, а изменение уже published guide сохраняет повторную проверку Recording;
 - каждому use case передавать только необходимые repositories и transaction boundary; не создавать общий command facade или класс на каждый простой lifecycle method;
 - сохранить одну PostgreSQL-транзакцию для cross-context writes, существующий порядок `FOR UPDATE`, атомарный rollback и прежние application errors;
 - после переноса удалить более не используемые pair scopes и registry-style UoW dependencies только при отсутствии callers.
@@ -158,6 +158,8 @@ Tracker: `TBD` до следующей синхронизации tracker.
 Этап `GenreRelationClaim` выполнен полностью: create/publish выделены в command use cases, edit/archive оставлены в `GenreRelationClaimService`, registry UoW заменён transaction-only boundary, а Historical Knowledge public reader пакетно отдаёт опубликованные Claims и reviewed evidence. Межконтекстная видимость endpoint Genre остаётся в Discovery.
 
 Этап `RecordingOriginClaim` выполнен полностью: create/publish выделены в command use cases, edit/archive оставлены в `RecordingOriginClaimService`, pair UoW заменён transaction-only boundary, а evidence fragments проверяются пакетно.
+
+Этап `ListeningGuide` выполнен полностью: publish и replace observations выделены в command use cases, create/archive оставлены в `ListeningGuideService`, а изменение опубликованного Guide повторно блокирует и проверяет Recording. После завершения миграции pair scopes и поддержка внешней session в registry UoW удалены.
 
 ### Проверка
 
@@ -249,6 +251,7 @@ Tracker: `TBD` до следующей синхронизации tracker.
 ### Изменения
 
 - завершить перенос Discovery operations в `queries/`, чистых сборщиков DTO в `projections/`, DTO и errors — в предметные модули соответствующих packages;
+- проверить mapper-файлы infrastructure во всех bounded contexts и разделить перегруженные модули по aggregate; в частности разнести Historical Knowledge mapping для Source, GenreRelationClaim, RecordingOriginClaim и ListeningGuide;
 - в каждом bounded context собрать связные lifecycle services в `application/services/`, а самостоятельные command operations из `ARCH-005/005B` — в `application/use_cases/`;
 - ports, public read contracts и infrastructure adapters оставить в их собственных существующих границах, не смешивать их с services/use cases;
 - обновить imports, package exports, dependency wiring, tests и architecture documentation без compatibility-фасадов и массовых re-export;

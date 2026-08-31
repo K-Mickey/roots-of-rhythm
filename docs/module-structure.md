@@ -53,7 +53,6 @@ backend/src/roots_of_rhythm/
 ├── infrastructure/
 │   ├── database.py
 │   ├── service_columns.py
-│   └── write_scopes.py
 ├── seed/
 │   ├── __init__.py
 │   ├── corpus.py

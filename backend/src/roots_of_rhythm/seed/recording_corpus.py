@@ -7,8 +7,10 @@ from uuid import UUID
 from roots_of_rhythm.historical_knowledge.application import (
     CreateRecordingOriginClaim,
     ListeningGuideService,
+    PublishListeningGuide,
     PublishRecordingOriginClaim,
     RecordingOriginClaimService,
+    ReplaceListeningGuideObservations,
     SourceService,
 )
 from roots_of_rhythm.historical_knowledge.domain import (
@@ -27,13 +29,15 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalPrecision,
 )
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus as ClaimEditorialStatus
+from roots_of_rhythm.historical_knowledge.infrastructure.listening_guide_repository import (
+    SqlAlchemyListeningGuideRepository,
+)
 from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
     SqlAlchemyRecordingOriginClaimRepository,
 )
 from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
-from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import (
     LyricsVersionRelationService,
     LyricsVersionService,
@@ -404,6 +408,9 @@ class RecordingCorpusSeed:
         def origin_claim_repository_factory(transaction: "Transaction") -> SqlAlchemyRecordingOriginClaimRepository:
             return SqlAlchemyRecordingOriginClaimRepository(sqlalchemy_session(transaction))
 
+        def listening_guide_repository_factory(transaction: "Transaction") -> SqlAlchemyListeningGuideRepository:
+            return SqlAlchemyListeningGuideRepository(sqlalchemy_session(transaction))
+
         def source_repository_factory(transaction: "Transaction") -> SqlAlchemySourceRepository:
             return SqlAlchemySourceRepository(sqlalchemy_session(transaction))
 
@@ -453,7 +460,20 @@ class RecordingCorpusSeed:
             work_repository_factory,
             source_repository_factory,
         )
-        self._listening_guides = ListeningGuideService(lambda: knowledge_music_scope(session_factory))
+        self._listening_guides = ListeningGuideService(
+            transaction_scope,
+            listening_guide_repository_factory,
+        )
+        self._replace_listening_guide_observations = ReplaceListeningGuideObservations(
+            transaction_scope,
+            listening_guide_repository_factory,
+            recording_repository_factory,
+        )
+        self._publish_listening_guide = PublishListeningGuide(
+            transaction_scope,
+            listening_guide_repository_factory,
+            recording_repository_factory,
+        )
 
     async def run(self) -> None:
         await self._ensure_source_material()
@@ -728,11 +748,11 @@ class RecordingCorpusSeed:
                 guide_id=guide_id,
             )
         elif existing.observations != FORD_LISTENING_GUIDE.observations:
-            await self._listening_guides.replace_observations(
+            await self._replace_listening_guide_observations.execute(
                 guide_id,
                 FORD_LISTENING_GUIDE.observations,
             )
         async with self._hk_uow() as uow:
             current = await uow.listening_guides.get(guide_id)
         if current is not None and current.editorial_status is not ClaimEditorialStatus.PUBLISHED:
-            await self._listening_guides.publish(guide_id)
+            await self._publish_listening_guide.execute(guide_id)

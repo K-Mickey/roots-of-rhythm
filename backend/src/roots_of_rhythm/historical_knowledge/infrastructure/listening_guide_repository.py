@@ -1,9 +1,16 @@
 from typing import TYPE_CHECKING
 
+from psycopg import errors as psycopg_errors
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus, ListeningGuide, ListeningObservation
-from roots_of_rhythm.historical_knowledge.infrastructure.models import ListeningGuideRecord, ListeningObservationRecord
+from roots_of_rhythm.historical_knowledge.infrastructure.models import (
+    LISTENING_GUIDE_UNIQUE_CONSTRAINTS,
+    ListeningGuideRecord,
+    ListeningObservationRecord,
+)
 from roots_of_rhythm.infrastructure.database import apply_write_lock
 
 if TYPE_CHECKING:
@@ -22,8 +29,9 @@ class SqlAlchemyListeningGuideRepository:
                 id=guide.id, recording_id=guide.recording_id, editorial_status=guide.editorial_status.value
             )
         )
-        await self._session.flush()
+        await self._flush_unique_constraints()
         self._session.add_all([_observation_record(guide.id, item) for item in guide.observations])
+        await self._flush_unique_constraints()
 
     async def get(self, guide_id: UUID, *, for_update: bool = False) -> ListeningGuide | None:
         return await self._get(guide_id=guide_id, for_update=for_update)
@@ -48,9 +56,9 @@ class SqlAlchemyListeningGuideRepository:
                 select(ListeningObservationRecord).where(ListeningObservationRecord.guide_id == guide.id)
             )
         }
-        active_ids = {item.id for item in guide.observations}
         for row in stored.values():
-            row.deleted = row.id not in active_ids
+            row.deleted = True
+        await self._flush_unique_constraints()
         for observation in guide.observations:
             stored_row = stored.get(observation.id)
             if stored_row is not None:
@@ -58,6 +66,7 @@ class SqlAlchemyListeningGuideRepository:
                 stored_row.deleted = False
             else:
                 self._session.add(_observation_record(guide.id, observation))
+        await self._flush_unique_constraints()
 
     async def mark_deleted(self, guide_id: UUID) -> None:
         guide = await self._guide_record(guide_id, for_update=True)
@@ -102,6 +111,17 @@ class SqlAlchemyListeningGuideRepository:
             ListeningGuideRecord.id == guide_id, ListeningGuideRecord.deleted.is_(False)
         )
         return (await self._session.execute(apply_write_lock(statement, for_update=for_update))).scalar_one_or_none()
+
+    async def _flush_unique_constraints(self) -> None:
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            constraint_name = (
+                error.orig.diag.constraint_name if isinstance(error.orig, psycopg_errors.UniqueViolation) else None
+            )
+            if constraint_name in LISTENING_GUIDE_UNIQUE_CONSTRAINTS:
+                raise UniqueConstraintViolation(constraint_name) from error
+            raise
 
 
 def _observation_record(guide_id: UUID, item: ListeningObservation) -> ListeningObservationRecord:

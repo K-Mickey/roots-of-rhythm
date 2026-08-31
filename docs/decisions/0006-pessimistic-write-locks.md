@@ -26,7 +26,7 @@ Discovery, публичные read queries и pre-check `canonical_name_exists` 
 
 API репозиториев: keyword-only `for_update: bool = False` на `get` / `get_published` / parent loads. Infrastructure применяет `statement.with_for_update()` через `apply_write_lock`.
 
-Межконтекстный write (publish assignment / claim, create claim draft) идёт через явный command scope: одна PostgreSQL session, два UoW без владения session (`UnitOfWork.using(session)`). Scope живёт в корневом `infrastructure` (`music_people_scope`, `knowledge_music_scope`). Application-сервис принимает factory этого scope, не `session_factory` и не SQLAlchemy.
+Межконтекстный write использует одну PostgreSQL session и сохраняет указанный выше порядок блокировок. Первоначальные pair scopes с двумя UoW заменены transaction-only boundary и отдельно внедрёнными repository factories согласно ADR-0008; application-слой по-прежнему не получает `session_factory` или SQLAlchemy.
 
 Одноконтекстные команды (Genre, Person, Source) остаются на `lambda: SqlAlchemy*UnitOfWork(session_factory)`.
 
@@ -46,7 +46,7 @@ Optimistic `version` не вводится.
 
 Минусы: неявный lifecycle session (inner не rollback/close); трудно рассуждать о commit.
 
-Не выбрано: явный scope на пару UoW.
+Не выбрано: явная transaction boundary с repositories, привязанными к одной session.
 
 ### Optimistic locking (`version` / ETag)
 

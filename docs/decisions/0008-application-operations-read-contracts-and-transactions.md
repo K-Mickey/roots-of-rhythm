@@ -15,7 +15,7 @@ Application-слой вырос из небольших lifecycle-сервисо
 - один `AsyncSession` нельзя безопасно использовать конкурентно из нескольких asyncio tasks, поэтому параллелизация чтения требует отдельных sessions, а не только другого application API;
 - подробные in-memory fakes всё хуже воспроизводят soft-delete, constraints, locking, rollback и сортировку PostgreSQL.
 
-ADR-0002 определяет aggregate и transaction boundaries, ADR-0006 — пессимистические write locks и текущие pair scopes. Настоящее решение уточняет форму application operations и направление их постепенной миграции, не меняя доменное владение данными.
+ADR-0002 определяет aggregate и transaction boundaries, ADR-0006 — пессимистические write locks и исторически использовавшиеся pair scopes. Настоящее решение уточняет форму application operations и направление их постепенной миграции, не меняя доменное владение данными.
 
 ## Решение
 
@@ -50,7 +50,7 @@ Reader определяется реальным пользовательски�
 
 Read use case не использует UoW без требования согласованного transactional snapshot. Независимые context readers могут выполняться параллельно, только если каждый владеет отдельной session. Сначала устраняются N+1 и лишние round trips; автоматические child sessions, отдельный read pool и другая сложная concurrency infrastructure вводятся только после измерения latency и нагрузки.
 
-Текущие pair scopes из ADR-0006 остаются переходным механизмом для атомарных cross-context writes. Они не размножаются для read orchestration. Миграция к transaction-only UoW выполняется инкрементально в затрагиваемых write-сценариях с сохранением `FOR UPDATE`, порядка блокировок и одной PostgreSQL-транзакции.
+Pair scopes из ADR-0006 были переходным механизмом для атомарных cross-context writes. Миграция к transaction-only UoW завершена для использовавших их сценариев с сохранением `FOR UPDATE`, порядка блокировок и одной PostgreSQL-транзакции.
 
 ### Validation
 
@@ -67,11 +67,11 @@ Read use case не использует UoW без требования согл
 
 ### Сохранить UoW как registry всех repositories
 
-Плюсы: текущий код и pair scopes не требуют миграции; одна точка доступа к контексту.
+Плюсы: старый код и pair scopes не требовали миграции; одна точка доступа к контексту.
 
 Минусы: зависимости operation неявны; UoW и его fakes растут с каждым repository; read orchestration связан с write transaction abstraction; возникают новые комбинированные scopes.
 
-Не выбрано как целевая модель. Сохраняется временно для существующего кода.
+Не выбрано как целевая модель. Registry-style UoW сохраняются только в ещё не мигрированных одноконтекстных операциях.
 
 ### Создать отдельный use case для каждого метода каждого service
 

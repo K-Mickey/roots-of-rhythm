@@ -55,30 +55,24 @@ if TYPE_CHECKING:
 
 class SqlAlchemyMusicCatalogUnitOfWork:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
-        self._bind(session_factory(), owns_session=True)
-
-    @classmethod
-    def using(cls, session: AsyncSession) -> Self:
-        instance = cls.__new__(cls)
-        instance._bind(session, owns_session=False)
-        return instance
-
-    def _bind(self, session: AsyncSession, *, owns_session: bool) -> None:
-        self._session = session
-        self._owns_session = owns_session
-        self.genres: GenreRepository = SqlAlchemyGenreRepository(session)
-        self.assignments: ClassificationAssignmentRepository = SqlAlchemyClassificationAssignmentRepository(session)
-        self.groups: GroupRepository = SqlAlchemyGroupRepository(session)
-        self.group_memberships: GroupMembershipRepository = SqlAlchemyGroupMembershipRepository(session)
-        self.works: MusicalWorkRepository = SqlAlchemyMusicalWorkRepository(session)
-        self.work_credits: WorkCreditRepository = SqlAlchemyWorkCreditRepository(session)
-        self.work_relations: WorkRelationRepository = SqlAlchemyWorkRelationRepository(session)
-        self.lyrics_versions: LyricsVersionRepository = SqlAlchemyLyricsVersionRepository(session)
-        self.lyrics_version_credits: LyricsVersionCreditRepository = SqlAlchemyLyricsVersionCreditRepository(session)
-        self.lyrics_version_relations: LyricsVersionRelationRepository = SqlAlchemyLyricsVersionRelationRepository(
-            session
+        self._session = session_factory()
+        self.genres: GenreRepository = SqlAlchemyGenreRepository(self._session)
+        self.assignments: ClassificationAssignmentRepository = SqlAlchemyClassificationAssignmentRepository(
+            self._session
         )
-        self.recordings: RecordingRepository = SqlAlchemyRecordingRepository(session)
+        self.groups: GroupRepository = SqlAlchemyGroupRepository(self._session)
+        self.group_memberships: GroupMembershipRepository = SqlAlchemyGroupMembershipRepository(self._session)
+        self.works: MusicalWorkRepository = SqlAlchemyMusicalWorkRepository(self._session)
+        self.work_credits: WorkCreditRepository = SqlAlchemyWorkCreditRepository(self._session)
+        self.work_relations: WorkRelationRepository = SqlAlchemyWorkRelationRepository(self._session)
+        self.lyrics_versions: LyricsVersionRepository = SqlAlchemyLyricsVersionRepository(self._session)
+        self.lyrics_version_credits: LyricsVersionCreditRepository = SqlAlchemyLyricsVersionCreditRepository(
+            self._session
+        )
+        self.lyrics_version_relations: LyricsVersionRelationRepository = SqlAlchemyLyricsVersionRelationRepository(
+            self._session
+        )
+        self.recordings: RecordingRepository = SqlAlchemyRecordingRepository(self._session)
 
     async def __aenter__(self) -> Self:
         return self
@@ -89,8 +83,6 @@ class SqlAlchemyMusicCatalogUnitOfWork:
         exc_value: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
-        if not self._owns_session:
-            return
         await self.rollback()
         await self._session.close()
 
