@@ -53,4 +53,4 @@ async def test_genre_sources_integration_returns_seeded_swing_bibliography(seede
     bibliography_ids = {item["id"] for item in body["sources"]}
     assert relation_source_ids <= bibliography_ids
 
-    assert len(selects) == 7
+    assert len(selects) == 6

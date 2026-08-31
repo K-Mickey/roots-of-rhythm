@@ -3,7 +3,12 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
+from roots_of_rhythm.historical_knowledge.application import (
+    CreateGenreRelationClaim,
+    GenreRelationClaimService,
+    PublishGenreRelationClaim,
+    SourceService,
+)
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     ClaimProvenance,
@@ -17,11 +22,14 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalPrecision,
 )
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus as ClaimEditorialStatus
+from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
-from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import GenreService
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
+from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
@@ -29,7 +37,9 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from roots_of_rhythm.application.transaction import Transaction
     from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
+
 
 # --- Genres -----------------------------------------------------------------
 JAZZ_ID = UUID("01a0147a-8508-74b7-9689-e7c079b95327")
@@ -187,7 +197,33 @@ class GenreKnowledgeSeed:
         )
         self._genres = GenreService(self._music_uow)
         self._sources = SourceService(self._hk_uow)
-        self._claims = ClaimService(lambda: knowledge_music_scope(session_factory))
+        transaction_scope = SqlAlchemyTransactionScope(session_factory)
+
+        def claim_repository(transaction: "Transaction") -> SqlAlchemyClaimRepository:
+            return SqlAlchemyClaimRepository(sqlalchemy_session(transaction))
+
+        def source_repository(transaction: "Transaction") -> SqlAlchemySourceRepository:
+            return SqlAlchemySourceRepository(sqlalchemy_session(transaction))
+
+        def genre_repository(transaction: "Transaction") -> SqlAlchemyGenreRepository:
+            return SqlAlchemyGenreRepository(sqlalchemy_session(transaction))
+
+        self._claims = GenreRelationClaimService(
+            transaction_scope,
+            claim_repository,
+            source_repository,
+        )
+        self._create_claim = CreateGenreRelationClaim(
+            transaction_scope,
+            claim_repository,
+            genre_repository,
+        )
+        self._publish_claim = PublishGenreRelationClaim(
+            transaction_scope,
+            claim_repository,
+            source_repository,
+            genre_repository,
+        )
 
     async def run(self) -> None:
         await self._ensure_sources()
@@ -344,7 +380,7 @@ class GenreKnowledgeSeed:
 
     async def _ensure_published_claim(
         self,
-        claims: ClaimService,
+        claims: GenreRelationClaimService,
         *,
         claim_id: UUID,
         subject_genre_id: UUID,
@@ -362,7 +398,7 @@ class GenreKnowledgeSeed:
         if existing is not None and existing.editorial_status is ClaimEditorialStatus.PUBLISHED:
             return
         if existing is None:
-            await claims.create_draft(
+            await self._create_claim.execute(
                 subject_genre_id,
                 target_genre_id,
                 relation_type,
@@ -377,4 +413,4 @@ class GenreKnowledgeSeed:
             evidence_status=evidence_status,
         )
         await claims.replace_evidence(claim_id, evidence)
-        await claims.publish(claim_id)
+        await self._publish_claim.execute(claim_id)

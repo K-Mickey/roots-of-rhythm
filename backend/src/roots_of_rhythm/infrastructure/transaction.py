@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -5,6 +7,8 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from roots_of_rhythm.application.transaction import Transaction
 
 
 class SqlAlchemyTransaction:
@@ -42,3 +46,9 @@ class SqlAlchemyTransactionScope:
         finally:
             await transaction.rollback()
             await session.close()
+
+
+def sqlalchemy_session(transaction: Transaction) -> AsyncSession:
+    if not isinstance(transaction, SqlAlchemyTransaction):
+        raise TypeError("expected SqlAlchemyTransaction")
+    return transaction.session

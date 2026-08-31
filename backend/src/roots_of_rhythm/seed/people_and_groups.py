@@ -1,9 +1,9 @@
 """People, groups, memberships, and their genre assignments."""
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from uuid import UUID
 
-from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransaction, SqlAlchemyTransactionScope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentService,
     GroupMembershipService,
@@ -38,10 +38,6 @@ if TYPE_CHECKING:
 
     from roots_of_rhythm.application.transaction import Transaction
     from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
-
-
-def _session(transaction: "Transaction") -> "AsyncSession":
-    return cast("SqlAlchemyTransaction", transaction).session
 
 
 # --- Performers -------------------------------------------------------------
@@ -255,15 +251,15 @@ class PeopleAndGroupsSeed:
         transaction_scope = SqlAlchemyTransactionScope(session_factory)
 
         def assignment_repository(transaction: "Transaction") -> SqlAlchemyClassificationAssignmentRepository:
-            return SqlAlchemyClassificationAssignmentRepository(_session(transaction))
+            return SqlAlchemyClassificationAssignmentRepository(sqlalchemy_session(transaction))
 
         self._assignments = ClassificationAssignmentService(transaction_scope, assignment_repository)
         self._publish_assignment = PublishClassificationAssignment(
             transaction_scope,
             assignment_repository,
-            lambda transaction: SqlAlchemyGenreRepository(_session(transaction)),
-            lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
-            lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+            lambda transaction: SqlAlchemyGenreRepository(sqlalchemy_session(transaction)),
+            lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
+            lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
         )
 
     async def run(self) -> None:

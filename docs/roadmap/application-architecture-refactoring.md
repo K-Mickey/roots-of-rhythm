@@ -135,7 +135,7 @@ Tracker: `TBD` до следующей синхронизации tracker.
 
 Зависит от `ARCH-005`.
 
-Статус: `in_progress` (`ClassificationAssignment`, 2026-08-31).
+Статус: `in_progress` (`ClassificationAssignment`, `GenreRelationClaim`, 2026-08-31).
 
 ### Результат
 
@@ -154,6 +154,8 @@ Tracker: `TBD` до следующей синхронизации tracker.
 `WorkRelationService`, `LyricsVersionRelationService` и `SourceService.set_access_policy` в эту задачу не входят: их зависимости пока недостаточно отличаются для обязательного выделения use case.
 
 Первый этап выполнен для `ClassificationAssignment`: публикация выделена в `PublishClassificationAssignment`, а create/replace переведены вместе с ней на transaction-only boundary без `music_people_scope`.
+
+Этап `GenreRelationClaim` выполнен полностью: create/publish выделены в command use cases, edit/archive оставлены в `GenreRelationClaimService`, registry UoW заменён transaction-only boundary, а Historical Knowledge public reader пакетно отдаёт опубликованные Claims и reviewed evidence. Межконтекстная видимость endpoint Genre остаётся в Discovery.
 
 ### Проверка
 

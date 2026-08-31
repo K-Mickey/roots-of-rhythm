@@ -15,7 +15,13 @@ from roots_of_rhythm.discovery.application.queries.song_overview import SongOver
 from roots_of_rhythm.discovery.application.recording_list import RecordingListQuery
 from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery
 from roots_of_rhythm.discovery.application.song_list import SongListQuery
-from roots_of_rhythm.historical_knowledge.application import ClaimService, RecordingOriginClaimService, SourceService
+from roots_of_rhythm.historical_knowledge.application import (
+    RecordingOriginClaimService,
+    SourceService,
+)
+from roots_of_rhythm.historical_knowledge.infrastructure.genre_relation_claim_reader import (
+    SqlAlchemyPublishedGenreRelationClaimReader,
+)
 from roots_of_rhythm.historical_knowledge.infrastructure.song_reader import SqlAlchemySongHistoricalKnowledgeReader
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
@@ -30,6 +36,7 @@ from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchem
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
 
 GENRE_LIST_READER_DEPENDENCY = "genre_list_reader"
 GENRE_OVERVIEW_READER_DEPENDENCY = "genre_overview_reader"
@@ -80,13 +87,13 @@ def create_api_dependencies(
     recording_overview_query = RecordingOverviewQuery(
         music_uow_factory, people_uow_factory, hk_uow_factory, lyrics_projection
     )
-    claim_service = ClaimService(lambda: knowledge_music_scope(session_factory))
     recording_origin_claim_service = RecordingOriginClaimService(lambda: knowledge_music_scope(session_factory))
     source_service = SourceService(hk_uow_factory)
     group_service = GroupService(music_uow_factory)
     group_membership_service = GroupMembershipService(music_uow_factory)
-    relations_query = GenreRelationsQuery(music_uow_factory, claim_service)
-    sources_query = GenreSourcesQuery(music_uow_factory, claim_service, source_service)
+    genre_relation_claim_reader = SqlAlchemyPublishedGenreRelationClaimReader(session_factory)
+    relations_query = GenreRelationsQuery(music_uow_factory, genre_relation_claim_reader)
+    sources_query = GenreSourcesQuery(music_uow_factory, genre_relation_claim_reader, source_service)
 
     dependencies = {
         GENRE_LIST_READER_DEPENDENCY: Provide(lambda: list_query, sync_to_thread=False),

@@ -28,9 +28,14 @@ class SpyGenreRepository(FakeGenreRepository):
         super().__init__(genres)
         self.calls: list[set[UUID]] = []
 
-    async def get_published_by_ids(self, genre_ids: "Collection[UUID]") -> dict[UUID, Genre]:
+    async def get_published_by_ids(
+        self,
+        genre_ids: "Collection[UUID]",
+        *,
+        for_update: bool = False,
+    ) -> dict[UUID, Genre]:
         self.calls.append(set(genre_ids))
-        return await super().get_published_by_ids(genre_ids)
+        return await super().get_published_by_ids(genre_ids, for_update=for_update)
 
 
 @pytest.mark.asyncio

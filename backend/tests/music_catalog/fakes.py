@@ -110,11 +110,14 @@ class FakeGenreRepository:
     async def get(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         return self._genres.get(genre_id)
 
+    async def get_by_ids(self, genre_ids: Collection[UUID], *, for_update: bool = False) -> dict[UUID, Genre]:
+        return {genre_id: genre for genre_id in genre_ids if (genre := self._genres.get(genre_id)) is not None}
+
     async def get_published(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         genre = self._genres.get(genre_id)
         return genre if genre is not None and genre.editorial_status is EditorialStatus.PUBLISHED else None
 
-    async def get_published_by_ids(self, genre_ids: Collection[UUID]) -> dict[UUID, Genre]:
+    async def get_published_by_ids(self, genre_ids: Collection[UUID], *, for_update: bool = False) -> dict[UUID, Genre]:
         return {
             genre_id: genre
             for genre_id in genre_ids

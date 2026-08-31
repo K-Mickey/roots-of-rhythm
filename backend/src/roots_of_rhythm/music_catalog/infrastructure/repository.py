@@ -24,19 +24,51 @@ class SqlAlchemyGenreRepository:
     async def get(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         return await self._get(genre_id, for_update=for_update)
 
+    async def get_by_ids(
+        self,
+        genre_ids: Collection[UUID],
+        *,
+        for_update: bool = False,
+    ) -> dict[UUID, Genre]:
+        return await self._get_by_ids(genre_ids, for_update=for_update)
+
     async def get_published(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         return await self._get(genre_id, status=EditorialStatus.PUBLISHED, for_update=for_update)
 
-    async def get_published_by_ids(self, genre_ids: Collection[UUID]) -> dict[UUID, Genre]:
+    async def get_published_by_ids(
+        self,
+        genre_ids: Collection[UUID],
+        *,
+        for_update: bool = False,
+    ) -> dict[UUID, Genre]:
+        return await self._get_by_ids(
+            genre_ids,
+            status=EditorialStatus.PUBLISHED,
+            for_update=for_update,
+        )
+
+    async def _get_by_ids(
+        self,
+        genre_ids: Collection[UUID],
+        status: EditorialStatus | None = None,
+        *,
+        for_update: bool,
+    ) -> dict[UUID, Genre]:
         ids = set(genre_ids)
         if not ids:
             return {}
-        statement = select(ClassificationConceptRecord).where(
-            ClassificationConceptRecord.id.in_(ids),
-            ClassificationConceptRecord.kind == ClassificationKind.GENRE.value,
-            ClassificationConceptRecord.editorial_status == EditorialStatus.PUBLISHED.value,
-            ClassificationConceptRecord.deleted.is_(False),
+        statement = (
+            select(ClassificationConceptRecord)
+            .where(
+                ClassificationConceptRecord.id.in_(ids),
+                ClassificationConceptRecord.kind == ClassificationKind.GENRE.value,
+                ClassificationConceptRecord.deleted.is_(False),
+            )
+            .order_by(ClassificationConceptRecord.id)
         )
+        if status is not None:
+            statement = statement.where(ClassificationConceptRecord.editorial_status == status.value)
+        statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         return {record.id: genre_from_record(record) for record in result.scalars()}
 

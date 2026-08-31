@@ -94,14 +94,19 @@ backend/src/roots_of_rhythm/
 │   │   ├── source.py
 │   │   └── value_objects.py
 │   ├── application/
-│   │   ├── claim_service.py
 │   │   ├── errors.py
-│   │   ├── ports.py
+│   │   ├── ports/
+│   │   ├── services/
+│   │   ├── use_cases/
 │   │   └── source_service.py
+│   ├── public/
+│   │   └── genre_relation_claim_reader.py
 │   └── infrastructure/
+│       ├── claim_repository.py
+│       ├── genre_relation_claim_reader.py
 │       ├── mapping.py
 │       ├── models.py
-│       ├── repositories.py
+│       ├── source_repository.py
 │       └── unit_of_work.py
 ├── discovery/
 │   ├── application/
@@ -142,7 +147,7 @@ backend/tests/
     └── fakes.py
 ```
 
-`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), корневой `presentation` — health probes, `discovery` — public Genre, Performer и Group read-side, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre, Performer и Group corpus через domain services, `config.py` — application settings. `people_catalog` владеет Person. `music_catalog` владеет Genre/ClassificationConcept и ClassificationAssignment. `historical_knowledge` владеет GenreRelation Claim, Evidence references и Source/SourceVersion/SourceFragment stack с bibliographic metadata на Source и citation locator на Fragment; статус endpoint Genre на write-path читает через `MusicCatalogUnitOfWork` в том же command scope (`knowledge_music_scope`), без импорта ORM Music Catalog. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), корневой `presentation` — health probes, `discovery` — public Genre, Performer и Group read-side, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre, Performer и Group corpus через domain services, `config.py` — application settings. `people_catalog` владеет Person. `music_catalog` владеет Genre/ClassificationConcept и ClassificationAssignment. `historical_knowledge` владеет GenreRelation Claim, Evidence references и Source/SourceVersion/SourceFragment stack с bibliographic metadata на Source и citation locator на Fragment; create/publish Claim используют transaction-only boundary и отдельно внедрённые repositories одной PostgreSQL session. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
 
 ## Внутренняя структура модуля
 

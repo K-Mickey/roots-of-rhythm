@@ -41,7 +41,7 @@ Host `make setup` в этой среде не нашёл `pnpm` в PATH; fronten
 | AC-6 | pass | Live seed не содержит `disputed`. Unit: `test_relations_query_maps_disputed_reviewed_evidence`; publish без `opposes` отклоняется. UI label «Есть существенные разногласия». |
 | AC-7 | pass | Live seed не содержит `overlaps_with`. Domain: `test_overlaps_with_uses_canonical_id_order`. UI symmetric label «Пересекается с». На Jazz page обратная directed relation показана как «Дальнейшее развитие — Swing» без второй строки в БД. |
 | AC-8 | pass | HTML Swing/Jazz: имя связанного Genre не обёрнуто в `<a href="/genres/...">`. |
-| AC-9 | pass | `GET .../genres/00000000-0000-0000-0000-000000000000` → 404 `GENRE_NOT_FOUND`. DRAFT/ARCHIVED Genre скрыты unit-тестами overview/relations/sources. Draft claim не public (`get_publicly_visible`). |
+| AC-9 | pass | `GET .../genres/00000000-0000-0000-0000-000000000000` → 404 `GENRE_NOT_FOUND`. DRAFT/ARCHIVED Genre и непубличные Claims скрыты unit-тестами overview/relations/sources. |
 | AC-10 | pass | `make seed` идемпотентно: Jazz, Swing, Jump Blues. Seed явно не создаёт Performer/Group/Recording. |
 | AC-11 | pass | Два published Claims + reviewed Evidence Smithsonian / Library of Congress; sources titles `Jazz`, `Rhythm and Blues`. |
 | AC-12 | pass | `test_draft_requires_only_distinct_endpoints_and_type`; create_draft в application/persistence tests; public list не включает draft. |

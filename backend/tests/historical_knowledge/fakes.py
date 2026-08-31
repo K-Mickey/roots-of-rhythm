@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Self
 
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus, EvidenceStatus, RecordingOriginClaim
+from roots_of_rhythm.historical_knowledge.public import PublicEvidenceReference, PublishedGenreRelationClaims
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -43,6 +44,39 @@ class FakeClaimRepository:
             for claim in self._claims.values()
             if claim.subject_genre_id == genre_id or claim.target_genre_id == genre_id
         ]
+
+
+class FakePublishedGenreRelationClaimReader:
+    def __init__(self, claims: dict[UUID, GenreRelationClaim], sources: "FakeSourceRepository") -> None:
+        self._claims = claims
+        self._sources = sources
+
+    async def read_for_genre(self, genre_id: UUID) -> PublishedGenreRelationClaims:
+        claims = tuple(
+            claim
+            for claim in self._claims.values()
+            if claim.editorial_status is EditorialStatus.PUBLISHED
+            and (claim.subject_genre_id == genre_id or claim.target_genre_id == genre_id)
+        )
+        source_ids = await self._sources.reviewed_source_ids_for_fragments(
+            {reference.source_fragment_id for claim in claims for reference in claim.evidence_references}
+        )
+        return PublishedGenreRelationClaims(
+            claims,
+            {
+                claim.id: tuple(
+                    PublicEvidenceReference(
+                        source_id=source_id,
+                        role=reference.role,
+                        locator_text=reference.locator_text,
+                        external_url=reference.external_url,
+                    )
+                    for reference in claim.evidence_references
+                    if (source_id := source_ids.get(reference.source_fragment_id)) is not None
+                )
+                for claim in claims
+            },
+        )
 
 
 class StubRecordingOriginClaimRepository:
@@ -119,6 +153,18 @@ class FakeSourceRepository:
     async def get_fragment(self, fragment_id: UUID, *, for_update: bool = False) -> SourceFragment | None:
         return self.fragments.get(fragment_id)
 
+    async def get_fragments_by_ids(
+        self,
+        fragment_ids: Collection[UUID],
+        *,
+        for_update: bool = False,
+    ) -> dict[UUID, SourceFragment]:
+        return {
+            fragment_id: fragment
+            for fragment_id in fragment_ids
+            if (fragment := self.fragments.get(fragment_id)) is not None
+        }
+
     async def save_fragment(self, fragment: SourceFragment) -> None:
         self.fragments[fragment.id] = fragment
 
@@ -174,10 +220,10 @@ class StubListeningGuideRepository:
 
 class FakeHistoricalKnowledgeUnitOfWork:
     def __init__(self, claims: dict[UUID, GenreRelationClaim], sources: FakeSourceRepository) -> None:
-        self.claims = FakeClaimRepository(claims)
-        self.recording_origin_claims = StubRecordingOriginClaimRepository()
-        self.listening_guides = StubListeningGuideRepository()
-        self.sources = sources
+        self.claims: ClaimRepository = FakeClaimRepository(claims)
+        self.recording_origin_claims: RecordingOriginClaimRepository = StubRecordingOriginClaimRepository()
+        self.listening_guides: ListeningGuideRepository = StubListeningGuideRepository()
+        self.sources: SourceRepository = sources
         self.commits = 0
         self.enter_count = 0
 

@@ -8,7 +8,7 @@ from roots_of_rhythm.discovery.application.errors.genres import (
     GenreSourcesNotFound,
 )
 from roots_of_rhythm.discovery.application.genre_sources import GenreSourcesQuery
-from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
+from roots_of_rhythm.historical_knowledge.application import SourceService
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     EvidenceRole,
@@ -25,9 +25,12 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from tests.discovery.builders import published_genre, published_relation_claim
-from tests.historical_knowledge.fakes import FakeHistoricalKnowledgeUnitOfWork, FakeSourceRepository
+from tests.historical_knowledge.fakes import (
+    FakeHistoricalKnowledgeUnitOfWork,
+    FakePublishedGenreRelationClaimReader,
+    FakeSourceRepository,
+)
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
-from tests.support.scopes import pair_scope
 
 
 def _reviewed_source(
@@ -67,19 +70,14 @@ def _query(
     def uow_factory() -> FakeHistoricalKnowledgeUnitOfWork:
         return FakeHistoricalKnowledgeUnitOfWork(claims, sources)
 
+    visible_music = FakeMusicCatalogUnitOfWork(
+        music if published is None else {genre_id: genre for genre_id, genre in music.items() if genre_id in published}
+    )
+
     return GenreSourcesQuery(
-        lambda: FakeMusicCatalogUnitOfWork(music),
-        ClaimService(
-            pair_scope(
-                uow_factory,  # type: ignore[arg-type]
-                lambda: FakeMusicCatalogUnitOfWork(
-                    music
-                    if published is None
-                    else {genre_id: genre for genre_id, genre in music.items() if genre_id in published}
-                ),
-            )
-        ),
-        SourceService(uow_factory),  # type: ignore[arg-type]
+        lambda: visible_music,
+        FakePublishedGenreRelationClaimReader(claims, sources),
+        SourceService(uow_factory),
     )
 
 

@@ -1,7 +1,7 @@
 """Controlled recordings, lyrics, evidence, and listening-guide corpus."""
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from roots_of_rhythm.historical_knowledge.application import (
@@ -26,7 +26,7 @@ from roots_of_rhythm.historical_knowledge.domain import (
 )
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus as ClaimEditorialStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
-from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import (
     LyricsVersionRelationService,
@@ -80,11 +80,6 @@ if TYPE_CHECKING:
 
     from roots_of_rhythm.application.transaction import Transaction
     from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
-    from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransaction
-
-
-def _session(transaction: "Transaction") -> "AsyncSession":
-    return cast("SqlAlchemyTransaction", transaction).session
 
 
 # --- Source -----------------------------------------------------------------
@@ -398,28 +393,32 @@ class RecordingCorpusSeed:
         transaction_scope = SqlAlchemyTransactionScope(session_factory)
 
         def recording_repository_factory(transaction: "Transaction") -> SqlAlchemyRecordingRepository:
-            return SqlAlchemyRecordingRepository(_session(transaction))
+            return SqlAlchemyRecordingRepository(sqlalchemy_session(transaction))
 
         self._recordings = RecordingService(transaction_scope, recording_repository_factory)
         self._publish_recording = PublishRecording(
             transaction_scope=transaction_scope,
             recording_repository_factory=recording_repository_factory,
-            work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
-            lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(
-                _session(transaction)
+            work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(
+                sqlalchemy_session(transaction)
             ),
-            group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
-            person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+            lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(
+                sqlalchemy_session(transaction)
+            ),
+            group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
+            person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
         )
         self._replace_recording_content = ReplaceRecordingContent(
             transaction_scope=transaction_scope,
             recording_repository_factory=recording_repository_factory,
-            work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
-            lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(
-                _session(transaction)
+            work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(
+                sqlalchemy_session(transaction)
             ),
-            group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
-            person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+            lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(
+                sqlalchemy_session(transaction)
+            ),
+            group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
+            person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
         )
         self._recording_origin_claims = RecordingOriginClaimService(lambda: knowledge_music_scope(session_factory))
         self._listening_guides = ListeningGuideService(lambda: knowledge_music_scope(session_factory))

@@ -37,7 +37,7 @@ async def test_disclose_bodies_for_versions_uses_one_hk_uow_and_preserves_order(
 
     projection = LyricsVersionProjectionService(
         lambda: FakeMusicCatalogUnitOfWork({}),
-        hk_factory,  # type: ignore[arg-type]
+        hk_factory,
     )
     work_id = uuid7()
     first = _lyrics_version(work_id, allowed_version.id, "First body")
@@ -67,7 +67,7 @@ async def test_disclose_bodies_for_versions_empty_skips_uow() -> None:
 
     projection = LyricsVersionProjectionService(
         lambda: FakeMusicCatalogUnitOfWork({}),
-        hk_factory,  # type: ignore[arg-type]
+        hk_factory,
     )
 
     assert await projection.disclose_bodies_for_versions(()) == []

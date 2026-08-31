@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from uuid import uuid7
 
 import pytest
 from sqlalchemy import inspect
 
 from roots_of_rhythm.infrastructure.database import create_session_factory
-from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransaction, SqlAlchemyTransactionScope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentConflict,
     ClassificationAssignmentService,
@@ -35,13 +35,9 @@ from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyP
 from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+    from sqlalchemy.ext.asyncio import AsyncEngine
 
     from roots_of_rhythm.application.transaction import Transaction
-
-
-def _session(transaction: "Transaction") -> "AsyncSession":
-    return cast("SqlAlchemyTransaction", transaction).session
 
 
 pytestmark = pytest.mark.integration
@@ -109,15 +105,15 @@ async def test_assignment_repository_round_trips_publication_content(engine: Asy
     transaction_scope = SqlAlchemyTransactionScope(session_factory)
 
     def assignment_repository(transaction: "Transaction") -> SqlAlchemyClassificationAssignmentRepository:
-        return SqlAlchemyClassificationAssignmentRepository(_session(transaction))
+        return SqlAlchemyClassificationAssignmentRepository(sqlalchemy_session(transaction))
 
     assignments = ClassificationAssignmentService(transaction_scope, assignment_repository)
     publish_assignment = PublishClassificationAssignment(
         transaction_scope,
         assignment_repository,
-        lambda transaction: SqlAlchemyGenreRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyGenreRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
     )
     jazz = await genres.create(ClassificationContent.create("Jazz", definition="A genre."))
     await genres.publish(jazz.id)

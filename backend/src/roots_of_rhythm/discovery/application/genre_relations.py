@@ -28,8 +28,11 @@ from roots_of_rhythm.historical_knowledge.domain import GenreRelationClaim, Rela
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from roots_of_rhythm.historical_knowledge.application.claim_service import ClaimService, PublicEvidenceReference
     from roots_of_rhythm.historical_knowledge.domain import GeographicContext, HistoricalPeriod, TemporalBound
+    from roots_of_rhythm.historical_knowledge.public import (
+        PublicEvidenceReference,
+        PublishedGenreRelationClaimReader,
+    )
     from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
     from roots_of_rhythm.music_catalog.domain import Genre
 
@@ -45,10 +48,10 @@ class GenreRelationsQuery:
     def __init__(
         self,
         music_uow_factory: MusicCatalogUnitOfWorkFactory,
-        claim_service: ClaimService,
+        genre_relation_claim_reader: PublishedGenreRelationClaimReader,
     ) -> None:
         self._music_uow_factory = music_uow_factory
-        self._claim_service = claim_service
+        self._genre_relation_claim_reader = genre_relation_claim_reader
 
     async def get(self, genre_id: UUID) -> GenreRelationsResponse:
         async with self._music_uow_factory() as uow:
@@ -56,7 +59,8 @@ class GenreRelationsQuery:
         if anchor is None:
             raise GenreRelationsNotFound(str(genre_id))
 
-        claims = await self._claim_service.list_public_for_genre(genre_id)
+        claim_data = await self._genre_relation_claim_reader.read_for_genre(genre_id)
+        claims = claim_data.claims
         if not claims:
             return GenreRelationsResponse(genre_id=str(genre_id), relations=[])
 
@@ -67,10 +71,7 @@ class GenreRelationsQuery:
 
         async with self._music_uow_factory() as uow:
             related_genres = await uow.genres.get_published_by_ids(related_ids)
-        if len(related_genres) != len(related_ids):
-            raise GenreRelationsAssemblyError("visible relation is missing a published related Genre")
-
-        evidence_by_claim = await self._claim_service.public_evidence_references_for_claims(claims)
+        claims = tuple(claim for claim in claims if related_genre_id(claim, genre_id) in related_genres)
         try:
             ordered = ordered_public_claims_for_page(
                 claims,
@@ -84,7 +85,7 @@ class GenreRelationsQuery:
                         claim,
                         page_genre_id=genre_id,
                         related_genres=related_genres,
-                        evidence=evidence_by_claim.get(claim.id, ()),
+                        evidence=claim_data.evidence_by_claim.get(claim.id, ()),
                     )
                     for claim in ordered
                 ],

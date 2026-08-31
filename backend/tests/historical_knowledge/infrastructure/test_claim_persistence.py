@@ -2,7 +2,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from roots_of_rhythm.historical_knowledge.application import ClaimService, SourceService
+from roots_of_rhythm.historical_knowledge.application import (
+    CreateGenreRelationClaim,
+    GenreRelationClaimService,
+    PublishGenreRelationClaim,
+    SourceService,
+    UniqueConstraintViolation,
+)
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     ClaimProvenance,
@@ -14,17 +20,26 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
+from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.genre_relation_claim_reader import (
+    SqlAlchemyPublishedGenreRelationClaimReader,
+)
+from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.database import create_session_factory
-from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import GenreService
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
+from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
+
+    from roots_of_rhythm.application.transaction import Transaction
+
 
 pytestmark = pytest.mark.integration
 
@@ -41,7 +56,30 @@ async def test_claim_visibility_follows_endpoint_genre_publication(engine: Async
     def hk_uow() -> SqlAlchemyHistoricalKnowledgeUnitOfWork:
         return SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory)
 
-    claim_service = ClaimService(lambda: knowledge_music_scope(session_factory))
+    transaction_scope = SqlAlchemyTransactionScope(session_factory)
+
+    def claim_repository(transaction: "Transaction") -> SqlAlchemyClaimRepository:
+        return SqlAlchemyClaimRepository(sqlalchemy_session(transaction))
+
+    def source_repository(transaction: "Transaction") -> SqlAlchemySourceRepository:
+        return SqlAlchemySourceRepository(sqlalchemy_session(transaction))
+
+    def genre_repository(transaction: "Transaction") -> SqlAlchemyGenreRepository:
+        return SqlAlchemyGenreRepository(sqlalchemy_session(transaction))
+
+    claim_service = GenreRelationClaimService(
+        transaction_scope,
+        claim_repository,
+        source_repository,
+    )
+    claim_reader = SqlAlchemyPublishedGenreRelationClaimReader(session_factory)
+    create_claim = CreateGenreRelationClaim(transaction_scope, claim_repository, genre_repository)
+    publish_claim = PublishGenreRelationClaim(
+        transaction_scope,
+        claim_repository,
+        source_repository,
+        genre_repository,
+    )
     source_service = SourceService(hk_uow)
 
     source = await source_service.create_source(
@@ -62,7 +100,7 @@ async def test_claim_visibility_follows_endpoint_genre_publication(engine: Async
     fragment = await source_service.create_fragment(version.id, locator_text="Swing page")
     await source_service.mark_fragment_reviewed(fragment.id)
 
-    claim = await claim_service.create_draft(swing.id, jazz.id, RelationType.DEVELOPED_FROM)
+    claim = await create_claim.execute(swing.id, jazz.id, RelationType.DEVELOPED_FROM)
     claim = await claim_service.replace_content(
         claim.id,
         explanation="Swing developed from jazz practices.",
@@ -79,16 +117,17 @@ async def test_claim_visibility_follows_endpoint_genre_publication(engine: Async
         claim.id,
         (ClaimEvidenceReference.create(fragment.id, EvidenceRole.SUPPORTS, locator_text="Swing page"),),
     )
-    published = await claim_service.publish(claim.id)
+    published = await publish_claim.execute(claim.id)
 
-    assert await claim_service.get_publicly_visible(published.id) is not None
-    public = await claim_service.list_public_for_genre(swing.id)
-    assert [item.id for item in public] == [published.id]
-    assert len(await claim_service.public_evidence_references(published)) == 1
+    with pytest.raises(UniqueConstraintViolation):
+        await create_claim.execute(swing.id, jazz.id, RelationType.DEVELOPED_FROM)
+
+    public = await claim_reader.read_for_genre(swing.id)
+    assert [item.id for item in public.claims] == [published.id]
+    assert len(public.evidence_by_claim[published.id]) == 1
 
     await genre_service.archive(jazz.id)
-    assert await claim_service.get_publicly_visible(published.id) is None
-    assert await claim_service.list_public_for_genre(swing.id) == []
+    assert [item.id for item in (await claim_reader.read_for_genre(swing.id)).claims] == [published.id]
 
-    await genre_service.publish(jazz.id)
-    assert await claim_service.get_publicly_visible(published.id) is not None
+    await claim_service.archive(published.id)
+    assert (await claim_reader.read_for_genre(swing.id)).claims == ()

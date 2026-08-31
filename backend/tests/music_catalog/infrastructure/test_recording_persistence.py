@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from uuid import uuid7
 
 import pytest
@@ -7,7 +7,7 @@ from sqlalchemy import select
 from roots_of_rhythm.historical_knowledge.domain import Source, SourceVersion
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
 from roots_of_rhythm.infrastructure.database import create_session_factory
-from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import (
     GroupService,
     LyricsVersionService,
@@ -54,13 +54,8 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
     from roots_of_rhythm.application.transaction import Transaction
-    from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransaction
 
 pytestmark = pytest.mark.integration
-
-
-def _session(transaction: "Transaction") -> "AsyncSession":
-    return cast("SqlAlchemyTransaction", transaction).session
 
 
 def _recording_operations(
@@ -69,24 +64,24 @@ def _recording_operations(
     transaction_scope = SqlAlchemyTransactionScope(session_factory)
 
     def recording_repository(transaction: "Transaction") -> SqlAlchemyRecordingRepository:
-        return SqlAlchemyRecordingRepository(_session(transaction))
+        return SqlAlchemyRecordingRepository(sqlalchemy_session(transaction))
 
     service = RecordingService(transaction_scope, recording_repository)
     publish = PublishRecording(
         transaction_scope,
         recording_repository,
-        lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyLyricsVersionRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyMusicalWorkRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyLyricsVersionRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
     )
     replace = ReplaceRecordingContent(
         transaction_scope,
         recording_repository,
-        lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyLyricsVersionRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
-        lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyMusicalWorkRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyLyricsVersionRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
+        lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
     )
     return service, publish, replace
 

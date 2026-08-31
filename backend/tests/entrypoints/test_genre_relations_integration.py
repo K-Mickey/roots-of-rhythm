@@ -40,4 +40,4 @@ async def test_genre_relations_integration_returns_seeded_swing_cards(seeded_eng
     assert second["related_genre"]["name"] == "Jump Blues"
     assert second["relation_type"] == "contributed_to_emergence_of"
     assert second["perspective"] == "subject"
-    assert len(selects) == 6
+    assert len(selects) == 5

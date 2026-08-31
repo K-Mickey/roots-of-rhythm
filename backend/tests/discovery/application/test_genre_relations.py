@@ -8,7 +8,6 @@ from roots_of_rhythm.discovery.application.errors.genres import (
     GenreRelationsNotFound,
 )
 from roots_of_rhythm.discovery.application.genre_relations import GenreRelationsQuery
-from roots_of_rhythm.historical_knowledge.application import ClaimService
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     EvidenceRole,
@@ -23,25 +22,20 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
+from roots_of_rhythm.historical_knowledge.public import PublishedGenreRelationClaims
 from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from tests.discovery.builders import published_genre, published_relation_claim
-from tests.historical_knowledge.fakes import FakeHistoricalKnowledgeUnitOfWork, FakeSourceRepository
+from tests.historical_knowledge.fakes import FakePublishedGenreRelationClaimReader, FakeSourceRepository
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
-from tests.support.scopes import pair_scope
 
 
-def _claim_service(
+def _claim_reader(
     claims: dict[UUID, GenreRelationClaim],
     sources: FakeSourceRepository,
-    music: dict[UUID, Genre],
-) -> ClaimService:
-    return ClaimService(
-        pair_scope(
-            lambda: FakeHistoricalKnowledgeUnitOfWork(claims, sources),  # type: ignore[arg-type, return-value]
-            lambda: FakeMusicCatalogUnitOfWork(music),
-        )
-    )
+    _music: dict[UUID, Genre],
+) -> FakePublishedGenreRelationClaimReader:
+    return FakePublishedGenreRelationClaimReader(claims, sources)
 
 
 @pytest.mark.asyncio
@@ -102,8 +96,8 @@ async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
     )
     claims = {earlier.id: earlier, later.id: later}
     music = {swing.id: swing, jazz.id: jazz, jump.id: jump}
-    claim_service = _claim_service(claims, sources, music)
-    query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork(music), claim_service)
+    claim_reader = _claim_reader(claims, sources, music)
+    query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork(music), claim_reader)
 
     response = await query.get(swing.id)
 
@@ -120,8 +114,8 @@ async def test_relations_query_maps_perspective_sort_and_evidence() -> None:
 @pytest.mark.asyncio
 async def test_relations_query_returns_empty_for_published_genre_without_relations() -> None:
     swing = published_genre("Swing")
-    claim_service = _claim_service({}, FakeSourceRepository(), {swing.id: swing})
-    query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork({swing.id: swing}), claim_service)
+    claim_reader = _claim_reader({}, FakeSourceRepository(), {swing.id: swing})
+    query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork({swing.id: swing}), claim_reader)
 
     response = await query.get(swing.id)
 
@@ -143,8 +137,8 @@ async def test_relations_query_hides_missing_and_non_public_genres(status: Genre
             )
         }
     )
-    claim_service = _claim_service({}, FakeSourceRepository(), genres)
-    query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork(genres), claim_service)
+    claim_reader = _claim_reader({}, FakeSourceRepository(), genres)
+    query = GenreRelationsQuery(lambda: FakeMusicCatalogUnitOfWork(genres), claim_reader)
 
     with pytest.raises(GenreRelationsNotFound):
         await query.get(genre_id)
@@ -162,10 +156,10 @@ async def test_relations_query_unverified_keeps_empty_evidence_references() -> N
         temporal=HistoricalPeriod.create("1930s", TemporalBound(1930, TemporalPrecision.DECADE)),
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    claim_service = _claim_service({claim.id: claim}, FakeSourceRepository(), {swing.id: swing, jazz.id: jazz})
+    claim_reader = _claim_reader({claim.id: claim}, FakeSourceRepository(), {swing.id: swing, jazz.id: jazz})
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork({swing.id: swing, jazz.id: jazz}),
-        claim_service,
+        claim_reader,
     )
 
     response = await query.get(swing.id)
@@ -200,7 +194,7 @@ async def test_relations_query_maps_target_and_symmetric_perspectives() -> None:
     genres = {swing.id: swing, jazz.id: jazz, jump.id: jump}
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork(genres),
-        _claim_service(claims, FakeSourceRepository(), genres),
+        _claim_reader(claims, FakeSourceRepository(), genres),
     )
 
     response = await query.get(swing.id)
@@ -275,7 +269,7 @@ async def test_relations_query_sorts_by_period_precision_type_name_and_null_last
     genres = {genre.id: genre for genre in (swing, *related)}
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork(genres),
-        _claim_service(claims, FakeSourceRepository(), genres),
+        _claim_reader(claims, FakeSourceRepository(), genres),
     )
 
     response = await query.get(swing.id)
@@ -312,7 +306,7 @@ async def test_relations_query_maps_disputed_reviewed_evidence() -> None:
     genres = {swing.id: swing, jazz.id: jazz}
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork(genres),
-        _claim_service({claim.id: claim}, sources, genres),
+        _claim_reader({claim.id: claim}, sources, genres),
     )
 
     response = await query.get(swing.id)
@@ -335,21 +329,14 @@ async def test_relations_query_rejects_claim_unrelated_to_page_genre() -> None:
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
 
-    class UnrelatedClaimService:
-        async def list_public_for_genre(self, genre_id: UUID) -> list[GenreRelationClaim]:
+    class UnrelatedClaimReader:
+        async def read_for_genre(self, genre_id: UUID) -> PublishedGenreRelationClaims:
             del genre_id
-            return [unrelated]
-
-        async def public_evidence_references_for_claims(
-            self,
-            claims: list[GenreRelationClaim],
-        ) -> dict[UUID, tuple[object, ...]]:
-            del claims
-            return {}
+            return PublishedGenreRelationClaims((unrelated,), {})
 
     query = GenreRelationsQuery(
         lambda: FakeMusicCatalogUnitOfWork({swing.id: swing, jazz.id: jazz, blues.id: blues}),
-        UnrelatedClaimService(),  # type: ignore[arg-type]
+        UnrelatedClaimReader(),
     )
 
     with pytest.raises(GenreRelationsAssemblyError):
