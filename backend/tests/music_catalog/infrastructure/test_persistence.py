@@ -1,15 +1,17 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import uuid7
 
 import pytest
 from sqlalchemy import inspect
 
 from roots_of_rhythm.infrastructure.database import create_session_factory
-from roots_of_rhythm.infrastructure.write_scopes import music_people_scope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransaction, SqlAlchemyTransactionScope
 from roots_of_rhythm.music_catalog.application import (
+    ClassificationAssignmentConflict,
     ClassificationAssignmentService,
     GenreNameConflict,
     GenreService,
+    PublishClassificationAssignment,
     UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.domain import (
@@ -21,13 +23,26 @@ from roots_of_rhythm.music_catalog.domain import (
     TemporalBound,
     TemporalPrecision,
 )
+from roots_of_rhythm.music_catalog.infrastructure.assignment_repository import (
+    SqlAlchemyClassificationAssignmentRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.application import PersonService
 from roots_of_rhythm.people_catalog.domain import PersonContent
+from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
 from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+    from roots_of_rhythm.application.transaction import Transaction
+
+
+def _session(transaction: "Transaction") -> "AsyncSession":
+    return cast("SqlAlchemyTransaction", transaction).session
+
 
 pytestmark = pytest.mark.integration
 
@@ -91,7 +106,19 @@ async def test_assignment_repository_round_trips_publication_content(engine: Asy
     session_factory = create_session_factory(engine)
     genres = GenreService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
     persons = PersonService(lambda: SqlAlchemyPeopleCatalogUnitOfWork(session_factory))
-    assignments = ClassificationAssignmentService(lambda: music_people_scope(session_factory))
+    transaction_scope = SqlAlchemyTransactionScope(session_factory)
+
+    def assignment_repository(transaction: "Transaction") -> SqlAlchemyClassificationAssignmentRepository:
+        return SqlAlchemyClassificationAssignmentRepository(_session(transaction))
+
+    assignments = ClassificationAssignmentService(transaction_scope, assignment_repository)
+    publish_assignment = PublishClassificationAssignment(
+        transaction_scope,
+        assignment_repository,
+        lambda transaction: SqlAlchemyGenreRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+    )
     jazz = await genres.create(ClassificationContent.create("Jazz", definition="A genre."))
     await genres.publish(jazz.id)
     person_id = uuid7()
@@ -105,7 +132,14 @@ async def test_assignment_repository_round_trips_publication_content(engine: Asy
         provenance="Editorial review.",
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
-    published = await assignments.publish(assignment.id)
+    published = await publish_assignment.execute(assignment.id)
+
+    with pytest.raises(ClassificationAssignmentConflict):
+        await assignments.create_for_person(
+            person_id,
+            jazz.id,
+            provenance="Duplicate editorial review.",
+        )
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         loaded = await uow.assignments.get(assignment.id)

@@ -64,7 +64,11 @@ from roots_of_rhythm.music_catalog.application.ports import (
 )
 from roots_of_rhythm.music_catalog.application.recording_service import RecordingService
 from roots_of_rhythm.music_catalog.application.service import GenreService, UnitOfWorkFactory
-from roots_of_rhythm.music_catalog.application.use_cases import PublishRecording, ReplaceRecordingContent
+from roots_of_rhythm.music_catalog.application.use_cases import (
+    PublishClassificationAssignment,
+    PublishRecording,
+    ReplaceRecordingContent,
+)
 from roots_of_rhythm.music_catalog.application.work_credit_service import WorkCreditService
 from roots_of_rhythm.music_catalog.application.work_relation_service import WorkRelationService
 
@@ -77,6 +81,7 @@ __all__ = [
     "ClassificationAssignmentRepository",
     "ClassificationAssignmentService",
     "ClassificationAssignmentTargetUnsupported",
+    "PublishClassificationAssignment",
     "GenreNameConflict",
     "GenreNotFound",
     "GenreRepository",

@@ -1,15 +1,21 @@
 from typing import TYPE_CHECKING
 
+from psycopg import errors as psycopg_errors
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from roots_of_rhythm.infrastructure.database import apply_write_lock
+from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, ClassificationTargetKind, EditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     assignment_from_record,
     record_from_assignment,
     update_assignment_record,
 )
-from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationAssignmentRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import (
+    CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
+    ClassificationAssignmentRecord,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -24,6 +30,7 @@ class SqlAlchemyClassificationAssignmentRepository:
 
     async def add(self, assignment: ClassificationAssignment) -> None:
         self._session.add(record_from_assignment(assignment))
+        await self._flush_unique_constraint()
 
     async def get(self, assignment_id: UUID, *, for_update: bool = False) -> ClassificationAssignment | None:
         statement = select(ClassificationAssignmentRecord).where(
@@ -103,3 +110,15 @@ class SqlAlchemyClassificationAssignmentRepository:
         if record is None:
             raise LookupError(str(assignment.id))
         update_assignment_record(record, assignment)
+        await self._flush_unique_constraint()
+
+    async def _flush_unique_constraint(self) -> None:
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            if (
+                isinstance(error.orig, psycopg_errors.UniqueViolation)
+                and error.orig.diag.constraint_name == CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT
+            ):
+                raise UniqueConstraintViolation(CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT) from error
+            raise

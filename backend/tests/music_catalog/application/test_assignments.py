@@ -1,16 +1,20 @@
+from unittest.mock import AsyncMock, Mock
 from uuid import UUID, uuid7
 
 import pytest
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.music_catalog.fakes import FakeClassificationAssignmentRepository, FakeMusicCatalogUnitOfWork
 from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
-from tests.support.scopes import pair_scope
 
 from roots_of_rhythm.music_catalog.application import (
+    ClassificationAssignmentConflict,
     ClassificationAssignmentGenreNotPublished,
     ClassificationAssignmentGroupNotPublished,
     ClassificationAssignmentNotFound,
     ClassificationAssignmentPersonNotPublished,
     ClassificationAssignmentService,
+    ClassificationAssignmentTargetUnsupported,
+    PublishClassificationAssignment,
+    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationAssignment,
@@ -62,19 +66,32 @@ def _published_group(group_id: UUID) -> Group:
     )
 
 
-def _service(
+class _ConflictingAssignmentRepository(FakeClassificationAssignmentRepository):
+    async def add(self, assignment: ClassificationAssignment) -> None:
+        raise UniqueConstraintViolation("assignment constraint")
+
+
+def _operations(
     *,
     genres: dict[UUID, Genre],
     assignments: dict[UUID, ClassificationAssignment],
     persons: dict[UUID, Person] | None = None,
     groups: dict[UUID, Group] | None = None,
-) -> ClassificationAssignmentService:
-    return ClassificationAssignmentService(
-        pair_scope(
-            lambda: FakeMusicCatalogUnitOfWork(genres, assignments, groups=groups or {}),
-            lambda: FakePeopleCatalogUnitOfWork(persons or {}),
-        )
+) -> tuple[ClassificationAssignmentService, PublishClassificationAssignment]:
+    music = FakeMusicCatalogUnitOfWork(genres, assignments, groups=groups or {})
+    people = FakePeopleCatalogUnitOfWork(persons or {})
+    service = ClassificationAssignmentService(
+        lambda: music,
+        lambda _transaction: music.assignments,
     )
+    publish = PublishClassificationAssignment(
+        lambda: music,
+        lambda _transaction: music.assignments,
+        lambda _transaction: music.genres,
+        lambda _transaction: music.groups,
+        lambda _transaction: people.persons,
+    )
+    return service, publish
 
 
 @pytest.mark.asyncio
@@ -87,13 +104,13 @@ async def test_assignment_service_publishes_only_with_published_person_and_genre
     )
     assignment = _assignment(person_id, genre.id)
     assignments = {assignment.id: assignment}
-    service = _service(
+    _service, publish = _operations(
         genres={genre.id: genre},
         assignments=assignments,
         persons={person_id: _published_person(person_id)},
     )
 
-    published = await service.publish(assignment.id)
+    published = await publish.execute(assignment.id)
 
     assert published.editorial_status is EditorialStatus.PUBLISHED
     assert assignments[assignment.id] == published
@@ -107,24 +124,24 @@ async def test_assignment_service_rejects_unpublished_person_endpoint() -> None:
         editorial_status=EditorialStatus.PUBLISHED,
     )
     assignment = _assignment(uuid7(), genre.id)
-    service = _service(genres={genre.id: genre}, assignments={assignment.id: assignment})
+    _service, publish = _operations(genres={genre.id: genre}, assignments={assignment.id: assignment})
 
     with pytest.raises(ClassificationAssignmentPersonNotPublished):
-        await service.publish(assignment.id)
+        await publish.execute(assignment.id)
 
 
 @pytest.mark.asyncio
 async def test_assignment_service_rejects_unpublished_genre_endpoint() -> None:
     person_id = uuid7()
     assignment = _assignment(person_id, uuid7())
-    service = _service(
+    _service, publish = _operations(
         genres={},
         assignments={assignment.id: assignment},
         persons={person_id: _published_person(person_id)},
     )
 
     with pytest.raises(ClassificationAssignmentGenreNotPublished):
-        await service.publish(assignment.id)
+        await publish.execute(assignment.id)
 
 
 @pytest.mark.asyncio
@@ -137,12 +154,12 @@ async def test_assignment_service_replace_content_preserves_status_and_endpoints
     )
     assignment = _assignment(person_id, genre.id)
     assignments = {assignment.id: assignment}
-    service = _service(
+    service, publish = _operations(
         genres={genre.id: genre},
         assignments=assignments,
         persons={person_id: _published_person(person_id)},
     )
-    await service.publish(assignment.id)
+    await publish.execute(assignment.id)
     claim_id = uuid7()
 
     updated = await service.replace_content(
@@ -164,7 +181,7 @@ async def test_assignment_service_replace_content_preserves_status_and_endpoints
 
 @pytest.mark.asyncio
 async def test_assignment_service_replace_content_reports_missing_assignment() -> None:
-    service = _service(genres={}, assignments={})
+    service, _publish = _operations(genres={}, assignments={})
 
     with pytest.raises(ClassificationAssignmentNotFound):
         await service.replace_content(
@@ -186,13 +203,13 @@ async def test_assignment_service_publishes_group_assignment_with_published_grou
     )
     assignment = _group_assignment(group_id, genre.id)
     assignments = {assignment.id: assignment}
-    service = _service(
+    _service, publish = _operations(
         genres={genre.id: genre},
         assignments=assignments,
         groups={group_id: _published_group(group_id)},
     )
 
-    published = await service.publish(assignment.id)
+    published = await publish.execute(assignment.id)
 
     assert published.target_kind is ClassificationTargetKind.GROUP
     assert published.editorial_status is EditorialStatus.PUBLISHED
@@ -207,21 +224,90 @@ async def test_assignment_service_rejects_unpublished_group_endpoint() -> None:
         editorial_status=EditorialStatus.PUBLISHED,
     )
     assignment = _group_assignment(uuid7(), genre.id)
-    service = _service(genres={genre.id: genre}, assignments={assignment.id: assignment})
+    _service, publish = _operations(genres={genre.id: genre}, assignments={assignment.id: assignment})
 
     with pytest.raises(ClassificationAssignmentGroupNotPublished):
-        await service.publish(assignment.id)
+        await publish.execute(assignment.id)
 
 
 @pytest.mark.asyncio
 async def test_assignment_service_rejects_unpublished_genre_for_group_assignment() -> None:
     group_id = uuid7()
     assignment = _group_assignment(group_id, uuid7())
-    service = _service(
+    _service, publish = _operations(
         genres={},
         assignments={assignment.id: assignment},
         groups={group_id: _published_group(group_id)},
     )
 
     with pytest.raises(ClassificationAssignmentGenreNotPublished):
-        await service.publish(assignment.id)
+        await publish.execute(assignment.id)
+
+
+@pytest.mark.asyncio
+async def test_publish_assignment_reports_missing_assignment() -> None:
+    _service, publish = _operations(genres={}, assignments={})
+
+    with pytest.raises(ClassificationAssignmentNotFound):
+        await publish.execute(uuid7())
+
+
+@pytest.mark.asyncio
+async def test_publish_assignment_rejects_unsupported_target() -> None:
+    genre = Genre(
+        id=uuid7(),
+        content=ClassificationContent.create("Jazz", definition="A genre."),
+        editorial_status=EditorialStatus.PUBLISHED,
+    )
+    assignment = ClassificationAssignment(
+        id=uuid7(),
+        target_kind=ClassificationTargetKind.MUSICAL_WORK,
+        target_id=uuid7(),
+        concept_id=genre.id,
+        explanation="A Jazz work.",
+        provenance="Editorial review.",
+    )
+    _service, publish = _operations(genres={genre.id: genre}, assignments={assignment.id: assignment})
+
+    with pytest.raises(ClassificationAssignmentTargetUnsupported):
+        await publish.execute(assignment.id)
+
+
+@pytest.mark.asyncio
+async def test_assignment_service_translates_repository_conflict() -> None:
+    transaction = FakeMusicCatalogUnitOfWork({})
+    assignment_repository = _ConflictingAssignmentRepository({})
+    service = ClassificationAssignmentService(lambda: transaction, lambda _transaction: assignment_repository)
+
+    with pytest.raises(ClassificationAssignmentConflict):
+        await service.create_for_person(uuid7(), uuid7())
+
+
+@pytest.mark.asyncio
+async def test_publish_assignment_locks_person_and_genre_but_not_group() -> None:
+    person_id = uuid7()
+    genre_id = uuid7()
+    assignment = _assignment(person_id, genre_id)
+    transaction = FakeMusicCatalogUnitOfWork({})
+    assignment_repository = Mock()
+    assignment_repository.get = AsyncMock(return_value=assignment)
+    assignment_repository.save = AsyncMock()
+    genre_repository = Mock()
+    genre_repository.get_published = AsyncMock(return_value=object())
+    person_repository = Mock()
+    person_repository.get_published = AsyncMock(return_value=object())
+    group_repository_factory = Mock()
+    publish = PublishClassificationAssignment(
+        lambda: transaction,
+        lambda _transaction: assignment_repository,
+        lambda _transaction: genre_repository,
+        group_repository_factory,
+        lambda _transaction: person_repository,
+    )
+
+    await publish.execute(assignment.id)
+
+    assignment_repository.get.assert_awaited_once_with(assignment.id, for_update=True)
+    genre_repository.get_published.assert_awaited_once_with(genre_id, for_update=True)
+    person_repository.get_published.assert_awaited_once_with(person_id, for_update=True)
+    group_repository_factory.assert_not_called()

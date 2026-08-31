@@ -1,13 +1,14 @@
 """People, groups, memberships, and their genre assignments."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import UUID
 
-from roots_of_rhythm.infrastructure.write_scopes import music_people_scope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransaction, SqlAlchemyTransactionScope
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentService,
     GroupMembershipService,
     GroupService,
+    PublishClassificationAssignment,
 )
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.domain import (
@@ -17,10 +18,16 @@ from roots_of_rhythm.music_catalog.domain import (
 )
 from roots_of_rhythm.music_catalog.domain import TemporalBound as MusicTemporalBound
 from roots_of_rhythm.music_catalog.domain import TemporalPrecision as MusicTemporalPrecision
+from roots_of_rhythm.music_catalog.infrastructure.assignment_repository import (
+    SqlAlchemyClassificationAssignmentRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.application import PersonService
 from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
 from roots_of_rhythm.people_catalog.domain import PersonContent
+from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
 from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 from roots_of_rhythm.seed.genre_knowledge import JAZZ_ID, JUMP_BLUES_ID, SWING_ID
 
@@ -29,7 +36,13 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from roots_of_rhythm.application.transaction import Transaction
     from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
+
+
+def _session(transaction: "Transaction") -> "AsyncSession":
+    return cast("SqlAlchemyTransaction", transaction).session
+
 
 # --- Performers -------------------------------------------------------------
 CHARLIE_PARKER_ID = UUID("01a01a72-1be4-763d-8892-9d922967d97d")
@@ -239,7 +252,19 @@ class PeopleAndGroupsSeed:
         self._persons = PersonService(self._people_uow)
         self._groups = GroupService(self._music_uow)
         self._group_memberships = GroupMembershipService(self._music_uow)
-        self._assignments = ClassificationAssignmentService(lambda: music_people_scope(session_factory))
+        transaction_scope = SqlAlchemyTransactionScope(session_factory)
+
+        def assignment_repository(transaction: "Transaction") -> SqlAlchemyClassificationAssignmentRepository:
+            return SqlAlchemyClassificationAssignmentRepository(_session(transaction))
+
+        self._assignments = ClassificationAssignmentService(transaction_scope, assignment_repository)
+        self._publish_assignment = PublishClassificationAssignment(
+            transaction_scope,
+            assignment_repository,
+            lambda transaction: SqlAlchemyGenreRepository(_session(transaction)),
+            lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
+            lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+        )
 
     async def run(self) -> None:
         await self._ensure_persons()
@@ -345,7 +370,7 @@ class PeopleAndGroupsSeed:
                 provenance=provenance,
                 assignment_id=assignment_id,
             )
-            await self._assignments.publish(assignment_id)
+            await self._publish_assignment.execute(assignment_id)
             return
         if existing.explanation != explanation or existing.provenance != provenance:
             await self._assignments.replace_content(
@@ -356,7 +381,7 @@ class PeopleAndGroupsSeed:
                 evidence_status=existing.evidence_status,
             )
         if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
-            await self._assignments.publish(assignment_id)
+            await self._publish_assignment.execute(assignment_id)
 
     async def _ensure_published_group_assignment(
         self,
@@ -377,7 +402,7 @@ class PeopleAndGroupsSeed:
                 provenance=provenance,
                 assignment_id=assignment_id,
             )
-            await self._assignments.publish(assignment_id)
+            await self._publish_assignment.execute(assignment_id)
             return
         if existing.explanation != explanation or existing.provenance != provenance:
             await self._assignments.replace_content(
@@ -388,4 +413,4 @@ class PeopleAndGroupsSeed:
                 evidence_status=existing.evidence_status,
             )
         if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
-            await self._assignments.publish(assignment_id)
+            await self._publish_assignment.execute(assignment_id)

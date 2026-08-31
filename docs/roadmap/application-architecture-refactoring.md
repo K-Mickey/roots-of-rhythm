@@ -135,6 +135,8 @@ Tracker: `TBD` до следующей синхронизации tracker.
 
 Зависит от `ARCH-005`.
 
+Статус: `in_progress` (`ClassificationAssignment`, 2026-08-31).
+
 ### Результат
 
 Подход, проверенный на `RecordingService`, применяется к оставшимся сложным lifecycle services. Вместе `ARCH-005` и `ARCH-005B` охватывают пять объектов: `Recording`, `ClassificationAssignment`, `GenreRelationClaim`, `RecordingOriginClaim` и `ListeningGuide`.
@@ -150,6 +152,8 @@ Tracker: `TBD` до следующей синхронизации tracker.
 - после переноса удалить более не используемые pair scopes и registry-style UoW dependencies только при отсутствии callers.
 
 `WorkRelationService`, `LyricsVersionRelationService` и `SourceService.set_access_policy` в эту задачу не входят: их зависимости пока недостаточно отличаются для обязательного выделения use case.
+
+Первый этап выполнен для `ClassificationAssignment`: публикация выделена в `PublishClassificationAssignment`, а create/replace переведены вместе с ней на transaction-only boundary без `music_people_scope`.
 
 ### Проверка
 
