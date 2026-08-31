@@ -82,6 +82,8 @@ Query budgets `ARCH-001`, пустые и частичные batches, детер
 
 Tracker: [#61](https://github.com/K-Mickey/roots-of-rhythm/issues/61).
 
+Статус: `implemented` (пилот `RecordingService`, 2026-08-31).
+
 ### Результат
 
 Пилотные write operations получают repositories отдельно, а UoW определяет только lifecycle одной атомарной PostgreSQL-транзакции.
@@ -94,9 +96,13 @@ Tracker: [#61](https://github.com/K-Mickey/roots-of-rhythm/issues/61).
 - действующие registry-style UoW и scopes оставить для ещё не мигрировавших операций;
 - не переносить child-session/ContextVar infrastructure из `ncip-api`.
 
+Пилот выполнен для всего lifecycle `RecordingService`: transaction scope создаёт одну SQLAlchemy session на operation, а repositories создаются явно только для нужной operation и привязываются к этой session. `music_people_scope` и registry-style UoW остаются для остальных services.
+
+В мигрированном write-path repository выполняет `flush` и переводит только принадлежащие ему unique constraints во внутреннюю application-ошибку; transaction scope отвечает за общий rollback. Остальные repositories проверяются по мере переноса их services/use cases.
+
 ### Проверка
 
-Атомарность при отказе второго context, write locks, rollback, отсутствие лишних repositories в constructor operation.
+Атомарность при отказе второго context, write locks и rollback.
 
 ## ARCH-005: пилот command use cases
 

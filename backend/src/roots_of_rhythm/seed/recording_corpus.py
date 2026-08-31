@@ -1,7 +1,7 @@
 """Controlled recordings, lyrics, evidence, and listening-guide corpus."""
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from uuid import UUID
 
 from roots_of_rhythm.historical_knowledge.application import (
@@ -26,7 +26,8 @@ from roots_of_rhythm.historical_knowledge.domain import (
 )
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus as ClaimEditorialStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
-from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope, music_people_scope
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope
+from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import (
     LyricsVersionRelationService,
     LyricsVersionService,
@@ -53,7 +54,12 @@ from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditori
 from roots_of_rhythm.music_catalog.domain import EvidenceStatus as MusicEvidenceStatus
 from roots_of_rhythm.music_catalog.domain import TemporalBound as MusicTemporalBound
 from roots_of_rhythm.music_catalog.domain import TemporalPrecision as MusicTemporalPrecision
+from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_repository import SqlAlchemyLyricsVersionRepository
+from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
+from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
+from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
 from roots_of_rhythm.seed.genre_knowledge import COUNTRY_ID, RHYTHM_AND_BLUES_ID, SOURCE_VERSION_LABEL
 from roots_of_rhythm.seed.musical_works import NOBODY_KNOWS_TROUBLE_ID, SIXTEEN_TONS_ID
 from roots_of_rhythm.seed.people_and_groups import (
@@ -70,7 +76,14 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from roots_of_rhythm.application.transaction import Transaction
     from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
+    from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransaction
+
+
+def _session(transaction: "Transaction") -> "AsyncSession":
+    return cast("SqlAlchemyTransaction", transaction).session
+
 
 # --- Source -----------------------------------------------------------------
 SIXTEEN_TONS_SOURCE_ID = UUID("01a0147a-8508-74b7-9689-e7cd00000003")
@@ -380,7 +393,16 @@ class RecordingCorpusSeed:
         self._sources = SourceService(self._hk_uow)
         self._lyrics_versions = LyricsVersionService(self._music_uow)
         self._lyrics_relations = LyricsVersionRelationService(self._music_uow)
-        self._recordings = RecordingService(lambda: music_people_scope(session_factory))
+        self._recordings = RecordingService(
+            transaction_scope=SqlAlchemyTransactionScope(session_factory),
+            recording_repository_factory=lambda transaction: SqlAlchemyRecordingRepository(_session(transaction)),
+            work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
+            lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(
+                _session(transaction)
+            ),
+            group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
+            person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+        )
         self._recording_origin_claims = RecordingOriginClaimService(lambda: knowledge_music_scope(session_factory))
         self._listening_guides = ListeningGuideService(lambda: knowledge_music_scope(session_factory))
 

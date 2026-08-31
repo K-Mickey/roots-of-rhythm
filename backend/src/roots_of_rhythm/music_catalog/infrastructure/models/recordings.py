@@ -24,6 +24,13 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
 from roots_of_rhythm.text_lengths import TEXT_16, TEXT_32, TEXT_64, TEXT_1024
 
 _RECORDING_ID_FOREIGN_KEY = "recordings.id"
+RECORDING_UNIQUE_CONSTRAINTS = frozenset(
+    {
+        RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT,
+        RECORDING_LYRICS_VERSION_UNIQUE_CONSTRAINT,
+        RECORDING_LYRICS_POSITION_UNIQUE_CONSTRAINT,
+    }
+)
 
 
 class RecordingRecord(ServiceColumnsMixin, MusicCatalogBase):

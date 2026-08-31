@@ -7,7 +7,6 @@ from tests.music_catalog.fakes import (
     FakeRecordingRepository,
 )
 from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
-from tests.support.scopes import pair_scope
 
 from roots_of_rhythm.music_catalog.application import (
     RecordingLyricsVersionNotPerformable,
@@ -76,6 +75,20 @@ def _published_person(person_id: UUID) -> Person:
     )
 
 
+def _service(
+    music: FakeMusicCatalogUnitOfWork,
+    people: FakePeopleCatalogUnitOfWork,
+) -> RecordingService:
+    return RecordingService(
+        transaction_scope=lambda: music,
+        recording_repository_factory=lambda _transaction: music.recordings,
+        work_repository_factory=lambda _transaction: music.works,
+        lyrics_version_repository_factory=lambda _transaction: music.lyrics_versions,
+        group_repository_factory=lambda _transaction: music.groups,
+        person_repository_factory=lambda _transaction: people.persons,
+    )
+
+
 @pytest.mark.asyncio
 async def test_recording_service_publishes_with_locked_published_work() -> None:
     work = MusicalWork.create(
@@ -87,7 +100,7 @@ async def test_recording_service_publishes_with_locked_published_work() -> None:
     work_records = {work.id: work}
     person = _published_person(uuid7())
     uow = FakeMusicCatalogUnitOfWork({}, works=work_records, recordings=recordings)
-    service = RecordingService(pair_scope(lambda: uow, lambda: FakePeopleCatalogUnitOfWork({person.id: person})))
+    service = _service(uow, FakePeopleCatalogUnitOfWork({person.id: person}))
 
     recording = await service.create(_content(work.id, person.id, additional_target_id=uuid7()))
     published = await service.publish(recording.id)
@@ -113,11 +126,9 @@ async def test_recording_service_rejects_unpublished_work() -> None:
     work = MusicalWork.create(uuid7(), WorkContent.create("Draft", provenance="Editorial note"))
     recordings: dict[UUID, Recording] = {}
     person = _published_person(uuid7())
-    service = RecordingService(
-        pair_scope(
-            lambda: FakeMusicCatalogUnitOfWork({}, works={work.id: work}, recordings=recordings),
-            lambda: FakePeopleCatalogUnitOfWork({person.id: person}),
-        )
+    service = _service(
+        FakeMusicCatalogUnitOfWork({}, works={work.id: work}, recordings=recordings),
+        FakePeopleCatalogUnitOfWork({person.id: person}),
     )
     recording = await service.create(_content(work.id, person.id))
 
@@ -136,11 +147,9 @@ async def test_recording_service_requires_published_primary_target() -> None:
     )
     draft_person = Person.create(uuid7(), PersonContent.create("Draft performer"))
     recordings: dict[UUID, Recording] = {}
-    service = RecordingService(
-        pair_scope(
-            lambda: FakeMusicCatalogUnitOfWork({}, works={work.id: work}, recordings=recordings),
-            lambda: FakePeopleCatalogUnitOfWork({draft_person.id: draft_person}),
-        )
+    service = _service(
+        FakeMusicCatalogUnitOfWork({}, works={work.id: work}, recordings=recordings),
+        FakePeopleCatalogUnitOfWork({draft_person.id: draft_person}),
     )
     recording = await service.create(_content(work.id, draft_person.id))
 
@@ -157,13 +166,11 @@ async def test_recording_service_rejects_unpublished_group_target() -> None:
     )
     draft_group = Group.create(uuid7(), GroupContent.create("Draft group"))
     recordings: dict[UUID, Recording] = {}
-    service = RecordingService(
-        pair_scope(
-            lambda: FakeMusicCatalogUnitOfWork(
-                {}, works={work.id: work}, groups={draft_group.id: draft_group}, recordings=recordings
-            ),
-            lambda: FakePeopleCatalogUnitOfWork({}),
-        )
+    service = _service(
+        FakeMusicCatalogUnitOfWork(
+            {}, works={work.id: work}, groups={draft_group.id: draft_group}, recordings=recordings
+        ),
+        FakePeopleCatalogUnitOfWork({}),
     )
     recording = await service.create(_content(work.id, draft_group.id, target_kind=RecordingCreditTargetKind.GROUP))
 
@@ -189,13 +196,11 @@ async def test_one_published_primary_target_is_enough() -> None:
         work_usages=(RecordingWorkUsage.create(uuid7(), work.id, RecordingWorkUsageKind.COMPLETE),),
     )
     recordings: dict[UUID, Recording] = {}
-    service = RecordingService(
-        pair_scope(
-            lambda: FakeMusicCatalogUnitOfWork(
-                {}, works={work.id: work}, groups={draft_group.id: draft_group}, recordings=recordings
-            ),
-            lambda: FakePeopleCatalogUnitOfWork({person.id: person}),
-        )
+    service = _service(
+        FakeMusicCatalogUnitOfWork(
+            {}, works={work.id: work}, groups={draft_group.id: draft_group}, recordings=recordings
+        ),
+        FakePeopleCatalogUnitOfWork({person.id: person}),
     )
 
     recording = await service.create(content)
@@ -241,13 +246,9 @@ async def test_recording_service_validates_lyrics_usages() -> None:
     )
     versions = {item.id: item for item, _error in invalid_cases} | {valid.id: valid}
     recordings: dict[UUID, Recording] = {}
-    service = RecordingService(
-        pair_scope(
-            lambda: FakeMusicCatalogUnitOfWork(
-                {}, works={work.id: work}, lyrics_versions=versions, recordings=recordings
-            ),
-            lambda: FakePeopleCatalogUnitOfWork({person.id: person}),
-        )
+    service = _service(
+        FakeMusicCatalogUnitOfWork({}, works={work.id: work}, lyrics_versions=versions, recordings=recordings),
+        FakePeopleCatalogUnitOfWork({person.id: person}),
     )
 
     recording = await service.create(_content(work.id, person.id, lyrics_version_id=valid.id))

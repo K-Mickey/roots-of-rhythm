@@ -40,6 +40,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models.lyrics import (
     LyricsVersionRelationRecord,
 )
 from roots_of_rhythm.music_catalog.infrastructure.models.recordings import (
+    RECORDING_UNIQUE_CONSTRAINTS,
     RecordingCreditRecord,
     RecordingLyricsUsageRecord,
     RecordingRecord,
@@ -85,6 +86,7 @@ __all__ = [
     "RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT",
     "RECORDING_LYRICS_POSITION_UNIQUE_CONSTRAINT",
     "RECORDING_LYRICS_VERSION_UNIQUE_CONSTRAINT",
+    "RECORDING_UNIQUE_CONSTRAINTS",
     "RecordingCreditRecord",
     "RecordingLyricsUsageRecord",
     "RecordingRecord",

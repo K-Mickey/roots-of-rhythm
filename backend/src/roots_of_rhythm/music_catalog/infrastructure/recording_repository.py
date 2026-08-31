@@ -1,9 +1,12 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from psycopg import errors as psycopg_errors
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from roots_of_rhythm.infrastructure.database import apply_write_lock
+from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.domain import EditorialStatus, Recording
 from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     record_from_recording,
@@ -12,6 +15,7 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     update_recording_record,
 )
 from roots_of_rhythm.music_catalog.infrastructure.models import (
+    RECORDING_UNIQUE_CONSTRAINTS,
     RecordingCreditRecord,
     RecordingLyricsUsageRecord,
     RecordingRecord,
@@ -31,8 +35,9 @@ class SqlAlchemyRecordingRepository:
     async def add(self, recording: Recording) -> None:
         credit_records, usages, lyrics_usages = records_from_recording_children(recording)
         self._session.add(record_from_recording(recording))
-        await self._session.flush()
+        await self._flush_owned_unique_constraints()
         self._session.add_all([*credit_records, *usages, *lyrics_usages])
+        await self._flush_owned_unique_constraints()
 
     async def get(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None:
         return await self._get(recording_id, for_update=for_update)
@@ -103,6 +108,7 @@ class SqlAlchemyRecordingRepository:
             raise LookupError(str(recording.id))
         update_recording_record(record, recording)
         await self._replace_children(recording)
+        await self._flush_owned_unique_constraints()
 
     async def save_status(self, recording: Recording) -> None:
         record = await self._get_record(recording.id, for_update=True)
@@ -257,3 +263,14 @@ class SqlAlchemyRecordingRepository:
             found_lyrics_usage.lyrics_version_id = incoming_lyrics_usage.lyrics_version_id
             found_lyrics_usage.position = incoming_lyrics_usage.position
             found_lyrics_usage.deleted = False
+
+    async def _flush_owned_unique_constraints(self) -> None:
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            constraint_name = None
+            if isinstance(error.orig, psycopg_errors.UniqueViolation):
+                constraint_name = error.orig.diag.constraint_name
+            if constraint_name in RECORDING_UNIQUE_CONSTRAINTS:
+                raise UniqueConstraintViolation(constraint_name) from error
+            raise
