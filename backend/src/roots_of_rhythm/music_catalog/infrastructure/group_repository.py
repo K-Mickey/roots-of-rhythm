@@ -33,16 +33,20 @@ class SqlAlchemyGroupRepository:
     async def get_published(self, group_id: UUID, *, for_update: bool = False) -> Group | None:
         return await self._get(group_id, status=EditorialStatus.PUBLISHED, for_update=for_update)
 
-    async def get_published_by_ids(self, group_ids: Collection[UUID]) -> dict[UUID, Group]:
-        ids = set(group_ids)
+    async def get_published_by_ids(self, group_ids: Collection[UUID], *, for_update: bool = False) -> dict[UUID, Group]:
+        ids = sorted(set(group_ids))
         if not ids:
             return {}
-        statement = select(GroupRecord).where(
-            GroupRecord.id.in_(ids),
-            GroupRecord.editorial_status == EditorialStatus.PUBLISHED.value,
-            GroupRecord.deleted.is_(False),
+        statement = (
+            select(GroupRecord)
+            .where(
+                GroupRecord.id.in_(ids),
+                GroupRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                GroupRecord.deleted.is_(False),
+            )
+            .order_by(GroupRecord.id)
         )
-        result = await self._session.execute(statement)
+        result = await self._session.execute(apply_write_lock(statement, for_update=for_update))
         return {record.id: group_from_record(record) for record in result.scalars()}
 
     async def list_published(self) -> list[Group]:

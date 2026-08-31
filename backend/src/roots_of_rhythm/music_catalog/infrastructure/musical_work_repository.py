@@ -31,16 +31,22 @@ class SqlAlchemyMusicalWorkRepository:
     async def get_published(self, work_id: UUID, *, for_update: bool = False) -> MusicalWork | None:
         return await self._get(work_id, status=EditorialStatus.PUBLISHED, for_update=for_update)
 
-    async def get_published_by_ids(self, work_ids: Collection[UUID]) -> dict[UUID, MusicalWork]:
-        ids = set(work_ids)
+    async def get_published_by_ids(
+        self, work_ids: Collection[UUID], *, for_update: bool = False
+    ) -> dict[UUID, MusicalWork]:
+        ids = sorted(set(work_ids))
         if not ids:
             return {}
-        statement = select(MusicalWorkRecord).where(
-            MusicalWorkRecord.id.in_(ids),
-            MusicalWorkRecord.editorial_status == EditorialStatus.PUBLISHED.value,
-            MusicalWorkRecord.deleted.is_(False),
+        statement = (
+            select(MusicalWorkRecord)
+            .where(
+                MusicalWorkRecord.id.in_(ids),
+                MusicalWorkRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                MusicalWorkRecord.deleted.is_(False),
+            )
+            .order_by(MusicalWorkRecord.id)
         )
-        result = await self._session.execute(statement)
+        result = await self._session.execute(apply_write_lock(statement, for_update=for_update))
         return {record.id: musical_work_from_record(record) for record in result.scalars()}
 
     async def list_published(self) -> list[MusicalWork]:

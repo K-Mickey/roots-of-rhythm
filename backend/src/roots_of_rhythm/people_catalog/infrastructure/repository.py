@@ -27,16 +27,22 @@ class SqlAlchemyPersonRepository:
     async def get_published(self, person_id: UUID, *, for_update: bool = False) -> Person | None:
         return await self._get(person_id, status=EditorialStatus.PUBLISHED, for_update=for_update)
 
-    async def get_published_by_ids(self, person_ids: Collection[UUID]) -> dict[UUID, Person]:
-        ids = set(person_ids)
+    async def get_published_by_ids(
+        self, person_ids: Collection[UUID], *, for_update: bool = False
+    ) -> dict[UUID, Person]:
+        ids = sorted(set(person_ids))
         if not ids:
             return {}
-        statement = select(PersonRecord).where(
-            PersonRecord.id.in_(ids),
-            PersonRecord.editorial_status == EditorialStatus.PUBLISHED.value,
-            PersonRecord.deleted.is_(False),
+        statement = (
+            select(PersonRecord)
+            .where(
+                PersonRecord.id.in_(ids),
+                PersonRecord.editorial_status == EditorialStatus.PUBLISHED.value,
+                PersonRecord.deleted.is_(False),
+            )
+            .order_by(PersonRecord.id)
         )
-        result = await self._session.execute(statement)
+        result = await self._session.execute(apply_write_lock(statement, for_update=for_update))
         return {record.id: person_from_record(record) for record in result.scalars()}
 
     async def list_published(self) -> list[Person]:

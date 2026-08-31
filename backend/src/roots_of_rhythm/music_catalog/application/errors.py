@@ -105,6 +105,10 @@ class RecordingNotFound(LookupError):
     pass
 
 
+class RecordingConflict(ValueError):
+    pass
+
+
 class RecordingWorkNotPublished(ValueError):
     pass
 

@@ -110,6 +110,8 @@ Tracker: [#62](https://github.com/K-Mickey/roots-of-rhythm/issues/62).
 
 Зависит от `ARCH-004`.
 
+Статус: `implemented` (пилот `Recording`, 2026-08-31).
+
 ### Результат
 
 Самостоятельные сложные операции отделены от связных lifecycle services по критериям ADR-0008, без массового правила «один метод — один класс».
@@ -120,6 +122,8 @@ Tracker: [#62](https://github.com/K-Mickey/roots-of-rhythm/issues/62).
 - сохранить малые Genre, Person, Group, MusicalWork и аналогичные lifecycle services;
 - после пилота отдельно оценить `ClaimService`, `RecordingOriginClaimService` и `ClassificationAssignmentService`; не включать их механически в эту задачу;
 - HTTP/CLI вызывают application operation и не получают domain/persistence orchestration.
+
+Пилот реализован как `PublishRecording` и `ReplaceRecordingContent`; `RecordingService` сохраняет только create/archive lifecycle. Проверки опубликованных Work, primary Group/Person и LyricsVersion используют детерминированные batch reads с `FOR UPDATE`, включая medley и несколько lyrics usages.
 
 ### Проверка
 

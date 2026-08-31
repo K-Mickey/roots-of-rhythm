@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 class FakePersonRepository:
     def __init__(self, persons: dict[UUID, Person]) -> None:
         self._persons = persons
+        self.locked_ids: list[UUID] = []
+        self.batch_calls: list[tuple[UUID, ...]] = []
 
     async def add(self, person: Person) -> None:
         self._persons[person.id] = person
@@ -25,10 +27,16 @@ class FakePersonRepository:
         person = self._persons.get(person_id)
         return person if person is not None and person.editorial_status is EditorialStatus.PUBLISHED else None
 
-    async def get_published_by_ids(self, person_ids: Collection[UUID]) -> dict[UUID, Person]:
+    async def get_published_by_ids(
+        self, person_ids: Collection[UUID], *, for_update: bool = False
+    ) -> dict[UUID, Person]:
+        ids = sorted(set(person_ids))
+        self.batch_calls.append(tuple(ids))
+        if for_update:
+            self.locked_ids.extend(ids)
         return {
             person_id: person
-            for person_id in person_ids
+            for person_id in ids
             if (person := self._persons.get(person_id)) is not None
             and person.editorial_status is EditorialStatus.PUBLISHED
         }

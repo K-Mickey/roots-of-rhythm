@@ -35,9 +35,11 @@ class SpyPersonRepository(FakePersonRepository):
         super().__init__(persons)
         self.published_by_ids_calls: list[set[UUID]] = []
 
-    async def get_published_by_ids(self, person_ids: "Collection[UUID]") -> dict[UUID, Person]:
+    async def get_published_by_ids(
+        self, person_ids: "Collection[UUID]", *, for_update: bool = False
+    ) -> dict[UUID, Person]:
         self.published_by_ids_calls.append(set(person_ids))
-        return await super().get_published_by_ids(person_ids)
+        return await super().get_published_by_ids(person_ids, for_update=for_update)
 
 
 @pytest.mark.asyncio

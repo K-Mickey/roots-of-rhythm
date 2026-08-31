@@ -150,6 +150,8 @@ class FakeGenreRepository:
 class FakeGroupRepository:
     def __init__(self, groups: dict[UUID, Group]) -> None:
         self._groups = groups
+        self.locked_ids: list[UUID] = []
+        self.batch_calls: list[tuple[UUID, ...]] = []
 
     async def add(self, group: Group) -> None:
         self._groups[group.id] = group
@@ -161,10 +163,14 @@ class FakeGroupRepository:
         group = self._groups.get(group_id)
         return group if group is not None and group.editorial_status is EditorialStatus.PUBLISHED else None
 
-    async def get_published_by_ids(self, group_ids: Collection[UUID]) -> dict[UUID, Group]:
+    async def get_published_by_ids(self, group_ids: Collection[UUID], *, for_update: bool = False) -> dict[UUID, Group]:
+        ids = sorted(set(group_ids))
+        self.batch_calls.append(tuple(ids))
+        if for_update:
+            self.locked_ids.extend(ids)
         return {
             group_id: group
-            for group_id in set(group_ids)
+            for group_id in ids
             if (group := self._groups.get(group_id)) is not None and group.editorial_status is EditorialStatus.PUBLISHED
         }
 
@@ -222,6 +228,7 @@ class FakeMusicalWorkRepository:
     def __init__(self, works: dict[UUID, MusicalWork]) -> None:
         self._works = works
         self.locked_ids: list[UUID] = []
+        self.batch_calls: list[tuple[UUID, ...]] = []
 
     async def add(self, work: MusicalWork) -> None:
         self._works[work.id] = work
@@ -235,10 +242,16 @@ class FakeMusicalWorkRepository:
         work = self._works.get(work_id)
         return work if work is not None and work.editorial_status is EditorialStatus.PUBLISHED else None
 
-    async def get_published_by_ids(self, work_ids: Collection[UUID]) -> dict[UUID, MusicalWork]:
+    async def get_published_by_ids(
+        self, work_ids: Collection[UUID], *, for_update: bool = False
+    ) -> dict[UUID, MusicalWork]:
+        ids = sorted(set(work_ids))
+        self.batch_calls.append(tuple(ids))
+        if for_update:
+            self.locked_ids.extend(ids)
         return {
             work_id: work
-            for work_id in work_ids
+            for work_id in ids
             if (work := self._works.get(work_id)) is not None and work.editorial_status is EditorialStatus.PUBLISHED
         }
 
@@ -329,6 +342,8 @@ class FakeWorkRelationRepository:
 class FakeLyricsVersionRepository:
     def __init__(self, versions: dict[UUID, LyricsVersion]) -> None:
         self._versions = versions
+        self.locked_ids: list[UUID] = []
+        self.batch_calls: list[tuple[UUID, ...]] = []
 
     async def add(self, version: LyricsVersion) -> None:
         self._versions[version.id] = version
@@ -340,10 +355,16 @@ class FakeLyricsVersionRepository:
         version = self._versions.get(version_id)
         return version if version is not None and version.editorial_status is EditorialStatus.PUBLISHED else None
 
-    async def get_published_by_ids(self, version_ids: Collection[UUID]) -> dict[UUID, LyricsVersion]:
+    async def get_published_by_ids(
+        self, version_ids: Collection[UUID], *, for_update: bool = False
+    ) -> dict[UUID, LyricsVersion]:
+        ids = sorted(set(version_ids))
+        self.batch_calls.append(tuple(ids))
+        if for_update:
+            self.locked_ids.extend(ids)
         return {
             version_id: version
-            for version_id in version_ids
+            for version_id in ids
             if (version := self._versions.get(version_id)) is not None
             and version.editorial_status is EditorialStatus.PUBLISHED
         }

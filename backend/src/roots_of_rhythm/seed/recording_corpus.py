@@ -31,7 +31,9 @@ from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import (
     LyricsVersionRelationService,
     LyricsVersionService,
+    PublishRecording,
     RecordingService,
+    ReplaceRecordingContent,
 )
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
@@ -393,9 +395,25 @@ class RecordingCorpusSeed:
         self._sources = SourceService(self._hk_uow)
         self._lyrics_versions = LyricsVersionService(self._music_uow)
         self._lyrics_relations = LyricsVersionRelationService(self._music_uow)
-        self._recordings = RecordingService(
-            transaction_scope=SqlAlchemyTransactionScope(session_factory),
-            recording_repository_factory=lambda transaction: SqlAlchemyRecordingRepository(_session(transaction)),
+        transaction_scope = SqlAlchemyTransactionScope(session_factory)
+
+        def recording_repository_factory(transaction: "Transaction") -> SqlAlchemyRecordingRepository:
+            return SqlAlchemyRecordingRepository(_session(transaction))
+
+        self._recordings = RecordingService(transaction_scope, recording_repository_factory)
+        self._publish_recording = PublishRecording(
+            transaction_scope=transaction_scope,
+            recording_repository_factory=recording_repository_factory,
+            work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
+            lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(
+                _session(transaction)
+            ),
+            group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
+            person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+        )
+        self._replace_recording_content = ReplaceRecordingContent(
+            transaction_scope=transaction_scope,
+            recording_repository_factory=recording_repository_factory,
             work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
             lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(
                 _session(transaction)
@@ -608,11 +626,11 @@ class RecordingCorpusSeed:
                 or existing.work_usages != content.work_usages
                 or existing.lyrics_usages != content.lyrics_usages
             ):
-                await self._recordings.replace_content(recording_id, content)
+                await self._replace_recording_content.execute(recording_id, content)
             async with self._music_uow() as uow:
                 current = await uow.recordings.get(recording_id)
             if current is not None and current.editorial_status is not GenreEditorialStatus.PUBLISHED:
-                await self._recordings.publish(recording_id)
+                await self._publish_recording.execute(recording_id)
 
     async def _ensure_recording_genre_assignments(self) -> None:
         for assignment_id, recording_id, genre_id, explanation in SEED_RECORDING_GENRE_ASSIGNMENTS:

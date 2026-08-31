@@ -12,7 +12,9 @@ from roots_of_rhythm.music_catalog.application import (
     GroupService,
     LyricsVersionService,
     MusicalWorkService,
+    PublishRecording,
     RecordingService,
+    ReplaceRecordingContent,
 )
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
@@ -61,15 +63,32 @@ def _session(transaction: "Transaction") -> "AsyncSession":
     return cast("SqlAlchemyTransaction", transaction).session
 
 
-def _recordings(session_factory: "async_sessionmaker[AsyncSession]") -> RecordingService:
-    return RecordingService(
-        transaction_scope=SqlAlchemyTransactionScope(session_factory),
-        recording_repository_factory=lambda transaction: SqlAlchemyRecordingRepository(_session(transaction)),
-        work_repository_factory=lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
-        lyrics_version_repository_factory=lambda transaction: SqlAlchemyLyricsVersionRepository(_session(transaction)),
-        group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
-        person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+def _recording_operations(
+    session_factory: "async_sessionmaker[AsyncSession]",
+) -> tuple[RecordingService, PublishRecording, ReplaceRecordingContent]:
+    transaction_scope = SqlAlchemyTransactionScope(session_factory)
+
+    def recording_repository(transaction: "Transaction") -> SqlAlchemyRecordingRepository:
+        return SqlAlchemyRecordingRepository(_session(transaction))
+
+    service = RecordingService(transaction_scope, recording_repository)
+    publish = PublishRecording(
+        transaction_scope,
+        recording_repository,
+        lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyLyricsVersionRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
     )
+    replace = ReplaceRecordingContent(
+        transaction_scope,
+        recording_repository,
+        lambda transaction: SqlAlchemyMusicalWorkRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyLyricsVersionRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyGroupRepository(_session(transaction)),
+        lambda transaction: SqlAlchemyPersonRepository(_session(transaction)),
+    )
+    return service, publish, replace
 
 
 @pytest.mark.asyncio
@@ -77,7 +96,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
     session_factory = create_session_factory(engine)
     works = MusicalWorkService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
     lyrics = LyricsVersionService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
-    recordings = _recordings(session_factory)
+    recordings, publish_recording, replace_recording_content = _recording_operations(session_factory)
     persons = PersonService(lambda: SqlAlchemyPeopleCatalogUnitOfWork(session_factory))
     groups = GroupService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
     work = await works.create(WorkContent.create("Sixteen Tons", provenance="Editorial note"))
@@ -132,7 +151,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
         credit_created_at = await session.scalar(
             select(RecordingCreditRecord.created_at).where(RecordingCreditRecord.id == primary.id)
         )
-    published = await recordings.publish(created.id)
+    published = await publish_recording.execute(created.id)
 
     async with session_factory() as session:
         assert (
@@ -150,7 +169,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
 
     replacement_credit = RecordingCredit.create(uuid7(), RecordingCreditTargetKind.GROUP, group.id, BillingRole.PRIMARY)
     replacement_usage = RecordingWorkUsage.create(uuid7(), work.id, RecordingWorkUsageKind.COMPLETE)
-    replaced = await recordings.replace_content(
+    replaced = await replace_recording_content.execute(
         created.id,
         RecordingContent.create(
             "Sixteen Tons — excerpt",
@@ -179,7 +198,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
             is True
         )
 
-    restored = await recordings.replace_content(
+    restored = await replace_recording_content.execute(
         created.id,
         RecordingContent.create(
             "Sixteen Tons — restored",
@@ -220,7 +239,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
 @pytest.mark.asyncio
 async def test_draft_recording_is_not_returned_as_published(engine: AsyncEngine) -> None:
     session_factory = create_session_factory(engine)
-    recordings = _recordings(session_factory)
+    recordings, _publish_recording, _replace_recording_content = _recording_operations(session_factory)
     draft = await recordings.create(RecordingContent.create("Draft"))
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
