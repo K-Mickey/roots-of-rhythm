@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING
 
+from psycopg import errors as psycopg_errors
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus, EvidenceStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.mapping import (
     evidence_records_from_recording_origin_claim,
@@ -10,6 +13,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.mapping import (
     update_recording_origin_claim_record,
 )
 from roots_of_rhythm.historical_knowledge.infrastructure.models import (
+    RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX,
     RecordingOriginClaimEvidenceReferenceRecord,
     RecordingOriginClaimRecord,
 )
@@ -31,6 +35,15 @@ class SqlAlchemyRecordingOriginClaimRepository:
     async def add(self, claim: RecordingOriginClaim) -> None:
         self._session.add(record_from_recording_origin_claim(claim))
         self._session.add_all(evidence_records_from_recording_origin_claim(claim))
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            if (
+                isinstance(error.orig, psycopg_errors.UniqueViolation)
+                and error.orig.diag.constraint_name == RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX
+            ):
+                raise UniqueConstraintViolation(RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX) from error
+            raise
 
     async def get(self, claim_id: UUID, *, for_update: bool = False) -> RecordingOriginClaim | None:
         record = await self._get_claim_record(claim_id, for_update=for_update)

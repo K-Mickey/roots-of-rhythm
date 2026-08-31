@@ -15,10 +15,7 @@ from roots_of_rhythm.discovery.application.queries.song_overview import SongOver
 from roots_of_rhythm.discovery.application.recording_list import RecordingListQuery
 from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery
 from roots_of_rhythm.discovery.application.song_list import SongListQuery
-from roots_of_rhythm.historical_knowledge.application import (
-    RecordingOriginClaimService,
-    SourceService,
-)
+from roots_of_rhythm.historical_knowledge.application import SourceService
 from roots_of_rhythm.historical_knowledge.infrastructure.genre_relation_claim_reader import (
     SqlAlchemyPublishedGenreRelationClaimReader,
 )
@@ -26,7 +23,6 @@ from roots_of_rhythm.historical_knowledge.infrastructure.song_reader import SqlA
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
-from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
 from roots_of_rhythm.music_catalog.application import GroupMembershipService, GroupService
 from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import LyricsVersionProjectionService
 from roots_of_rhythm.music_catalog.infrastructure.song_reader import SqlAlchemySongMusicReader
@@ -52,7 +48,6 @@ RECORDING_LIST_READER_DEPENDENCY = "recording_list_reader"
 RECORDING_OVERVIEW_READER_DEPENDENCY = "recording_overview_reader"
 GROUP_SERVICE_DEPENDENCY = "group_service"
 GROUP_MEMBERSHIP_SERVICE_DEPENDENCY = "group_membership_service"
-RECORDING_ORIGIN_CLAIM_SERVICE_DEPENDENCY = "recording_origin_claim_service"
 
 type DependencyProviders = Mapping[str, Provide]
 
@@ -87,7 +82,6 @@ def create_api_dependencies(
     recording_overview_query = RecordingOverviewQuery(
         music_uow_factory, people_uow_factory, hk_uow_factory, lyrics_projection
     )
-    recording_origin_claim_service = RecordingOriginClaimService(lambda: knowledge_music_scope(session_factory))
     source_service = SourceService(hk_uow_factory)
     group_service = GroupService(music_uow_factory)
     group_membership_service = GroupMembershipService(music_uow_factory)
@@ -110,10 +104,6 @@ def create_api_dependencies(
         RECORDING_OVERVIEW_READER_DEPENDENCY: Provide(lambda: recording_overview_query, sync_to_thread=False),
         GROUP_SERVICE_DEPENDENCY: Provide(lambda: group_service, sync_to_thread=False),
         GROUP_MEMBERSHIP_SERVICE_DEPENDENCY: Provide(lambda: group_membership_service, sync_to_thread=False),
-        RECORDING_ORIGIN_CLAIM_SERVICE_DEPENDENCY: Provide(
-            lambda: recording_origin_claim_service,
-            sync_to_thread=False,
-        ),
     }
     if overrides is not None:
         dependencies.update(overrides)

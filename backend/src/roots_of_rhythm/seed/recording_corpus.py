@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from roots_of_rhythm.historical_knowledge.application import (
+    CreateRecordingOriginClaim,
     ListeningGuideService,
+    PublishRecordingOriginClaim,
     RecordingOriginClaimService,
     SourceService,
 )
@@ -25,6 +27,10 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalPrecision,
 )
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus as ClaimEditorialStatus
+from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
+    SqlAlchemyRecordingOriginClaimRepository,
+)
+from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.infrastructure.write_scopes import knowledge_music_scope
@@ -395,6 +401,15 @@ class RecordingCorpusSeed:
         def recording_repository_factory(transaction: "Transaction") -> SqlAlchemyRecordingRepository:
             return SqlAlchemyRecordingRepository(sqlalchemy_session(transaction))
 
+        def origin_claim_repository_factory(transaction: "Transaction") -> SqlAlchemyRecordingOriginClaimRepository:
+            return SqlAlchemyRecordingOriginClaimRepository(sqlalchemy_session(transaction))
+
+        def source_repository_factory(transaction: "Transaction") -> SqlAlchemySourceRepository:
+            return SqlAlchemySourceRepository(sqlalchemy_session(transaction))
+
+        def work_repository_factory(transaction: "Transaction") -> SqlAlchemyMusicalWorkRepository:
+            return SqlAlchemyMusicalWorkRepository(sqlalchemy_session(transaction))
+
         self._recordings = RecordingService(transaction_scope, recording_repository_factory)
         self._publish_recording = PublishRecording(
             transaction_scope=transaction_scope,
@@ -420,7 +435,24 @@ class RecordingCorpusSeed:
             group_repository_factory=lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
             person_repository_factory=lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
         )
-        self._recording_origin_claims = RecordingOriginClaimService(lambda: knowledge_music_scope(session_factory))
+        self._recording_origin_claims = RecordingOriginClaimService(
+            transaction_scope,
+            origin_claim_repository_factory,
+            source_repository_factory,
+        )
+        self._create_recording_origin_claim = CreateRecordingOriginClaim(
+            transaction_scope,
+            origin_claim_repository_factory,
+            recording_repository_factory,
+            work_repository_factory,
+        )
+        self._publish_recording_origin_claim = PublishRecordingOriginClaim(
+            transaction_scope,
+            origin_claim_repository_factory,
+            recording_repository_factory,
+            work_repository_factory,
+            source_repository_factory,
+        )
         self._listening_guides = ListeningGuideService(lambda: knowledge_music_scope(session_factory))
 
     async def run(self) -> None:
@@ -662,7 +694,7 @@ class RecordingCorpusSeed:
         async with self._hk_uow() as uow:
             existing = await uow.recording_origin_claims.get(claim_id)
         if existing is None:
-            await self._recording_origin_claims.create_draft(
+            await self._create_recording_origin_claim.execute(
                 MERLE_TRAVIS_RECORDING_ID,
                 SIXTEEN_TONS_ID,
                 MERLE_FIRST_RECORDING_PREDICATE,
@@ -683,7 +715,7 @@ class RecordingCorpusSeed:
         async with self._hk_uow() as uow:
             current = await uow.recording_origin_claims.get(claim_id)
         if current is not None and current.editorial_status is not ClaimEditorialStatus.PUBLISHED:
-            await self._recording_origin_claims.publish(claim_id)
+            await self._publish_recording_origin_claim.execute(claim_id)
 
     async def _ensure_listening_guide(self) -> None:
         guide_id = FORD_LISTENING_GUIDE_ID
