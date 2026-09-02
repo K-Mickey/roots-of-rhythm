@@ -6,7 +6,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     ClaimProvenance,
     ClaimPublicationError,
-    EditorialStatus,
     EvidenceRole,
     EvidenceStatus,
     GeographicContext,
@@ -52,8 +51,8 @@ def test_draft_requires_only_recording_work_and_predicate() -> None:
         RecordingOriginPredicate.FIRST_RELEASED_RECORDING_OF,
     )
 
-    assert claim.editorial_status is EditorialStatus.DRAFT
-    assert claim.evidence_status is EvidenceStatus.UNVERIFIED
+    assert claim.is_draft
+    assert claim.is_unverified
     assert claim.explanation is None
 
 
@@ -76,7 +75,7 @@ def test_publish_requires_completeness_and_supported_evidence() -> None:
     published = supported.replace_evidence(
         (ClaimEvidenceReference.create(fragment, EvidenceRole.SUPPORTS, locator_text="p. 12"),)
     ).publish()
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
 
 
 def test_badge_visibility_requires_published_supported_endpoints() -> None:

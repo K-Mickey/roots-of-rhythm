@@ -66,9 +66,17 @@ class ListeningGuide(msgspec.Struct, frozen=True):
     ) -> "ListeningGuide":
         return cls(id=guide_id or uuid7(), recording_id=recording_id, observations=_ordered(observations))
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
+    @property
+    def is_archived(self) -> bool:
+        return self.editorial_status is EditorialStatus.ARCHIVED
+
     def replace_observations(self, observations: tuple[ListeningObservation, ...]) -> "ListeningGuide":
         updated = ListeningGuide(self.id, self.recording_id, _ordered(observations), self.editorial_status)
-        return updated.publish() if self.editorial_status is EditorialStatus.PUBLISHED else updated
+        return updated.publish() if self.is_published else updated
 
     def submit_for_review(self) -> "ListeningGuide":
         return self._with_status(EditorialStatus.IN_REVIEW)

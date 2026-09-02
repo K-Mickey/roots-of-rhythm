@@ -9,7 +9,6 @@ from roots_of_rhythm.historical_knowledge.application.errors import (
     ListeningGuideRecordingNotPublished,
 )
 from roots_of_rhythm.historical_knowledge.application.ports import ListeningGuideRepository
-from roots_of_rhythm.historical_knowledge.domain import EditorialStatus
 from roots_of_rhythm.music_catalog.application.ports import RecordingRepository
 
 if TYPE_CHECKING:
@@ -43,7 +42,7 @@ class ReplaceListeningGuideObservations:
             if guide is None:
                 raise ListeningGuideNotFound(str(guide_id))
             updated = guide.replace_observations(observations)
-            if updated.editorial_status is EditorialStatus.PUBLISHED and (
+            if updated.is_published and (
                 await self._recording_repository_factory(transaction).get_published(
                     guide.recording_id,
                     for_update=True,

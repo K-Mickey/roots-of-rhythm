@@ -18,7 +18,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
     ClaimProvenance,
     EvidenceRole,
     EvidenceStatus,
-    FragmentReviewStatus,
     GeographicContext,
     HistoricalPeriod,
     ListeningGuide,
@@ -28,7 +27,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.historical_knowledge.domain import EditorialStatus as ClaimEditorialStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.listening_guide_repository import (
     SqlAlchemyListeningGuideRepository,
 )
@@ -537,7 +535,7 @@ class RecordingCorpusSeed:
                 access_policy=SourceAccessPolicy.ALLOW_PUBLIC_BODY,
                 source_id=source_id,
             )
-        elif existing.access_policy is not SourceAccessPolicy.ALLOW_PUBLIC_BODY:
+        elif not existing.is_allow_public_body:
             await self._sources.set_access_policy(source_id, SourceAccessPolicy.ALLOW_PUBLIC_BODY)
 
     async def _ensure_version(self, source_id: UUID, version_id: UUID, label: str) -> None:
@@ -564,7 +562,7 @@ class RecordingCorpusSeed:
                 fragment_id=fragment_id,
             )
             await self._sources.mark_fragment_reviewed(fragment_id)
-        elif existing.review_status is not FragmentReviewStatus.REVIEWED:
+        elif not existing.is_reviewed:
             await self._sources.mark_fragment_reviewed(fragment_id)
 
     async def _ensure_lyrics_versions(self) -> None:
@@ -733,7 +731,7 @@ class RecordingCorpusSeed:
         )
         async with self._hk_uow() as uow:
             current = await uow.recording_origin_claims.get(claim_id)
-        if current is not None and current.editorial_status is not ClaimEditorialStatus.PUBLISHED:
+        if current is not None and not current.is_published:
             await self._publish_recording_origin_claim.execute(claim_id)
 
     async def _ensure_listening_guide(self) -> None:
@@ -753,5 +751,5 @@ class RecordingCorpusSeed:
             )
         async with self._hk_uow() as uow:
             current = await uow.listening_guides.get(guide_id)
-        if current is not None and current.editorial_status is not ClaimEditorialStatus.PUBLISHED:
+        if current is not None and not current.is_published:
             await self._publish_listening_guide.execute(guide_id)

@@ -53,6 +53,10 @@ class Source(msgspec.Struct, frozen=True):
             access_policy=access_policy,
         )
 
+    @property
+    def is_allow_public_body(self) -> bool:
+        return self.access_policy is SourceAccessPolicy.ALLOW_PUBLIC_BODY
+
     def with_access_policy(self, access_policy: SourceAccessPolicy) -> Self:
         return msgspec.structs.replace(self, access_policy=access_policy)
 
@@ -93,6 +97,10 @@ class SourceFragment(msgspec.Struct, frozen=True):
             locator_text=_optional_text(locator_text, "locator text", max_length=TEXT_1024),
             external_url=_optional_text(external_url, "external url", max_length=TEXT_2048),
         )
+
+    @property
+    def is_reviewed(self) -> bool:
+        return self.review_status is FragmentReviewStatus.REVIEWED
 
     def mark_reviewed(self) -> "SourceFragment":
         return SourceFragment(

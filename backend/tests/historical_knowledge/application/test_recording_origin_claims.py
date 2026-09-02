@@ -27,7 +27,6 @@ from roots_of_rhythm.historical_knowledge.application import (
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     ClaimProvenance,
-    EditorialStatus,
     EvidenceRole,
     EvidenceStatus,
     FragmentReviewStatus,
@@ -144,8 +143,8 @@ async def test_recording_origin_claim_lifecycle_uses_locked_batch_evidence() -> 
     published = await publish.execute(claim.id)
     archived = await service.archive(claim.id)
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
-    assert archived.editorial_status is EditorialStatus.ARCHIVED
+    assert published.is_published
+    assert archived.is_archived
     assert sources.locked_batches == [{fragment_id}, {fragment_id}]
     assert transaction.commits == 5
 

@@ -5,7 +5,6 @@ import msgspec
 
 from roots_of_rhythm.historical_knowledge.domain.enums import (
     EditorialStatus,
-    EvidenceRole,
     EvidenceStatus,
     RelationType,
 )
@@ -52,6 +51,45 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
             relation_type=relation_type,
         )
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
+    @property
+    def is_draft(self) -> bool:
+        return self.editorial_status is EditorialStatus.DRAFT
+
+    @property
+    def is_unverified(self) -> bool:
+        return self.evidence_status is EvidenceStatus.UNVERIFIED
+
+    @property
+    def is_disputed(self) -> bool:
+        return self.evidence_status is EvidenceStatus.DISPUTED
+
+    @property
+    def is_supported(self) -> bool:
+        return self.evidence_status is EvidenceStatus.SUPPORTED
+
+    @property
+    def is_overlaps_with(self) -> bool:
+        return self.relation_type is RelationType.OVERLAPS_WITH
+
+    @property
+    def is_developed_from(self) -> bool:
+        return self.relation_type is RelationType.DEVELOPED_FROM
+
+    @property
+    def is_contributed_to_emergence_of(self) -> bool:
+        return self.relation_type is RelationType.CONTRIBUTED_TO_EMERGENCE_OF
+
+    def get_verified_evidence_references(self) -> tuple[ClaimEvidenceReference, ...]:
+        if self.is_supported:
+            return tuple(reference for reference in self.evidence_references if reference.is_supports)
+        if self.is_disputed:
+            return tuple(reference for reference in self.evidence_references if reference.is_opposes)
+        return ()
+
     def replace_content(
         self,
         *,
@@ -88,7 +126,7 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
             provenance=next_provenance,
             evidence_references=self.evidence_references,
         )
-        if self.editorial_status is EditorialStatus.PUBLISHED:
+        if self.is_published:
             updated._publication_missing_fields()
         return updated
 
@@ -106,7 +144,7 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
             provenance=self.provenance,
             evidence_references=references,
         )
-        if self.editorial_status is EditorialStatus.PUBLISHED:
+        if self.is_published:
             updated._publication_missing_fields()
         return updated
 
@@ -145,13 +183,9 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
             missing.append("geographic")
         if self.provenance is None:
             missing.append("provenance")
-        if self.evidence_status is EvidenceStatus.SUPPORTED and not any(
-            reference.role is EvidenceRole.SUPPORTS for reference in self.evidence_references
-        ):
+        if self.is_supported and not any(reference.is_supports for reference in self.evidence_references):
             missing.append("supported_evidence")
-        if self.evidence_status is EvidenceStatus.DISPUTED and not any(
-            reference.role is EvidenceRole.OPPOSES for reference in self.evidence_references
-        ):
+        if self.is_disputed and not any(reference.is_opposes for reference in self.evidence_references):
             missing.append("opposing_evidence")
         if missing:
             raise ClaimPublicationError(tuple(missing))
@@ -163,4 +197,4 @@ def is_claim_publicly_visible(
     subject_published: bool,
     target_published: bool,
 ) -> bool:
-    return claim.editorial_status is EditorialStatus.PUBLISHED and subject_published and target_published
+    return claim.is_published and subject_published and target_published

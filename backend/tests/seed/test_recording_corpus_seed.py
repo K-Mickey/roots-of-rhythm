@@ -3,11 +3,6 @@ from typing import TYPE_CHECKING
 import pytest
 
 from roots_of_rhythm.historical_knowledge.domain import (
-    EditorialStatus as KnowledgeEditorialStatus,
-)
-from roots_of_rhythm.historical_knowledge.domain import (
-    EvidenceStatus,
-    FragmentReviewStatus,
     RecordingOriginPredicate,
 )
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
@@ -47,11 +42,11 @@ async def test_recording_corpus_seed(engine: AsyncEngine) -> None:
         fragment = await uow.sources.get_fragment(data.SIXTEEN_TONS_FRAGMENT_ID)
         origin = await uow.recording_origin_claims.get(data.MERLE_FIRST_RECORDING_CLAIM_ID)
         guide = await uow.listening_guides.get(data.FORD_LISTENING_GUIDE_ID)
-    assert fragment is not None and fragment.review_status is FragmentReviewStatus.REVIEWED
-    assert origin is not None and origin.editorial_status is KnowledgeEditorialStatus.PUBLISHED
-    assert origin.evidence_status is EvidenceStatus.SUPPORTED
+    assert fragment is not None and fragment.is_reviewed
+    assert origin is not None and origin.is_published
+    assert origin.is_supported
     assert origin.predicate is RecordingOriginPredicate.FIRST_RECORDING_OF
     assert origin.recording_id == data.MERLE_TRAVIS_RECORDING_ID
-    assert guide is not None and guide.editorial_status is KnowledgeEditorialStatus.PUBLISHED
+    assert guide is not None and guide.is_published
     assert guide.recording_id == data.TENNESSEE_ERNIE_FORD_RECORDING_ID
     assert guide.observations == data.FORD_LISTENING_GUIDE.observations

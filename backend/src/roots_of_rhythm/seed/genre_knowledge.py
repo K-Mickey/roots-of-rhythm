@@ -14,14 +14,12 @@ from roots_of_rhythm.historical_knowledge.domain import (
     ClaimProvenance,
     EvidenceRole,
     EvidenceStatus,
-    FragmentReviewStatus,
     GeographicContext,
     HistoricalPeriod,
     RelationType,
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.historical_knowledge.domain import EditorialStatus as ClaimEditorialStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
@@ -364,7 +362,7 @@ class GenreKnowledgeSeed:
             )
             await self._sources.mark_fragment_reviewed(fragment_id)
             return
-        if existing.review_status is not FragmentReviewStatus.REVIEWED:
+        if not existing.is_reviewed:
             await self._sources.mark_fragment_reviewed(fragment_id)
 
     async def _ensure_published_genre(self, genre_id: UUID, content: ClassificationContent) -> None:
@@ -394,7 +392,7 @@ class GenreKnowledgeSeed:
     ) -> None:
         async with self._hk_uow() as uow:
             existing = await uow.claims.get(claim_id)
-        if existing is not None and existing.editorial_status is ClaimEditorialStatus.PUBLISHED:
+        if existing is not None and existing.is_published:
             return
         if existing is None:
             await self._create_claim.execute(

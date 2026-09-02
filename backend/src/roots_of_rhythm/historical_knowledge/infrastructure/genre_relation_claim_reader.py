@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from roots_of_rhythm.historical_knowledge.domain import EditorialStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.public.genre_relation_claim_reader import (
@@ -22,11 +21,7 @@ class SqlAlchemyPublishedGenreRelationClaimReader:
         async with self._session_factory() as session:
             claim_repository = SqlAlchemyClaimRepository(session)
             source_repository = SqlAlchemySourceRepository(session)
-            claims = tuple(
-                claim
-                for claim in await claim_repository.list_by_genre(genre_id)
-                if claim.editorial_status is EditorialStatus.PUBLISHED
-            )
+            claims = tuple(claim for claim in await claim_repository.list_by_genre(genre_id) if claim.is_published)
             fragment_ids = {reference.source_fragment_id for claim in claims for reference in claim.evidence_references}
             source_ids = await source_repository.reviewed_source_ids_for_fragments(fragment_ids)
 

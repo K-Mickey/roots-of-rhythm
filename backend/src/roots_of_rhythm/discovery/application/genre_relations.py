@@ -23,12 +23,16 @@ from roots_of_rhythm.discovery.application.genre_relation_projection import (
     ordered_public_claims_for_page,
     related_genre_id,
 )
-from roots_of_rhythm.historical_knowledge.domain import GenreRelationClaim, RelationType
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from roots_of_rhythm.historical_knowledge.domain import GeographicContext, HistoricalPeriod, TemporalBound
+    from roots_of_rhythm.historical_knowledge.domain import (
+        GenreRelationClaim,
+        GeographicContext,
+        HistoricalPeriod,
+        TemporalBound,
+    )
     from roots_of_rhythm.historical_knowledge.public import (
         PublicEvidenceReference,
         PublishedGenreRelationClaimReader,
@@ -96,7 +100,7 @@ class GenreRelationsQuery:
 
 def _relation_perspective(claim: GenreRelationClaim, page_genre_id: UUID) -> RelationPerspective:
     ensure_page_endpoint(claim, page_genre_id)
-    if claim.relation_type is RelationType.OVERLAPS_WITH:
+    if claim.is_overlaps_with:
         return RelationPerspective.SYMMETRIC
     if claim.subject_genre_id == page_genre_id:
         return RelationPerspective.SUBJECT

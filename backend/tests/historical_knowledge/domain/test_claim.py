@@ -6,7 +6,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     ClaimProvenance,
     ClaimPublicationError,
-    EditorialStatus,
     EvidenceRole,
     EvidenceStatus,
     GenreRelationClaim,
@@ -53,8 +52,8 @@ def test_draft_requires_only_distinct_endpoints_and_type() -> None:
     subject, target = uuid7(), uuid7()
     claim = GenreRelationClaim.create_draft(subject, target, RelationType.INFLUENCED)
 
-    assert claim.editorial_status is EditorialStatus.DRAFT
-    assert claim.evidence_status is EvidenceStatus.UNVERIFIED
+    assert claim.is_draft
+    assert claim.is_unverified
     assert claim.explanation is None
     assert claim.evidence_references == ()
 
@@ -87,7 +86,7 @@ def test_publish_requires_completeness_and_evidence_rules() -> None:
         (ClaimEvidenceReference.create(fragment, EvidenceRole.SUPPORTS, locator_text="p. 12"),)
     )
     published = with_support.publish()
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
 
     disputed = _complete_claim(
         subject,

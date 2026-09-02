@@ -2,13 +2,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from roots_of_rhythm.historical_knowledge.domain import (
-    EditorialStatus,
-    EvidenceRole,
-    EvidenceStatus,
-    FragmentReviewStatus,
-    RelationType,
-)
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
@@ -57,12 +50,12 @@ async def test_genre_knowledge_seed(engine: AsyncEngine) -> None:
             )
         ]
 
-    assert developed is not None and developed.editorial_status is EditorialStatus.PUBLISHED
-    assert developed.relation_type is RelationType.DEVELOPED_FROM
-    assert developed.evidence_status is EvidenceStatus.SUPPORTED
-    assert all(reference.role is EvidenceRole.SUPPORTS for reference in developed.evidence_references)
-    assert contributed is not None and contributed.editorial_status is EditorialStatus.PUBLISHED
-    assert contributed.relation_type is RelationType.CONTRIBUTED_TO_EMERGENCE_OF
+    assert developed is not None and developed.is_published
+    assert developed.is_developed_from
+    assert developed.is_supported
+    assert all(reference.is_supports for reference in developed.evidence_references)
+    assert contributed is not None and contributed.is_published
+    assert contributed.is_contributed_to_emergence_of
     assert len(contributed.evidence_references) == 2
     assert smithsonian is not None and smithsonian.title == data.SMITHSONIAN_TITLE
     assert smithsonian.responsible_organization == data.SMITHSONIAN_RESPONSIBLE_ORGANIZATION
@@ -71,6 +64,4 @@ async def test_genre_knowledge_seed(engine: AsyncEngine) -> None:
     assert loc.responsible_organization == data.LOC_RESPONSIBLE_ORGANIZATION
     assert loc.external_url == data.LOC_EXTERNAL_URL
     assert all(fragment is not None for fragment in fragments)
-    assert all(
-        fragment.review_status is FragmentReviewStatus.REVIEWED for fragment in fragments if fragment is not None
-    )
+    assert all(fragment.is_reviewed for fragment in fragments if fragment is not None)

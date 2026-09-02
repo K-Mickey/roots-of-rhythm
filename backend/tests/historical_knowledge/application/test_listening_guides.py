@@ -16,7 +16,7 @@ from roots_of_rhythm.historical_knowledge.application import (
     PublishListeningGuide,
     ReplaceListeningGuideObservations,
 )
-from roots_of_rhythm.historical_knowledge.domain import EditorialStatus, ListeningObservation
+from roots_of_rhythm.historical_knowledge.domain import ListeningObservation
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as MusicEditorialStatus
 from roots_of_rhythm.music_catalog.domain import Recording
 
@@ -78,13 +78,13 @@ async def test_listening_guide_lifecycle_rechecks_only_published_recording() -> 
     assert recordings.locked_ids == []
 
     guide = await publish.execute(guide.id)
-    assert guide.editorial_status is EditorialStatus.PUBLISHED
+    assert guide.is_published
     assert recordings.locked_ids == [recording_id]
 
     guide = await replace.execute(guide.id, (_observation("Ending"),))
     archived = await service.archive(guide.id)
 
-    assert archived.editorial_status is EditorialStatus.ARCHIVED
+    assert archived.is_archived
     assert recordings.locked_ids == [recording_id, recording_id]
     assert guides.locked_ids == [guide.id] * 4
     assert transaction.commits == 5

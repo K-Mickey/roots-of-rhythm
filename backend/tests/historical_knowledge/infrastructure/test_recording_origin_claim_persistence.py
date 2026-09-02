@@ -13,7 +13,6 @@ from roots_of_rhythm.historical_knowledge.application import (
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,
     ClaimProvenance,
-    EditorialStatus,
     EvidenceRole,
     EvidenceStatus,
     GeographicContext,
@@ -136,7 +135,7 @@ async def test_recording_origin_claim_lifecycle_and_unique_constraint(engine: As
     )
     published = await publish.execute(claim.id)
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     async with hk_uow() as historical_uow:
         assert await historical_uow.recording_origin_claims.get(claim.id) == published
 

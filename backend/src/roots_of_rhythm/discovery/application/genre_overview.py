@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
-    from roots_of_rhythm.music_catalog.domain import GeographicContext, HistoricalPeriod
 
 type UnitOfWorkFactory = Callable[[], MusicCatalogUnitOfWork]
 
@@ -41,30 +40,27 @@ class GenreOverviewQuery:
         definition = genre.content.definition
         if definition is None:
             raise GenreOverviewAssemblyError("published genre is missing definition")
+
+        period = None
+        content_period = genre.content.period
+        if content_period is not None:
+            period = HistoricalPeriodView(
+                label=content_period.label,
+                start=TemporalBoundView.from_bound(content_period.start),
+                end=TemporalBoundView.from_bound(content_period.end),
+            )
+
+        geography = genre.content.geography
+        geography_or_origin = GeographicContextView(summary=geography.summary) if geography else None
+
         return GenreOverviewResponse(
             id=str(genre.id),
             name=genre.content.canonical_name,
             definition=definition,
             primary_image=None,
-            period=_map_period(genre.content.period),
-            geography_or_origin=_map_geography(genre.content.geography),
+            period=period,
+            geography_or_origin=geography_or_origin,
             historical_context=genre.content.historical_context,
             formation=genre.content.formation,
             characteristic_features=list(genre.content.characteristic_features),
         )
-
-
-def _map_period(period: HistoricalPeriod | None) -> HistoricalPeriodView | None:
-    if period is None:
-        return None
-    return HistoricalPeriodView(
-        label=period.label,
-        start=TemporalBoundView.from_bound(period.start),
-        end=TemporalBoundView.from_bound(period.end),
-    )
-
-
-def _map_geography(geography: GeographicContext | None) -> GeographicContextView | None:
-    if geography is None:
-        return None
-    return GeographicContextView(summary=geography.summary)

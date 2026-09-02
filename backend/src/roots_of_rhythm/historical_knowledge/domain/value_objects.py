@@ -90,6 +90,14 @@ class ClaimEvidenceReference(msgspec.Struct, frozen=True):
             external_url=_optional_text(external_url, "external url", max_length=TEXT_2048),
         )
 
+    @property
+    def is_supports(self) -> bool:
+        return self.role is EvidenceRole.SUPPORTS
+
+    @property
+    def is_opposes(self) -> bool:
+        return self.role is EvidenceRole.OPPOSES
+
 
 def canonicalize_relation_endpoints(
     subject_genre_id: UUID,

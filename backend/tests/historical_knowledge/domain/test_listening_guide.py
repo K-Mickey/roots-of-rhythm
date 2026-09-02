@@ -4,7 +4,6 @@ from uuid import uuid7
 import pytest
 
 from roots_of_rhythm.historical_knowledge.domain import (
-    EditorialStatus,
     HistoricalKnowledgeDomainError,
     ListeningGuide,
     ListeningObservation,
@@ -27,7 +26,7 @@ def test_listening_guide_orders_observations_and_requires_one_for_publication() 
     guide = ListeningGuide.create_draft(uuid7(), (second, first))
 
     assert [item.position for item in guide.observations] == [1, 2]
-    assert guide.publish().editorial_status is EditorialStatus.PUBLISHED
+    assert guide.publish().is_published
     with pytest.raises(HistoricalKnowledgeDomainError):
         ListeningGuide.create_draft(uuid7()).publish()
 

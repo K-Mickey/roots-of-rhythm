@@ -11,7 +11,6 @@ from roots_of_rhythm.discovery.application.dto.songs import (
 )
 from roots_of_rhythm.discovery.application.recording_credits import project_primary_credits
 from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
-from roots_of_rhythm.music_catalog.domain import RecordingWorkUsageKind
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -35,11 +34,11 @@ def project_song_recordings(
     facet_recording_ids: defaultdict[UUID, set[UUID]] = defaultdict(set)
 
     for recording in recordings:
-        usage_kind = next(
-            (usage.usage_kind for usage in recording.work_usages if usage.work_id == work_id),
+        work_usage = next(
+            (usage for usage in recording.work_usages if usage.work_id == work_id),
             None,
         )
-        if usage_kind is None:
+        if work_usage is None:
             continue
 
         primary_credits = project_primary_credits(recording, persons, groups)
@@ -59,11 +58,11 @@ def project_song_recordings(
                 first_release_date=None,
                 primary_credits=primary_credits,
                 genre_ids=sorted(str(concept_id) for concept_id in genre_concept_ids),
-                work_usage_kind=usage_kind,
+                work_usage_kind=work_usage.usage_kind,
                 origin_badges=origin_badge_values(claims_by_recording.get(recording.id, ())),
             )
         )
-        if usage_kind is RecordingWorkUsageKind.COMPLETE or usage_kind is RecordingWorkUsageKind.PARTIAL:
+        if work_usage.is_complete or work_usage.is_partial:
             for concept_id in genre_concept_ids:
                 facet_recording_ids[concept_id].add(recording.id)
 

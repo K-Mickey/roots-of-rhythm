@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, Self
 
-from roots_of_rhythm.historical_knowledge.domain import EditorialStatus, EvidenceStatus, RecordingOriginClaim
 from roots_of_rhythm.historical_knowledge.public import PublicEvidenceReference, PublishedGenreRelationClaims
 
 if TYPE_CHECKING:
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
     from roots_of_rhythm.historical_knowledge.domain import (
         GenreRelationClaim,
         ListeningGuide,
+        RecordingOriginClaim,
         Source,
         SourceFragment,
         SourceVersion,
@@ -55,8 +55,7 @@ class FakePublishedGenreRelationClaimReader:
         claims = tuple(
             claim
             for claim in self._claims.values()
-            if claim.editorial_status is EditorialStatus.PUBLISHED
-            and (claim.subject_genre_id == genre_id or claim.target_genre_id == genre_id)
+            if claim.is_published and (claim.subject_genre_id == genre_id or claim.target_genre_id == genre_id)
         )
         source_ids = await self._sources.reviewed_source_ids_for_fragments(
             {reference.source_fragment_id for claim in claims for reference in claim.evidence_references}
@@ -111,8 +110,7 @@ class StubRecordingOriginClaimRepository:
             recording_id: [
                 claim
                 for claim in self._claims_by_recording.get(recording_id, ())
-                if claim.editorial_status is EditorialStatus.PUBLISHED
-                and claim.evidence_status is EvidenceStatus.SUPPORTED
+                if claim.is_published and claim.is_supported
             ]
             for recording_id in recording_ids
         }
@@ -187,12 +185,10 @@ class FakeSourceRepository:
         self.fragments.pop(fragment_id, None)
 
     async def reviewed_source_ids_for_fragments(self, fragment_ids: Collection[UUID]) -> dict[UUID, UUID]:
-        from roots_of_rhythm.historical_knowledge.domain import FragmentReviewStatus
-
         result: dict[UUID, UUID] = {}
         for fragment_id in fragment_ids:
             fragment = self.fragments.get(fragment_id)
-            if fragment is None or fragment.review_status is not FragmentReviewStatus.REVIEWED:
+            if fragment is None or not fragment.is_reviewed:
                 continue
             version = self.versions.get(fragment.source_version_id)
             if version is None:
@@ -216,11 +212,7 @@ class StubListeningGuideRepository:
 
     async def get_published_for_recording(self, recording_id: UUID) -> ListeningGuide | None:
         return next(
-            (
-                guide
-                for guide in self.guides.values()
-                if guide.recording_id == recording_id and guide.editorial_status is EditorialStatus.PUBLISHED
-            ),
+            (guide for guide in self.guides.values() if guide.recording_id == recording_id and guide.is_published),
             None,
         )
 

@@ -10,9 +10,6 @@ from roots_of_rhythm.historical_knowledge.application.errors import (
 )
 from roots_of_rhythm.historical_knowledge.application.ports import ClaimRepository, SourceRepository
 from roots_of_rhythm.historical_knowledge.domain import (
-    EvidenceRole,
-    EvidenceStatus,
-    FragmentReviewStatus,
     GenreRelationClaim,
     RelationType,
 )
@@ -91,15 +88,8 @@ class PublishGenreRelationClaim:
             if missing_ids:
                 raise EndpointGenreNotPublished(str(missing_ids[0]))
 
-            required_role = {
-                EvidenceStatus.SUPPORTED: EvidenceRole.SUPPORTS,
-                EvidenceStatus.DISPUTED: EvidenceRole.OPPOSES,
-            }.get(claim.evidence_status)
-            fragment_ids = {
-                reference.source_fragment_id
-                for reference in claim.evidence_references
-                if reference.role is required_role
-            }
+            verified_evidence_references = claim.get_verified_evidence_references()
+            fragment_ids = {reference.source_fragment_id for reference in verified_evidence_references}
             if fragment_ids:
                 fragments = await self._source_repository_factory(transaction).get_fragments_by_ids(
                     fragment_ids,
@@ -108,8 +98,7 @@ class PublishGenreRelationClaim:
                 invalid_ids = sorted(
                     fragment_id
                     for fragment_id in fragment_ids
-                    if fragment_id not in fragments
-                    or fragments[fragment_id].review_status is not FragmentReviewStatus.REVIEWED
+                    if fragment_id not in fragments or not fragments[fragment_id].is_reviewed
                 )
                 if invalid_ids:
                     raise EvidenceFragmentNotReviewed(str(invalid_ids[0]))

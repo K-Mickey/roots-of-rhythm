@@ -480,6 +480,14 @@ class RecordingWorkUsage(msgspec.Struct, frozen=True):
             raise MusicCatalogDomainError("work usage position must be positive")
         return cls(id=usage_id, work_id=work_id, usage_kind=usage_kind, position=position)
 
+    @property
+    def is_complete(self) -> bool:
+        return self.usage_kind is RecordingWorkUsageKind.COMPLETE
+
+    @property
+    def is_partial(self) -> bool:
+        return self.usage_kind is RecordingWorkUsageKind.PARTIAL
+
 
 class RecordingLyricsUsage(msgspec.Struct, frozen=True):
     id: UUID
