@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Self
 
-from roots_of_rhythm.music_catalog.domain import EditorialStatus, LyricsUsageKind
+from roots_of_rhythm.music_catalog.domain import LyricsUsageKind
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -46,47 +46,31 @@ class FakeClassificationAssignmentRepository:
         return self._assignments.get(assignment_id)
 
     async def list_published_for_person(self, person_id: UUID) -> list[ClassificationAssignment]:
-        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
-
         return [
             assignment
             for assignment in self._assignments.values()
-            if assignment.target_kind is ClassificationTargetKind.PERSON
-            and assignment.target_id == person_id
-            and assignment.editorial_status is EditorialStatus.PUBLISHED
+            if assignment.is_person_target and assignment.target_id == person_id and assignment.is_published
         ]
 
     async def list_published_for_group(self, group_id: UUID) -> list[ClassificationAssignment]:
-        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
-
         return [
             assignment
             for assignment in self._assignments.values()
-            if assignment.target_kind is ClassificationTargetKind.GROUP
-            and assignment.target_id == group_id
-            and assignment.editorial_status is EditorialStatus.PUBLISHED
+            if assignment.is_group_target and assignment.target_id == group_id and assignment.is_published
         ]
 
     async def list_published_for_work(self, work_id: UUID) -> list[ClassificationAssignment]:
-        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
-
         return [
             assignment
             for assignment in self._assignments.values()
-            if assignment.target_kind is ClassificationTargetKind.MUSICAL_WORK
-            and assignment.target_id == work_id
-            and assignment.editorial_status is EditorialStatus.PUBLISHED
+            if assignment.is_music_work_target and assignment.target_id == work_id and assignment.is_published
         ]
 
     async def list_published_for_recording(self, recording_id: UUID) -> list[ClassificationAssignment]:
-        from roots_of_rhythm.music_catalog.domain import ClassificationTargetKind
-
         return [
             assignment
             for assignment in self._assignments.values()
-            if assignment.target_kind is ClassificationTargetKind.RECORDING
-            and assignment.target_id == recording_id
-            and assignment.editorial_status is EditorialStatus.PUBLISHED
+            if assignment.is_recording_target and assignment.target_id == recording_id and assignment.is_published
         ]
 
     async def list_published_for_recordings(
@@ -115,18 +99,18 @@ class FakeGenreRepository:
 
     async def get_published(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         genre = self._genres.get(genre_id)
-        return genre if genre is not None and genre.editorial_status is EditorialStatus.PUBLISHED else None
+        return genre if genre is not None and genre.is_published else None
 
     async def get_published_by_ids(self, genre_ids: Collection[UUID], *, for_update: bool = False) -> dict[UUID, Genre]:
         return {
             genre_id: genre
             for genre_id in genre_ids
-            if (genre := self._genres.get(genre_id)) is not None and genre.editorial_status is EditorialStatus.PUBLISHED
+            if (genre := self._genres.get(genre_id)) is not None and genre.is_published
         }
 
     async def list_published(self) -> list[Genre]:
         return sorted(
-            (genre for genre in self._genres.values() if genre.editorial_status is EditorialStatus.PUBLISHED),
+            (genre for genre in self._genres.values() if genre.is_published),
             key=lambda genre: genre.content.canonical_name,
         )
 
@@ -140,7 +124,7 @@ class FakeGenreRepository:
         return {
             genre_id
             for genre_id in genre_ids
-            if (genre := self._genres.get(genre_id)) is not None and genre.editorial_status is EditorialStatus.PUBLISHED
+            if (genre := self._genres.get(genre_id)) is not None and genre.is_published
         }
 
     async def canonical_name_exists(self, canonical_name: str, *, excluding: UUID | None = None) -> bool:
@@ -164,7 +148,7 @@ class FakeGroupRepository:
 
     async def get_published(self, group_id: UUID, *, for_update: bool = False) -> Group | None:
         group = self._groups.get(group_id)
-        return group if group is not None and group.editorial_status is EditorialStatus.PUBLISHED else None
+        return group if group is not None and group.is_published else None
 
     async def get_published_by_ids(self, group_ids: Collection[UUID], *, for_update: bool = False) -> dict[UUID, Group]:
         ids = sorted(set(group_ids))
@@ -174,12 +158,12 @@ class FakeGroupRepository:
         return {
             group_id: group
             for group_id in ids
-            if (group := self._groups.get(group_id)) is not None and group.editorial_status is EditorialStatus.PUBLISHED
+            if (group := self._groups.get(group_id)) is not None and group.is_published
         }
 
     async def list_published(self) -> list[Group]:
         return sorted(
-            (group for group in self._groups.values() if group.editorial_status is EditorialStatus.PUBLISHED),
+            (group for group in self._groups.values() if group.is_published),
             key=lambda group: group.canonical_name,
         )
 
@@ -204,7 +188,7 @@ class FakeGroupMembershipRepository:
 
     async def get_published(self, membership_id: UUID, *, for_update: bool = False) -> GroupMembership | None:
         membership = self._memberships.get(membership_id)
-        if membership is None or membership.editorial_status is not EditorialStatus.PUBLISHED:
+        if membership is None or not membership.is_published:
             return None
         return membership
 
@@ -213,7 +197,7 @@ class FakeGroupMembershipRepository:
             (
                 membership
                 for membership in self._memberships.values()
-                if membership.group_id == group_id and membership.editorial_status is EditorialStatus.PUBLISHED
+                if membership.group_id == group_id and membership.is_published
             ),
             key=lambda membership: membership.id,
         )
@@ -243,7 +227,7 @@ class FakeMusicalWorkRepository:
         if for_update:
             self.locked_ids.append(work_id)
         work = self._works.get(work_id)
-        return work if work is not None and work.editorial_status is EditorialStatus.PUBLISHED else None
+        return work if work is not None and work.is_published else None
 
     async def get_published_by_ids(
         self, work_ids: Collection[UUID], *, for_update: bool = False
@@ -253,14 +237,12 @@ class FakeMusicalWorkRepository:
         if for_update:
             self.locked_ids.extend(ids)
         return {
-            work_id: work
-            for work_id in ids
-            if (work := self._works.get(work_id)) is not None and work.editorial_status is EditorialStatus.PUBLISHED
+            work_id: work for work_id in ids if (work := self._works.get(work_id)) is not None and work.is_published
         }
 
     async def list_published(self) -> list[MusicalWork]:
         return sorted(
-            (work for work in self._works.values() if work.editorial_status is EditorialStatus.PUBLISHED),
+            (work for work in self._works.values() if work.is_published),
             key=lambda work: work.canonical_title,
         )
 
@@ -285,15 +267,11 @@ class FakeWorkCreditRepository:
 
     async def get_published(self, credit_id: UUID, *, for_update: bool = False) -> WorkCredit | None:
         credit = self._credits.get(credit_id)
-        return credit if credit is not None and credit.editorial_status is EditorialStatus.PUBLISHED else None
+        return credit if credit is not None and credit.is_published else None
 
     async def list_published_for_work(self, work_id: UUID) -> list[WorkCredit]:
         return sorted(
-            (
-                credit
-                for credit in self._credits.values()
-                if credit.work_id == work_id and credit.editorial_status is EditorialStatus.PUBLISHED
-            ),
+            (credit for credit in self._credits.values() if credit.work_id == work_id and credit.is_published),
             key=lambda credit: (credit.role.value, credit.id),
         )
 
@@ -318,7 +296,7 @@ class FakeWorkRelationRepository:
 
     async def get_published(self, relation_id: UUID, *, for_update: bool = False) -> WorkRelation | None:
         relation = self._relations.get(relation_id)
-        if relation is None or relation.editorial_status is not EditorialStatus.PUBLISHED:
+        if relation is None or not relation.is_published:
             return None
         return relation
 
@@ -327,8 +305,7 @@ class FakeWorkRelationRepository:
             (
                 relation
                 for relation in self._relations.values()
-                if relation.editorial_status is EditorialStatus.PUBLISHED
-                and (relation.source_work_id == work_id or relation.target_work_id == work_id)
+                if relation.is_published and (relation.source_work_id == work_id or relation.target_work_id == work_id)
             ),
             key=lambda relation: (relation.relation_type.value, relation.id),
         )
@@ -356,7 +333,7 @@ class FakeLyricsVersionRepository:
 
     async def get_published(self, version_id: UUID, *, for_update: bool = False) -> LyricsVersion | None:
         version = self._versions.get(version_id)
-        return version if version is not None and version.editorial_status is EditorialStatus.PUBLISHED else None
+        return version if version is not None and version.is_published else None
 
     async def get_published_by_ids(
         self, version_ids: Collection[UUID], *, for_update: bool = False
@@ -368,8 +345,7 @@ class FakeLyricsVersionRepository:
         return {
             version_id: version
             for version_id in ids
-            if (version := self._versions.get(version_id)) is not None
-            and version.editorial_status is EditorialStatus.PUBLISHED
+            if (version := self._versions.get(version_id)) is not None and version.is_published
         }
 
     async def list_published_for_work(self, work_id: UUID) -> list[LyricsVersion]:
@@ -380,11 +356,7 @@ class FakeLyricsVersionRepository:
         ids = set(work_ids)
         versions: dict[UUID, list[LyricsVersion]] = {}
         for version in sorted(
-            (
-                version
-                for version in self._versions.values()
-                if version.work_id in ids and version.editorial_status is EditorialStatus.PUBLISHED
-            ),
+            (version for version in self._versions.values() if version.work_id in ids and version.is_published),
             key=lambda version: (
                 version.work_id,
                 usage_rank[version.usage_kind],
@@ -417,15 +389,14 @@ class FakeLyricsVersionCreditRepository:
 
     async def get_published(self, credit_id: UUID, *, for_update: bool = False) -> LyricsVersionCredit | None:
         credit = self._credits.get(credit_id)
-        return credit if credit is not None and credit.editorial_status is EditorialStatus.PUBLISHED else None
+        return credit if credit is not None and credit.is_published else None
 
     async def list_published_for_version(self, lyrics_version_id: UUID) -> list[LyricsVersionCredit]:
         return sorted(
             (
                 credit
                 for credit in self._credits.values()
-                if credit.lyrics_version_id == lyrics_version_id
-                and credit.editorial_status is EditorialStatus.PUBLISHED
+                if credit.lyrics_version_id == lyrics_version_id and credit.is_published
             ),
             key=lambda credit: (credit.role.value, credit.id),
         )
@@ -458,7 +429,7 @@ class FakeLyricsVersionRelationRepository:
 
     async def get_published(self, relation_id: UUID, *, for_update: bool = False) -> LyricsVersionRelation | None:
         relation = self._relations.get(relation_id)
-        if relation is None or relation.editorial_status is not EditorialStatus.PUBLISHED:
+        if relation is None or not relation.is_published:
             return None
         return relation
 
@@ -467,7 +438,7 @@ class FakeLyricsVersionRelationRepository:
             (
                 relation
                 for relation in self._relations.values()
-                if relation.editorial_status is EditorialStatus.PUBLISHED
+                if relation.is_published
                 and (
                     relation.source_lyrics_version_id == lyrics_version_id
                     or relation.target_lyrics_version_id == lyrics_version_id
@@ -507,17 +478,13 @@ class FakeRecordingRepository:
 
     async def get_published(self, recording_id: UUID, *, for_update: bool = False) -> Recording | None:
         recording = await self.get(recording_id, for_update=for_update)
-        if recording is None or recording.editorial_status is not EditorialStatus.PUBLISHED:
+        if recording is None or not recording.is_published:
             return None
         return recording
 
     async def list_published(self) -> list[Recording]:
         return sorted(
-            (
-                recording
-                for recording in self._recordings.values()
-                if recording.editorial_status is EditorialStatus.PUBLISHED
-            ),
+            (recording for recording in self._recordings.values() if recording.is_published),
             key=lambda recording: (recording.title.casefold(), str(recording.id)),
         )
 
@@ -526,8 +493,7 @@ class FakeRecordingRepository:
             (
                 recording
                 for recording in self._recordings.values()
-                if recording.editorial_status is EditorialStatus.PUBLISHED
-                and any(usage.work_id == work_id for usage in recording.work_usages)
+                if recording.is_published and any(usage.work_id == work_id for usage in recording.work_usages)
             ),
             key=lambda recording: (recording.title.casefold(), str(recording.id)),
         )

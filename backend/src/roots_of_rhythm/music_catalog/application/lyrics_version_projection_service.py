@@ -46,6 +46,7 @@ class LyricsVersionProjectionService:
             sources = await hk.sources.get_sources_by_ids(
                 {source_version.source_id for source_version in source_versions.values()},
             )
+
         disclosures: list[LyricsBodyDisclosure] = []
         for version in versions:
             source_version = source_versions.get(version.source_version_id)

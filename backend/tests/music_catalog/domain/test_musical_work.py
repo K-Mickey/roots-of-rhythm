@@ -6,7 +6,6 @@ from uuid import uuid7
 import pytest
 
 from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus,
     ExistencePeriod,
     ExternalIdentity,
     MusicalWork,
@@ -86,7 +85,7 @@ def test_musical_work_publish_with_title_and_provenance_only() -> None:
     )
     published = work.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     assert published.canonical_title == "West End Blues"
     assert published.aliases == ()
     assert published.description is None

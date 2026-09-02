@@ -21,7 +21,6 @@ from roots_of_rhythm.discovery.application.dto.songs import (
 from roots_of_rhythm.discovery.application.errors.recordings import RecordingOverviewNotFound
 from roots_of_rhythm.discovery.application.recording_lyrics import RecordingLyricsProjectionQuery
 from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
-from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -65,28 +64,20 @@ class RecordingOverviewQuery:
             works = await uow.works.get_published_by_ids([item.work_id for item in recording.work_usages])
             assignments = await uow.assignments.list_published_for_recording(recording_id)
             genres = await uow.genres.get_published_by_ids([item.concept_id for item in assignments])
-            group_ids = sorted(
-                item.target_id for item in recording.credits if item.target_kind is RecordingCreditTargetKind.GROUP
-            )
+            group_ids = sorted(item.target_id for item in recording.credits if item.is_group_target)
             groups = await uow.groups.get_published_by_ids(group_ids)
 
-        person_ids = {
-            item.target_id for item in recording.credits if item.target_kind is RecordingCreditTargetKind.PERSON
-        }
+        person_ids = {item.target_id for item in recording.credits if item.is_person_target}
         async with self._people() as people:
             persons = await people.persons.get_published_by_ids(person_ids)
         visible_credits = []
         for credit in recording.credits:
-            target = (
-                persons.get(credit.target_id)
-                if credit.target_kind is RecordingCreditTargetKind.PERSON
-                else groups.get(credit.target_id)
-            )
+            target = persons.get(credit.target_id) if credit.is_person_target else groups.get(credit.target_id)
             if target is None:
                 continue
             summary = (
                 PerformerSummary(str(target.id), target.canonical_name)
-                if credit.target_kind is RecordingCreditTargetKind.PERSON
+                if credit.is_person_target
                 else GroupSummary(str(target.id), target.canonical_name)
             )
             visible_credits.append(
@@ -99,7 +90,7 @@ class RecordingOverviewQuery:
                     credit.credited_as,
                 )
             )
-        if not any(item.billing_role is BillingRole.PRIMARY for item in visible_credits):
+        if not any(item.is_primary_billing for item in visible_credits):
             raise RecordingOverviewNotFound(str(recording_id))
 
         lyrics = await self._recording_lyrics.get(recording)

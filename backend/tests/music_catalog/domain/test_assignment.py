@@ -5,7 +5,6 @@ import pytest
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationAssignment,
     ClassificationAssignmentPublicationError,
-    EditorialStatus,
     EvidenceStatus,
 )
 
@@ -65,7 +64,7 @@ def test_assignment_publication_accepts_explanation() -> None:
 
     published = assignment.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     assert published.id == assignment.id
 
 
@@ -81,7 +80,7 @@ def test_assignment_publication_accepts_claim_id() -> None:
 
     published = assignment.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     assert published.claim_id == claim_id
 
 
@@ -96,7 +95,7 @@ def test_group_assignment_publication_does_not_require_membership() -> None:
 
     published = assignment.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
 
 
 def test_assignment_replace_content_preserves_identity_and_status() -> None:
@@ -121,6 +120,6 @@ def test_assignment_replace_content_preserves_identity_and_status() -> None:
     assert updated.id == assignment_id
     assert updated.target_id == person_id
     assert updated.concept_id == concept_id
-    assert updated.editorial_status is EditorialStatus.PUBLISHED
+    assert updated.is_published
     assert updated.explanation == "Seed explanation."
     assert updated.provenance == "Seed provenance."

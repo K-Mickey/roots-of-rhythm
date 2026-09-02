@@ -32,6 +32,10 @@ class Group(msgspec.Struct, frozen=True):
             editorial_status=editorial_status,
         )
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
     def replace_content(self, content: GroupContent) -> "Group":
         return Group.create(self.id, content, editorial_status=self.editorial_status)
 

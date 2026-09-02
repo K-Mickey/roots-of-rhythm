@@ -5,7 +5,6 @@ from uuid import uuid7
 import pytest
 
 from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus,
     WorkCredit,
     WorkCreditContent,
     WorkCreditRole,
@@ -35,8 +34,8 @@ def test_work_credit_allows_multiple_roles_for_same_person() -> None:
         WorkCreditContent.create(role=WorkCreditRole.LYRICIST, credited_as="Lyric pen name"),
     )
 
-    assert composer.role is WorkCreditRole.COMPOSER
-    assert lyricist.role is WorkCreditRole.LYRICIST
+    assert composer.is_composer
+    assert lyricist.is_lyricist
     assert lyricist.credited_as == "Lyric pen name"
 
 
@@ -49,7 +48,7 @@ def test_work_credit_publish_without_required_person_fields() -> None:
     )
     published = credit.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
 
 
 def test_work_relation_rejects_self_reference() -> None:
@@ -87,5 +86,5 @@ def test_work_relation_publish_with_provenance() -> None:
     )
     published = relation.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     assert published.provenance == "Editorial note."

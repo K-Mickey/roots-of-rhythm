@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from roots_of_rhythm.music_catalog.application import MusicalWorkService, WorkCreditService
-from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.domain import WorkContent, WorkCreditContent, WorkCreditRole
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.seed.people_and_groups import (
@@ -162,7 +161,7 @@ class MusicalWorksSeed:
             or existing.provenance != content.provenance
         ):
             await self._works.replace_content(work_id, content)
-        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._works.publish(work_id)
 
     async def _ensure_work_credits(self) -> None:
@@ -197,5 +196,5 @@ class MusicalWorksSeed:
             return
         if existing.credited_as != content.credited_as or existing.provenance != content.provenance:
             await self._work_credits.replace_content(credit_id, content)
-        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._work_credits.publish(credit_id)

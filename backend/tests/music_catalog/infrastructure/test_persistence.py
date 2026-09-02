@@ -16,7 +16,6 @@ from roots_of_rhythm.music_catalog.application import (
 )
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationContent,
-    EditorialStatus,
     EvidenceStatus,
     GeographicContext,
     HistoricalPeriod,
@@ -146,7 +145,7 @@ async def test_assignment_repository_round_trips_publication_content(engine: Asy
     assert loaded.claim_id == claim_id
     assert loaded.explanation is None
     assert loaded.provenance == "Editorial review."
-    assert loaded.evidence_status is EvidenceStatus.UNVERIFIED
+    assert loaded.is_unverified
     assert listed == [published]
 
 
@@ -161,7 +160,7 @@ async def test_unit_of_work_rolls_back_and_unique_name_is_case_insensitive(engin
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         loaded = await uow.genres.get(genre.id)
-    assert loaded is not None and loaded.editorial_status is EditorialStatus.DRAFT
+    assert loaded is not None and loaded.is_draft
 
     with pytest.raises(GenreNameConflict):
         await service.create(ClassificationContent.create("SWING"))

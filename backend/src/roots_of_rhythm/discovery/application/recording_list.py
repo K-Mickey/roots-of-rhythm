@@ -12,7 +12,6 @@ from roots_of_rhythm.discovery.application.dto.songs import (
     SongPeriodView,
 )
 from roots_of_rhythm.discovery.application.recording_credits import project_primary_credits
-from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
     from roots_of_rhythm.music_catalog.application.ports import RecordingUnitOfWork
@@ -48,7 +47,7 @@ class RecordingListQuery:
             credit.target_id
             for recording in recordings
             for credit in recording.credits
-            if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.PERSON
+            if credit.is_primary_billing and credit.is_person_target
         }
         async with self._people() as people_uow:
             persons = await people_uow.persons.get_published_by_ids(person_ids)
@@ -57,7 +56,7 @@ class RecordingListQuery:
                 credit.target_id
                 for recording in recordings
                 for credit in recording.credits
-                if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.GROUP
+                if credit.is_primary_billing and credit.is_group_target
             }
         )
         async with self._music() as uow:

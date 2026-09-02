@@ -19,7 +19,6 @@ from roots_of_rhythm.discovery.application.dto.songs import (
 from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
 from roots_of_rhythm.discovery.application.projections.song_recordings import project_song_recordings
 from roots_of_rhythm.music_catalog.application.lyrics_body_projection import project_lyrics_version_body
-from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -85,7 +84,7 @@ class SongOverviewQuery:
             credit.target_id
             for recording in music.recordings
             for credit in recording.credits
-            if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.PERSON
+            if credit.is_primary_billing and credit.is_person_target
         )
 
         people, knowledge = await gather(

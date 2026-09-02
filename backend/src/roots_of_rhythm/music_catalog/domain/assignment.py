@@ -65,6 +65,30 @@ class ClassificationAssignment(msgspec.Struct, frozen=True):
             evidence_status=evidence_status,
         )
 
+    @property
+    def is_person_target(self) -> bool:
+        return self.target_kind is ClassificationTargetKind.PERSON
+
+    @property
+    def is_group_target(self) -> bool:
+        return self.target_kind is ClassificationTargetKind.GROUP
+
+    @property
+    def is_music_work_target(self) -> bool:
+        return self.target_kind is ClassificationTargetKind.MUSICAL_WORK
+
+    @property
+    def is_recording_target(self) -> bool:
+        return self.target_kind is ClassificationTargetKind.RECORDING
+
+    @property
+    def is_unverified(self) -> bool:
+        return self.evidence_status is EvidenceStatus.UNVERIFIED
+
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
     def replace_content(
         self,
         *,
@@ -91,7 +115,7 @@ class ClassificationAssignment(msgspec.Struct, frozen=True):
             invalid.append("explanation_or_claim_id")
         if self.provenance is None:
             invalid.append("provenance")
-        if self.evidence_status is not EvidenceStatus.UNVERIFIED:
+        if not self.is_unverified:
             invalid.append("evidence_status")
         if invalid:
             raise ClassificationAssignmentPublicationError(tuple(invalid))

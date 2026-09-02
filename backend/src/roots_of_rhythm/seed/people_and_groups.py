@@ -10,7 +10,6 @@ from roots_of_rhythm.music_catalog.application import (
     GroupService,
     PublishClassificationAssignment,
 )
-from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.domain import (
     ExistencePeriod,
     GroupContent,
@@ -318,7 +317,7 @@ class PeopleAndGroupsSeed:
             await self._groups.create(content, group_id=group_id)
             await self._groups.publish(group_id)
             return
-        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._groups.publish(group_id)
 
     async def _ensure_group_memberships(self) -> None:
@@ -344,7 +343,7 @@ class PeopleAndGroupsSeed:
             or existing.provenance != content.provenance
         ):
             await self._group_memberships.replace_content(membership_id, content)
-        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._group_memberships.publish(membership_id)
 
     async def _ensure_published_person_assignment(
@@ -376,7 +375,7 @@ class PeopleAndGroupsSeed:
                 provenance=provenance,
                 evidence_status=existing.evidence_status,
             )
-        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._publish_assignment.execute(assignment_id)
 
     async def _ensure_published_group_assignment(
@@ -408,5 +407,5 @@ class PeopleAndGroupsSeed:
                 provenance=provenance,
                 evidence_status=existing.evidence_status,
             )
-        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._publish_assignment.execute(assignment_id)

@@ -14,7 +14,6 @@ from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.database import create_session_factory
-from roots_of_rhythm.music_catalog.domain import EditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.seed import CorpusSeedRunner
 from roots_of_rhythm.seed import recording_corpus as data
@@ -39,11 +38,9 @@ async def test_recording_corpus_seed(engine: AsyncEngine) -> None:
         content.recorded_period for _, content in data.SEED_RECORDINGS
     ]
     assert all(recording is not None for recording in recordings)
-    assert all(
-        recording.editorial_status is EditorialStatus.PUBLISHED for recording in recordings if recording is not None
-    )
+    assert all(recording.is_published for recording in recordings if recording is not None)
     assert english is not None and english.body is None
-    assert russian is not None and russian.body is None and russian.creation_method.value == "machine_translation"
+    assert russian is not None and russian.body is None and russian.is_machine_translated
     assert translation is not None and translation.source_lyrics_version_id == data.SIXTEEN_TONS_RU_READING_ID
 
     async with SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory) as uow:

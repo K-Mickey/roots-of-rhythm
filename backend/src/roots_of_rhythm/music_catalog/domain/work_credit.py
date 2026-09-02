@@ -40,6 +40,18 @@ class WorkCredit(msgspec.Struct, frozen=True):
             editorial_status=editorial_status,
         )
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
+    @property
+    def is_composer(self) -> bool:
+        return self.role is WorkCreditRole.COMPOSER
+
+    @property
+    def is_lyricist(self) -> bool:
+        return self.role is WorkCreditRole.LYRICIST
+
     def replace_content(self, content: WorkCreditContent) -> "WorkCredit":
         if content.role is not self.role:
             raise MusicCatalogDomainError("WorkCreditContent role must match the credit role")

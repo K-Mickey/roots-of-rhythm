@@ -27,7 +27,7 @@ async def test_musical_works_seed(engine: AsyncEngine) -> None:
     assert [work.canonical_title for work in works] == sorted(
         content.canonical_title for _, content in data.SEED_MUSICAL_WORKS
     )
-    assert all(work.editorial_status is EditorialStatus.PUBLISHED for work in works)
+    assert all(work.is_published for work in works)
     assert [
         None if credit is None else (credit.editorial_status, credit.role, credit.credited_as, credit.provenance)
         for credit in work_credits

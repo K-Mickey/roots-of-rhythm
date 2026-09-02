@@ -11,7 +11,6 @@ from roots_of_rhythm.music_catalog.application import (
     WorkRelationWorkNotPublished,
 )
 from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus,
     MusicalWork,
     WorkContent,
     WorkCredit,
@@ -53,7 +52,7 @@ async def test_work_relation_publish_requires_published_endpoints() -> None:
     await work_service.publish(source.id)
     published = await relation_service.publish(relation.id)
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
 
 
 @pytest.mark.asyncio
@@ -68,5 +67,6 @@ async def test_work_credit_service_creates_multiple_roles_for_same_person() -> N
     composer = await service.publish(composer.id)
     lyricist = await service.publish(lyricist.id)
 
-    assert composer.editorial_status is lyricist.editorial_status is EditorialStatus.PUBLISHED
+    assert composer.is_published
+    assert lyricist.is_published
     assert len(work_credits) == 2

@@ -18,19 +18,15 @@ from roots_of_rhythm.music_catalog.application.ports import (
     MusicalWorkRepository,
     RecordingRepository,
 )
-from roots_of_rhythm.music_catalog.domain import (
-    BillingRole,
-    EditorialStatus,
-    LyricsCreationMethod,
-    LyricsUsageKind,
-    Recording,
-    RecordingContent,
-    RecordingCreditTargetKind,
-)
 from roots_of_rhythm.people_catalog.application.ports import PersonRepository
 
 if TYPE_CHECKING:
     from uuid import UUID
+
+    from roots_of_rhythm.music_catalog.domain import (
+        Recording,
+        RecordingContent,
+    )
 
 type RecordingRepositoryFactory = Callable[[Transaction], RecordingRepository]
 type MusicalWorkRepositoryFactory = Callable[[Transaction], MusicalWorkRepository]
@@ -59,7 +55,10 @@ class PublishRecording:
     async def execute(self, recording_id: UUID) -> Recording:
         async with self._transaction_scope() as transaction:
             recording_repository = self._recording_repository_factory(transaction)
-            recording = await _get_recording(recording_repository, recording_id)
+            recording = await recording_repository.get(recording_id, for_update=True)
+            if recording is None:
+                raise RecordingNotFound(str(recording_id))
+
             published = recording.publish()
             await _validate_publication(
                 published,
@@ -98,9 +97,12 @@ class ReplaceRecordingContent:
     async def execute(self, recording_id: UUID, content: RecordingContent) -> Recording:
         async with self._transaction_scope() as transaction:
             recording_repository = self._recording_repository_factory(transaction)
-            recording = await _get_recording(recording_repository, recording_id)
+            recording = await recording_repository.get(recording_id, for_update=True)
+            if recording is None:
+                raise RecordingNotFound(str(recording_id))
+
             updated = recording.replace_content(content)
-            if updated.editorial_status is EditorialStatus.PUBLISHED:
+            if updated.is_published:
                 await _validate_publication(
                     updated,
                     self._work_repository_factory(transaction),
@@ -115,15 +117,9 @@ class ReplaceRecordingContent:
                 raise RecordingNotFound(str(recording_id)) from error
             except UniqueConstraintViolation as error:
                 raise RecordingConflict from error
+
             await transaction.commit()
             return updated
-
-
-async def _get_recording(repository: RecordingRepository, recording_id: UUID) -> Recording:
-    recording = await repository.get(recording_id, for_update=True)
-    if recording is None:
-        raise RecordingNotFound(str(recording_id))
-    return recording
 
 
 async def _validate_publication(
@@ -139,16 +135,12 @@ async def _validate_publication(
         raise RecordingWorkNotPublished(str(recording.id))
 
     group_ids = {
-        credit.target_id
-        for credit in recording.credits
-        if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.GROUP
+        credit.target_id for credit in recording.credits if credit.is_primary_billing and credit.is_group_target
     }
     published_groups = await group_repository.get_published_by_ids(group_ids, for_update=True)
     if not published_groups:
         person_ids = {
-            credit.target_id
-            for credit in recording.credits
-            if credit.billing_role is BillingRole.PRIMARY and credit.target_kind is RecordingCreditTargetKind.PERSON
+            credit.target_id for credit in recording.credits if credit.is_primary_billing and credit.is_person_target
         }
         published_people = await person_repository.get_published_by_ids(person_ids, for_update=True)
         if not published_people:
@@ -163,10 +155,7 @@ async def _validate_publication(
         version = published_lyrics.get(usage.lyrics_version_id)
         if version is None:
             raise RecordingLyricsVersionNotPublished(str(usage.lyrics_version_id))
-        if (
-            version.usage_kind is not LyricsUsageKind.PERFORMABLE
-            or version.creation_method is LyricsCreationMethod.MACHINE_TRANSLATION
-        ):
+        if not version.is_performable or version.is_machine_translated:
             raise RecordingLyricsVersionNotPerformable(str(version.id))
         if version.work_id not in work_ids:
             raise RecordingLyricsVersionWorkMismatch(str(version.id))

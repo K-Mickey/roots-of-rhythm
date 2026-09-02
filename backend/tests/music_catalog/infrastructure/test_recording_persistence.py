@@ -18,7 +18,6 @@ from roots_of_rhythm.music_catalog.application import (
 )
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
-    EditorialStatus,
     ExistencePeriod,
     GroupContent,
     LyricsCreationMethod,
@@ -172,7 +171,7 @@ async def test_recording_round_trip_replace_lifecycle_and_soft_delete(engine: As
             work_usages=(replacement_usage,),
         ),
     )
-    assert replaced.editorial_status is EditorialStatus.PUBLISHED
+    assert replaced.is_published
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
         assert await uow.recordings.get(created.id) == replaced
     async with session_factory() as session:

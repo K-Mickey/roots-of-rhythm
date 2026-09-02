@@ -8,7 +8,7 @@ from roots_of_rhythm.music_catalog.application import (
     GenreNotFound,
     GenreService,
 )
-from roots_of_rhythm.music_catalog.domain import ClassificationContent, EditorialStatus, Genre, GenrePublicationError
+from roots_of_rhythm.music_catalog.domain import ClassificationContent, Genre, GenrePublicationError
 
 
 @pytest.mark.asyncio
@@ -32,8 +32,8 @@ async def test_service_creates_updates_and_publishes_in_transactions() -> None:
     archived = await service.archive(genre.id)
 
     assert genre.id == updated.id == reviewed.id == published.id == archived.id
-    assert published.editorial_status is EditorialStatus.PUBLISHED
-    assert archived.editorial_status is EditorialStatus.ARCHIVED
+    assert published.is_published
+    assert archived.is_archived
     assert all(unit.commits == 1 and unit.rollbacks == 1 for unit in units)
 
 

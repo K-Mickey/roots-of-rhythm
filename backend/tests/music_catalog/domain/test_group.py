@@ -6,7 +6,6 @@ from uuid import uuid7
 import pytest
 
 from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus,
     ExistencePeriod,
     Group,
     GroupContent,
@@ -62,7 +61,7 @@ def test_group_publish_requires_only_canonical_name() -> None:
     group = Group.create(uuid7(), GroupContent.create("Charlie Parker Quintet"))
     published = group.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     assert published.canonical_name == "Charlie Parker Quintet"
 
 
@@ -91,4 +90,4 @@ def test_group_membership_publish_without_roles_or_period() -> None:
     membership = GroupMembership.create(uuid7(), uuid7(), uuid7())
     published = membership.publish()
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published

@@ -4,7 +4,7 @@ import pytest
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
 
 from roots_of_rhythm.music_catalog.application import GroupService
-from roots_of_rhythm.music_catalog.domain import EditorialStatus, Group, GroupContent
+from roots_of_rhythm.music_catalog.domain import Group, GroupContent
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -21,7 +21,8 @@ async def test_group_service_allows_duplicate_canonical_names_and_publishes_both
     second = await service.publish(second.id)
 
     assert first.id != second.id
-    assert first.editorial_status is second.editorial_status is EditorialStatus.PUBLISHED
+    assert first.is_published
+    assert second.is_published
     assert [group.canonical_name for group in groups.values()] == [
         "Count Basie Orchestra",
         "Count Basie Orchestra",

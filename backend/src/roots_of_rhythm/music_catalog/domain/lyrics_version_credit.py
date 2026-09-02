@@ -40,6 +40,10 @@ class LyricsVersionCredit(msgspec.Struct, frozen=True):
             editorial_status=editorial_status,
         )
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
     def replace_content(self, content: LyricsVersionCreditContent) -> "LyricsVersionCredit":
         if content.role is not self.role:
             raise MusicCatalogDomainError("LyricsVersionCreditContent role must match the credit role")

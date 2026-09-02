@@ -6,7 +6,6 @@ from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWo
 from roots_of_rhythm.music_catalog.domain import (
     LyricsUsageKind,
     LyricsVersion,
-    LyricsVersionRelationType,
     Recording,
 )
 
@@ -44,9 +43,7 @@ class RecordingLyricsProjectionQuery:
                 )
                 for work_usage in recording.work_usages:
                     versions = versions_by_work.get(work_usage.work_id, ())
-                    if version := next(
-                        (item for item in versions if item.usage_kind is LyricsUsageKind.PERFORMABLE), None
-                    ):
+                    if version := next((item for item in versions if item.is_performable), None):
                         selected = [(version, None, False)]
                         break
             relations = await uow.lyrics_version_relations.list_published_for_versions(
@@ -56,8 +53,7 @@ class RecordingLyricsProjectionQuery:
                 relation.source_lyrics_version_id
                 for version, _position, _confirmed in selected
                 for relation in relations.get(version.id, ())
-                if relation.relation_type is LyricsVersionRelationType.TRANSLATION_OF
-                and relation.target_lyrics_version_id == version.id
+                if relation.is_translation_of and relation.target_lyrics_version_id == version.id
             }
             translations = await uow.lyrics_versions.get_published_by_ids(translation_ids)
 
@@ -72,7 +68,7 @@ class RecordingLyricsProjectionQuery:
                             (
                                 translations[relation.source_lyrics_version_id]
                                 for relation in relations.get(version.id, ())
-                                if relation.relation_type is LyricsVersionRelationType.TRANSLATION_OF
+                                if relation.is_translation_of
                                 and relation.target_lyrics_version_id == version.id
                                 and relation.source_lyrics_version_id in translations
                                 and translations[relation.source_lyrics_version_id].usage_kind

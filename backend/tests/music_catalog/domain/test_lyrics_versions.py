@@ -3,7 +3,6 @@ from uuid import uuid7
 import pytest
 
 from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus,
     LyricsCreationMethod,
     LyricsUsageKind,
     LyricsVersion,
@@ -90,8 +89,8 @@ def test_lyrics_version_machine_publish_requires_review() -> None:
 
     reviewed = version.submit_for_review()
     published = reviewed.publish()
-    assert published.editorial_status is EditorialStatus.PUBLISHED
-    assert published.publish().editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
+    assert published.publish().is_published
 
 
 def test_lyrics_version_relation_rejects_self_reference() -> None:
@@ -125,4 +124,4 @@ def test_lyrics_version_relation_publish_requires_provenance() -> None:
             provenance="Editorial note.",
         ),
     ).publish()
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published

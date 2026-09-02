@@ -28,7 +28,6 @@ from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import Sql
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import GenreService
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
-from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
@@ -375,7 +374,7 @@ class GenreKnowledgeSeed:
             await self._genres.create(content, genre_id=genre_id)
             await self._genres.publish(genre_id)
             return
-        if existing.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._genres.publish(genre_id)
 
     async def _ensure_published_claim(

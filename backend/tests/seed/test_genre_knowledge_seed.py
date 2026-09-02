@@ -13,7 +13,6 @@ from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
 from roots_of_rhythm.infrastructure.database import create_session_factory
-from roots_of_rhythm.music_catalog.domain import EditorialStatus as MusicEditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.seed import CorpusSeedRunner
 from roots_of_rhythm.seed import genre_knowledge as data
@@ -41,7 +40,7 @@ async def test_genre_knowledge_seed(engine: AsyncEngine) -> None:
         "Country",
         "Rhythm and Blues",
     ]
-    assert all(genre is not None and genre.editorial_status is MusicEditorialStatus.PUBLISHED for genre in genres)
+    assert all(genre is not None and genre.is_published for genre in genres)
 
     async with SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory) as uow:
         developed = await uow.claims.get(data.SWING_FROM_JAZZ_CLAIM_ID)

@@ -46,6 +46,14 @@ class LyricsVersionRelation(msgspec.Struct, frozen=True):
             editorial_status=editorial_status,
         )
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
+    @property
+    def is_translation_of(self) -> bool:
+        return self.relation_type is LyricsVersionRelationType.TRANSLATION_OF
+
     def replace_content(self, content: LyricsVersionRelationContent) -> "LyricsVersionRelation":
         if content.relation_type is not self.relation_type:
             raise MusicCatalogDomainError("LyricsVersionRelationContent relation_type must match the relation type")

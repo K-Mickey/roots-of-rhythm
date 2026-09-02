@@ -39,7 +39,6 @@ from roots_of_rhythm.music_catalog.application.group_service import GroupService
 from roots_of_rhythm.music_catalog.application.lyrics_body_projection import (
     RIGHTS_RESTRICTED_REASON,
     LyricsBodyDisclosure,
-    disclose_lyrics_body,
     project_lyrics_version_body,
 )
 from roots_of_rhythm.music_catalog.application.lyrics_version_credit_service import LyricsVersionCreditService

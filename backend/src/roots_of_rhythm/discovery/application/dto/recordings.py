@@ -25,6 +25,10 @@ class RecordingCreditView(msgspec.Struct, frozen=True):
     instrument: str | None
     credited_as: str | None
 
+    @property
+    def is_primary_billing(self) -> bool:
+        return self.billing_role is BillingRole.PRIMARY
+
 
 class RecordingLyricsVersionView(msgspec.Struct, frozen=True):
     id: str

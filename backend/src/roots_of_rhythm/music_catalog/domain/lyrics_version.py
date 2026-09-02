@@ -47,6 +47,18 @@ class LyricsVersion(msgspec.Struct, frozen=True):
             editorial_status=editorial_status,
         )
 
+    @property
+    def is_performable(self) -> bool:
+        return self.usage_kind is LyricsUsageKind.PERFORMABLE
+
+    @property
+    def is_machine_translated(self) -> bool:
+        return self.creation_method is LyricsCreationMethod.MACHINE_TRANSLATION
+
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
     def replace_content(self, content: LyricsVersionContent) -> "LyricsVersion":
         if content.usage_kind is not self.usage_kind:
             raise MusicCatalogDomainError("LyricsVersionContent usage_kind must match the version usage_kind")
@@ -69,7 +81,7 @@ class LyricsVersion(msgspec.Struct, frozen=True):
         return self._with_status(EditorialStatus.IN_REVIEW)
 
     def publish(self) -> "LyricsVersion":
-        if self.creation_method is LyricsCreationMethod.MACHINE_TRANSLATION and self.editorial_status not in {
+        if self.is_machine_translated and self.editorial_status not in {
             EditorialStatus.IN_REVIEW,
             EditorialStatus.PUBLISHED,
         }:

@@ -112,7 +112,7 @@ async def test_assignment_service_publishes_only_with_published_person_and_genre
 
     published = await publish.execute(assignment.id)
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     assert assignments[assignment.id] == published
 
 
@@ -170,7 +170,7 @@ async def test_assignment_service_replace_content_preserves_status_and_endpoints
         evidence_status=EvidenceStatus.UNVERIFIED,
     )
 
-    assert updated.editorial_status is EditorialStatus.PUBLISHED
+    assert updated.is_published
     assert updated.target_id == person_id
     assert updated.concept_id == genre.id
     assert updated.explanation is None
@@ -211,8 +211,8 @@ async def test_assignment_service_publishes_group_assignment_with_published_grou
 
     published = await publish.execute(assignment.id)
 
-    assert published.target_kind is ClassificationTargetKind.GROUP
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_group_target
+    assert published.is_published
     assert assignments[assignment.id] == published
 
 

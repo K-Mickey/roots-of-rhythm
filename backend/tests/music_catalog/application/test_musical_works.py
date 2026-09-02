@@ -4,7 +4,7 @@ import pytest
 from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
 
 from roots_of_rhythm.music_catalog.application import MusicalWorkService
-from roots_of_rhythm.music_catalog.domain import EditorialStatus, MusicalWork, WorkContent
+from roots_of_rhythm.music_catalog.domain import MusicalWork, WorkContent
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -22,7 +22,8 @@ async def test_musical_work_service_allows_duplicate_titles_and_publishes_both()
     second = await service.publish(second.id)
 
     assert first.id != second.id
-    assert first.editorial_status is second.editorial_status is EditorialStatus.PUBLISHED
+    assert first.is_published
+    assert second.is_published
     assert [work.canonical_title for work in works.values()] == [
         "Sixteen Tons",
         "Sixteen Tons",

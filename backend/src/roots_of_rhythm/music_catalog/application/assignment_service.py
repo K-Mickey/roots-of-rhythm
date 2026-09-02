@@ -80,6 +80,7 @@ class ClassificationAssignmentService:
             assignment = await assignment_repository.get(assignment_id, for_update=True)
             if assignment is None:
                 raise ClassificationAssignmentNotFound(str(assignment_id))
+
             updated = assignment.replace_content(
                 explanation=explanation,
                 claim_id=claim_id,
@@ -92,6 +93,7 @@ class ClassificationAssignmentService:
                 raise ClassificationAssignmentNotFound(str(assignment_id)) from error
             except UniqueConstraintViolation as error:
                 raise ClassificationAssignmentConflict from error
+
             await transaction.commit()
             return updated
 

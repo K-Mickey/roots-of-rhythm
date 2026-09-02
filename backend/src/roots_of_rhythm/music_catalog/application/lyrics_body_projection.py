@@ -18,14 +18,10 @@ class LyricsBodyDisclosure:
         self.body_unavailable_reason = body_unavailable_reason
 
 
-def disclose_lyrics_body(body: str | None, access_policy: SourceAccessPolicy | None) -> LyricsBodyDisclosure:
-    if access_policy is SourceAccessPolicy.ALLOW_PUBLIC_BODY:
-        return LyricsBodyDisclosure(body=body, body_unavailable_reason=None)
-    return LyricsBodyDisclosure(body=None, body_unavailable_reason=RIGHTS_RESTRICTED_REASON)
-
-
 def project_lyrics_version_body(
     version: LyricsVersion,
     access_policy: SourceAccessPolicy | None,
 ) -> LyricsBodyDisclosure:
-    return disclose_lyrics_body(version.body, access_policy)
+    if access_policy is SourceAccessPolicy.ALLOW_PUBLIC_BODY:
+        return LyricsBodyDisclosure(body=version.body, body_unavailable_reason=None)
+    return LyricsBodyDisclosure(body=None, body_unavailable_reason=RIGHTS_RESTRICTED_REASON)

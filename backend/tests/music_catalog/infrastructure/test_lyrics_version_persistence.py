@@ -118,7 +118,7 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
         second_work.id: [second_performable],
     }
     assert len(relations) == 1
-    assert relations[0].relation_type is LyricsVersionRelationType.TRANSLATION_OF
+    assert relations[0].is_translation_of
 
     disclosure = await projection.disclose_body_for_version(published_versions[0])
     assert disclosure.body == "Jumpin' at the woodside"

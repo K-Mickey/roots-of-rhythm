@@ -448,6 +448,18 @@ class RecordingCredit(msgspec.Struct, frozen=True):
             credited_as=optional_text(credited_as, _CREDITED_AS_FIELD, max_length=TEXT_64),
         )
 
+    @property
+    def is_primary_billing(self) -> bool:
+        return self.billing_role is BillingRole.PRIMARY
+
+    @property
+    def is_group_target(self) -> bool:
+        return self.target_kind is RecordingCreditTargetKind.GROUP
+
+    @property
+    def is_person_target(self) -> bool:
+        return self.target_kind is RecordingCreditTargetKind.PERSON
+
 
 class RecordingWorkUsage(msgspec.Struct, frozen=True):
     id: UUID

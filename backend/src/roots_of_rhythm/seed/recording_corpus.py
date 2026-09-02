@@ -62,7 +62,6 @@ from roots_of_rhythm.music_catalog.domain import (
     RecordingWorkUsage,
     RecordingWorkUsageKind,
 )
-from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditorialStatus
 from roots_of_rhythm.music_catalog.domain import EvidenceStatus as MusicEvidenceStatus
 from roots_of_rhythm.music_catalog.domain import TemporalBound as MusicTemporalBound
 from roots_of_rhythm.music_catalog.domain import TemporalPrecision as MusicTemporalPrecision
@@ -619,7 +618,7 @@ class RecordingCorpusSeed:
             await self._lyrics_versions.replace_content(version_id, content)
         async with self._music_uow() as uow:
             current = await uow.lyrics_versions.get(version_id)
-        if current is not None and current.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if current is not None and not current.is_published:
             if requires_review:
                 await self._lyrics_versions.submit_for_review(version_id)
             await self._lyrics_versions.publish(version_id)
@@ -659,7 +658,7 @@ class RecordingCorpusSeed:
             await self._lyrics_relations.replace_content(relation_id, content)
         async with self._music_uow() as uow:
             current = await uow.lyrics_version_relations.get(relation_id)
-        if current is not None and current.editorial_status is not GenreEditorialStatus.PUBLISHED:
+        if current is not None and not current.is_published:
             await self._lyrics_relations.publish(relation_id)
 
     async def _ensure_recordings(self) -> None:
@@ -680,7 +679,7 @@ class RecordingCorpusSeed:
                 await self._replace_recording_content.execute(recording_id, content)
             async with self._music_uow() as uow:
                 current = await uow.recordings.get(recording_id)
-            if current is not None and current.editorial_status is not GenreEditorialStatus.PUBLISHED:
+            if current is not None and not current.is_published:
                 await self._publish_recording.execute(recording_id)
 
     async def _ensure_recording_genre_assignments(self) -> None:

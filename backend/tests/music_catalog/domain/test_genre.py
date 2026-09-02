@@ -41,9 +41,9 @@ def test_publication_requires_only_definition_and_preserves_identity() -> None:
     republished = archived.publish()
 
     assert published.content.definition == "Big-band jazz."
-    assert published.editorial_status is EditorialStatus.PUBLISHED
-    assert archived.editorial_status is EditorialStatus.ARCHIVED
-    assert republished.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
+    assert archived.is_archived
+    assert republished.is_published
     assert {complete.id, published.id, archived.id, republished.id} == {genre.id}
 
 
@@ -62,7 +62,7 @@ def test_published_genre_cannot_drop_definition_via_replace_content() -> None:
     updated = published.replace_content(
         ClassificationContent.create("Swing", definition="Updated definition."),
     )
-    assert updated.editorial_status is EditorialStatus.PUBLISHED
+    assert updated.is_published
     assert updated.content.definition == "Updated definition."
 
 

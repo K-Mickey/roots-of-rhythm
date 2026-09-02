@@ -10,10 +10,9 @@ from roots_of_rhythm.music_catalog.application import (
     LyricsVersionEndpointNotPublished,
     LyricsVersionRelationService,
     LyricsVersionService,
-    disclose_lyrics_body,
+    project_lyrics_version_body,
 )
 from roots_of_rhythm.music_catalog.domain import (
-    EditorialStatus,
     LyricsCreationMethod,
     LyricsUsageKind,
     LyricsVersion,
@@ -25,6 +24,26 @@ from roots_of_rhythm.music_catalog.domain import (
 
 if TYPE_CHECKING:
     from uuid import UUID
+
+
+def _version(
+    work_id: UUID | None = None,
+    language: str = "RU",
+    usage_kind: LyricsUsageKind = LyricsUsageKind.READING_TRANSLATION,
+    creation_method: LyricsCreationMethod = LyricsCreationMethod.ORIGINAL,
+    body: str | None = None,
+) -> LyricsVersion:
+    return LyricsVersion.create(
+        uuid7(),
+        work_id or uuid7(),
+        uuid7(),
+        LyricsVersionContent.create(
+            language_tag=language,
+            usage_kind=usage_kind,
+            creation_method=creation_method,
+            body=body,
+        ),
+    )
 
 
 @pytest.mark.asyncio
@@ -66,16 +85,18 @@ async def test_lyrics_version_relation_publish_requires_published_endpoints() ->
 
     await version_service.publish(source_version.id)
     published = await relation_service.publish(relation.id)
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
 
 
-def test_disclose_lyrics_body_withholds_by_default() -> None:
-    disclosure = disclose_lyrics_body("Secret lyrics", SourceAccessPolicy.WITHHOLD_PUBLIC_BODY)
+def test_project_lyrics_version_body_withholds_by_default() -> None:
+    version = _version()
+    disclosure = project_lyrics_version_body(version, SourceAccessPolicy.WITHHOLD_PUBLIC_BODY)
     assert disclosure.body is None
     assert disclosure.body_unavailable_reason == RIGHTS_RESTRICTED_REASON
 
 
-def test_disclose_lyrics_body_allows_when_policy_permits() -> None:
-    disclosure = disclose_lyrics_body("Public lyrics", SourceAccessPolicy.ALLOW_PUBLIC_BODY)
+def test_project_lyrics_version_body_allows_when_policy_permits() -> None:
+    version = _version(body="Public lyrics")
+    disclosure = project_lyrics_version_body(version, SourceAccessPolicy.ALLOW_PUBLIC_BODY)
     assert disclosure.body == "Public lyrics"
     assert disclosure.body_unavailable_reason is None

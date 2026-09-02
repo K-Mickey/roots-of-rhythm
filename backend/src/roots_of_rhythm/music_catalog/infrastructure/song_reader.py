@@ -2,7 +2,6 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from roots_of_rhythm.music_catalog.application.ports import RecordingUnitOfWork
-from roots_of_rhythm.music_catalog.domain import BillingRole, RecordingCreditTargetKind
 from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReadData
 
 if TYPE_CHECKING:
@@ -50,8 +49,7 @@ class SqlAlchemySongMusicReader:
                     credit.target_id
                     for recording in recordings
                     for credit in recording.credits
-                    if credit.billing_role is BillingRole.PRIMARY
-                    and credit.target_kind is RecordingCreditTargetKind.GROUP
+                    if credit.is_primary_billing and credit.is_group_target
                 },
             )
         return SongMusicReadData(

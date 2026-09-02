@@ -41,10 +41,7 @@ async def test_people_and_groups_seed_and_assignment_repair(engine: AsyncEngine)
     assert [group.canonical_name for group in groups if group is not None] == [
         content.canonical_name for _, content in data.SEED_GROUPS
     ]
-    assert all(
-        assignment is not None and assignment.editorial_status is EditorialStatus.PUBLISHED
-        for assignment in assignments
-    )
+    assert all(assignment is not None and assignment.is_published for assignment in assignments)
 
     assignment_id, _, _, explanation, provenance = data.SEED_PERSON_GENRE_ASSIGNMENTS[0]
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:

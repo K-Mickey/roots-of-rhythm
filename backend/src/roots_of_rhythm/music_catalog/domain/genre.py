@@ -15,12 +15,24 @@ class ClassificationConcept(msgspec.Struct, frozen=True):
 
     kind: ClassVar[ClassificationKind]
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
+    @property
+    def is_draft(self) -> bool:
+        return self.editorial_status is EditorialStatus.DRAFT
+
+    @property
+    def is_archived(self) -> bool:
+        return self.editorial_status is EditorialStatus.ARCHIVED
+
 
 class Genre(ClassificationConcept, frozen=True):
     kind: ClassVar[ClassificationKind] = ClassificationKind.GENRE
 
     def replace_content(self, content: ClassificationContent) -> "Genre":
-        if self.editorial_status is EditorialStatus.PUBLISHED and content.definition is None:
+        if self.is_published and content.definition is None:
             raise GenrePublicationError(("definition",))
         return Genre(id=self.id, content=content, editorial_status=self.editorial_status)
 

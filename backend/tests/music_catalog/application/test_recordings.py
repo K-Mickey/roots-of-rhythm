@@ -126,7 +126,7 @@ async def test_recording_service_publishes_with_locked_published_work() -> None:
     recording = await service.create(_content(work.id, person.id, additional_target_id=uuid7()))
     published = await publish_recording.execute(recording.id)
 
-    assert published.editorial_status is EditorialStatus.PUBLISHED
+    assert published.is_published
     assert isinstance(uow.recordings, FakeRecordingRepository)
     assert uow.recordings.locked_ids == [recording.id]
     assert isinstance(uow.works, FakeMusicalWorkRepository)
@@ -156,7 +156,7 @@ async def test_recording_service_rejects_unpublished_work() -> None:
     with pytest.raises(RecordingWorkNotPublished):
         await publish_recording.execute(recording.id)
 
-    assert recordings[recording.id].editorial_status is EditorialStatus.DRAFT
+    assert recordings[recording.id].is_draft
 
 
 @pytest.mark.asyncio
@@ -224,7 +224,7 @@ async def test_one_published_primary_target_is_enough() -> None:
     service, publish_recording, _replace_recording_content = _operations(music, people)
 
     recording = await service.create(content)
-    assert (await publish_recording.execute(recording.id)).editorial_status is EditorialStatus.PUBLISHED
+    assert (await publish_recording.execute(recording.id)).is_published
     assert isinstance(music.groups, FakeGroupRepository)
     assert music.groups.batch_calls == [(draft_group.id,)]
     assert music.groups.locked_ids == [draft_group.id]
