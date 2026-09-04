@@ -1,4 +1,0 @@
-interface:
-  display_name: "Create Tracker Tasks"
-  short_description: "Подготовить задачи для трекера"
-  default_prompt: "Подготовь задачи для трекера по утвержденной декомпозиции."

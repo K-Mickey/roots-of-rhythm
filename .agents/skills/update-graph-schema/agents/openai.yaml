@@ -1,4 +1,0 @@
-interface:
-  display_name: "Update Graph Schema"
-  short_description: "Обновить схему графовой базы"
-  default_prompt: "Обнови схему графовой базы только если графовое хранилище действительно используется."

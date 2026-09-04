@@ -1,4 +1,0 @@
-interface:
-  display_name: "Create API MR"
-  short_description: "Подготовить изменение API к MR"
-  default_prompt: "Подготовь проверенное изменение API к merge request, не создавая MR без подтверждения."

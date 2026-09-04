@@ -1,4 +1,0 @@
-interface:
-  display_name: "Enrich Figma"
-  short_description: "Дополнить спецификацию данными макетов"
-  default_prompt: "Дополни UI-спецификацию данными из доступного макета Figma."

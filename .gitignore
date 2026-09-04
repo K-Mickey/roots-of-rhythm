@@ -42,3 +42,8 @@ test-results/
 # Runtime files
 *.log
 tmp/
+
+# AI tools
+.ast-index/
+ast-index.db
+graphify-out/cost.json

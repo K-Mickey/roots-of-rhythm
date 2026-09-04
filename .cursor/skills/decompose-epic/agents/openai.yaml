@@ -1,4 +1,0 @@
-interface:
-  display_name: "Decompose Epic"
-  short_description: "Разложить эпик на независимые stories"
-  default_prompt: "Декомпозируй эпик на пользовательские истории и зависимости."

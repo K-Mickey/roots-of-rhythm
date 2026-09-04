@@ -1,4 +1,0 @@
-interface:
-  display_name: "Sync GitHub Tracker"
-  short_description: "Синхронизировать SDD с GitHub Project"
-  default_prompt: "Use $sync-github-tracker to preview and synchronize approved project work with GitHub."

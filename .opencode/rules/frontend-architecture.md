@@ -1,0 +1,17 @@
+# Frontend architecture
+
+> Границы React/Next.js frontend и Mantine-first подход без преждевременного дробления
+> Область применения: `**/*.{ts,tsx,js,jsx}`
+
+- Использовать Next.js App Router; не добавлять второй router или Vite application.
+- Server Components являются default для data loading и content; Client Component вводить только при browser API, state, event handlers или требовании Mantine.
+- Mantine является основной design system: сначала использовать её components, layout primitives, hooks и theme.
+- Не подключать Tailwind и параллельную component library. CSS Modules использовать только для предметной композиции, которую нельзя ясно выразить Mantine API.
+- Не создавать собственный базовый Button, Input, Modal, typography scale или token system, если задачу решает Mantine.
+- Сохранять semantic initial HTML публичного content и не делать чтение страницы зависимым от client-side interaction.
+- Допустимые верхние области: `app`, `features`, `entities`, `shared`; создавать только реально нужные. Routes и layouts остаются в одном Next.js `app` router.
+- Зависимости направлять от верхних слоёв к нижним.
+- Не импортировать внутренности соседнего slice; использовать публичный API.
+- Не размещать бизнес-правила, сетевую orchestration и преобразование данных в JSX.
+- Не создавать отдельный store, service или barrel-файл без реального потребителя.
+- Не разделять роутеры или приложения до появления разных контрактов, владельцев или жизненных циклов.
