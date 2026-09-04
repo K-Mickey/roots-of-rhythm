@@ -134,6 +134,5 @@ __all__ = [
     "WorkRelationRepository",
     "WorkRelationService",
     "WorkRelationWorkNotPublished",
-    "disclose_lyrics_body",
     "project_lyrics_version_body",
 ]
