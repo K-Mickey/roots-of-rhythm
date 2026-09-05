@@ -12,7 +12,12 @@ _T = TypeVar("_T", bound=tuple[Any, ...])
 
 
 def create_database_engine(database_url: str) -> AsyncEngine:
-    return create_async_engine(database_url, pool_pre_ping=True)
+    return create_async_engine(
+        database_url,
+        pool_pre_ping=True,
+        pool_size=20,
+        max_overflow=30,
+    )
 
 
 def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:

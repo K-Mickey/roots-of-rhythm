@@ -17,16 +17,16 @@ from roots_of_rhythm.discovery.application.errors.genres import (
     GenreRelationsNotFound,
     GenreSourcesNotFound,
 )
-from roots_of_rhythm.discovery.application.genre_list import (
+from roots_of_rhythm.discovery.application.queries.genre_list import (
     GenreListReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
 )
-from roots_of_rhythm.discovery.application.genre_overview import (
+from roots_of_rhythm.discovery.application.queries.genre_overview import (
     GenreOverviewReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
 )
-from roots_of_rhythm.discovery.application.genre_relations import (
+from roots_of_rhythm.discovery.application.queries.genre_relations import (
     GenreRelationsReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
 )
-from roots_of_rhythm.discovery.application.genre_sources import (
+from roots_of_rhythm.discovery.application.queries.genre_sources import (
     GenreSourcesReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
 )
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse

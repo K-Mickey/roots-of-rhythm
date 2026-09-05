@@ -4,6 +4,7 @@ import pytest
 
 from roots_of_rhythm.historical_knowledge.application import (
     CreateGenreRelationClaim,
+    GenreRelationClaimReadService,
     GenreRelationClaimService,
     PublishGenreRelationClaim,
     SourceService,
@@ -21,9 +22,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalPrecision,
 )
 from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
-from roots_of_rhythm.historical_knowledge.infrastructure.genre_relation_claim_reader import (
-    SqlAlchemyPublishedGenreRelationClaimReader,
-)
 from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
@@ -72,7 +70,11 @@ async def test_claim_visibility_follows_endpoint_genre_publication(engine: Async
         claim_repository,
         source_repository,
     )
-    claim_reader = SqlAlchemyPublishedGenreRelationClaimReader(session_factory)
+    claim_reader = GenreRelationClaimReadService(
+        transaction_scope,
+        claim_repository,
+        source_repository,
+    )
     create_claim = CreateGenreRelationClaim(transaction_scope, claim_repository, genre_repository)
     publish_claim = PublishGenreRelationClaim(
         transaction_scope,

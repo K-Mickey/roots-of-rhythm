@@ -11,10 +11,10 @@ from roots_of_rhythm.discovery.application.dto.groups import (
     GroupOverviewResponse,  # noqa: TC001
 )  # noqa: TC001 - Litestar resolves handler annotations at runtime
 from roots_of_rhythm.discovery.application.errors.groups import GroupOverviewNotFound
-from roots_of_rhythm.discovery.application.group_list import (
+from roots_of_rhythm.discovery.application.queries.group_list import (
     GroupListReader,  # noqa: TC001
 )
-from roots_of_rhythm.discovery.application.group_overview import (
+from roots_of_rhythm.discovery.application.queries.group_overview import (
     GroupOverviewReader,  # noqa: TC001
 )
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse

@@ -30,23 +30,21 @@ from roots_of_rhythm.discovery.application.errors.groups import (
 from roots_of_rhythm.discovery.application.errors.performers import (
     PerformerOverviewNotFound,
 )
-from roots_of_rhythm.discovery.application.genre_list import GenreListQuery, GenreListReader
-from roots_of_rhythm.discovery.application.genre_overview import GenreOverviewQuery, GenreOverviewReader
-from roots_of_rhythm.discovery.application.genre_relations import GenreRelationsQuery, GenreRelationsReader
-from roots_of_rhythm.discovery.application.genre_sources import GenreSourcesQuery, GenreSourcesReader
-from roots_of_rhythm.discovery.application.group_list import GroupListQuery, GroupListReader
-from roots_of_rhythm.discovery.application.group_overview import GroupOverviewQuery, GroupOverviewReader
-from roots_of_rhythm.discovery.application.performer_list import PerformerListQuery, PerformerListReader
-from roots_of_rhythm.discovery.application.performer_overview import (
+from roots_of_rhythm.discovery.application.queries.genre_list import GenreListQuery, GenreListReader
+from roots_of_rhythm.discovery.application.queries.genre_overview import GenreOverviewQuery, GenreOverviewReader
+from roots_of_rhythm.discovery.application.queries.genre_relations import GenreRelationsQuery, GenreRelationsReader
+from roots_of_rhythm.discovery.application.queries.genre_sources import GenreSourcesQuery, GenreSourcesReader
+from roots_of_rhythm.discovery.application.queries.group_list import GroupListQuery, GroupListReader
+from roots_of_rhythm.discovery.application.queries.group_overview import GroupOverviewQuery, GroupOverviewReader
+from roots_of_rhythm.discovery.application.queries.performer_list import PerformerListQuery, PerformerListReader
+from roots_of_rhythm.discovery.application.queries.performer_overview import (
     PerformerOverviewQuery,
     PerformerOverviewReader,
 )
-from roots_of_rhythm.discovery.application.recording_lyrics import (
-    RecordingLyricsProjection,
-    RecordingLyricsProjectionQuery,
-    RecordingLyricsSelection,
+from roots_of_rhythm.discovery.application.queries.recording_overview import (
+    RecordingOverviewQuery,
+    RecordingOverviewReader,
 )
-from roots_of_rhythm.discovery.application.recording_overview import RecordingOverviewQuery, RecordingOverviewReader
 
 __all__ = [
     "GenreListQuery",
@@ -83,9 +81,6 @@ __all__ = [
     "PerformerOverviewReader",
     "PerformerOverviewResponse",
     "PersonDateView",
-    "RecordingLyricsProjection",
-    "RecordingLyricsProjectionQuery",
     "RecordingOverviewQuery",
     "RecordingOverviewReader",
-    "RecordingLyricsSelection",
 ]

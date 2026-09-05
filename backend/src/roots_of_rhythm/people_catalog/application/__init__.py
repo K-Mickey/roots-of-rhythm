@@ -1,5 +1,6 @@
 from roots_of_rhythm.people_catalog.application.errors import PersonNotFound
 from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork, PersonRepository
+from roots_of_rhythm.people_catalog.application.read_services.persons import PersonsReadService
 from roots_of_rhythm.people_catalog.application.service import PersonService, UnitOfWorkFactory
 
 __all__ = [
@@ -7,5 +8,6 @@ __all__ = [
     "PersonNotFound",
     "PersonRepository",
     "PersonService",
+    "PersonsReadService",
     "UnitOfWorkFactory",
 ]

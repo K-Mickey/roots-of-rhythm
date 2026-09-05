@@ -61,15 +61,22 @@ from roots_of_rhythm.music_catalog.application.ports import (
     WorkCreditRepository,
     WorkRelationRepository,
 )
+from roots_of_rhythm.music_catalog.application.read_services.genres import GenreReadService
+from roots_of_rhythm.music_catalog.application.read_services.groups import GroupReadService
+from roots_of_rhythm.music_catalog.application.read_services.performers import PerformerReadService
+from roots_of_rhythm.music_catalog.application.read_services.recording_lyrics import RecordingLyricsReadService
+from roots_of_rhythm.music_catalog.application.read_services.recordings import RecordingReadService
+from roots_of_rhythm.music_catalog.application.read_services.song_overview import SongOverviewReadService
+from roots_of_rhythm.music_catalog.application.read_services.songs import SongListReadService
 from roots_of_rhythm.music_catalog.application.recording_service import RecordingService
 from roots_of_rhythm.music_catalog.application.service import GenreService, UnitOfWorkFactory
-from roots_of_rhythm.music_catalog.application.use_cases import (
+from roots_of_rhythm.music_catalog.application.work_credit_service import WorkCreditService
+from roots_of_rhythm.music_catalog.application.work_relation_service import WorkRelationService
+from roots_of_rhythm.music_catalog.application.write_services import (
     PublishClassificationAssignment,
     PublishRecording,
     ReplaceRecordingContent,
 )
-from roots_of_rhythm.music_catalog.application.work_credit_service import WorkCreditService
-from roots_of_rhythm.music_catalog.application.work_relation_service import WorkRelationService
 
 __all__ = [
     "ClassificationAssignmentConflict",
@@ -83,12 +90,14 @@ __all__ = [
     "PublishClassificationAssignment",
     "GenreNameConflict",
     "GenreNotFound",
+    "GenreReadService",
     "GenreRepository",
     "GenreService",
     "GroupMembershipNotFound",
     "GroupMembershipRepository",
     "GroupMembershipService",
     "GroupNotFound",
+    "GroupReadService",
     "GroupRepository",
     "GroupService",
     "LyricsBodyDisclosure",
@@ -112,10 +121,12 @@ __all__ = [
     "MusicCatalogUnitOfWork",
     "RecordingNotFound",
     "RecordingConflict",
+    "RecordingLyricsReadService",
     "RecordingLyricsVersionNotPerformable",
     "RecordingLyricsVersionNotPublished",
     "RecordingLyricsVersionWorkMismatch",
     "RecordingPrimaryTargetNotPublished",
+    "RecordingReadService",
     "RecordingRepository",
     "RecordingService",
     "PublishRecording",
@@ -123,6 +134,9 @@ __all__ = [
     "RecordingUnitOfWork",
     "RecordingWorkNotPublished",
     "RIGHTS_RESTRICTED_REASON",
+    "PerformerReadService",
+    "SongListReadService",
+    "SongOverviewReadService",
     "UniqueConstraintViolation",
     "UnitOfWorkFactory",
     "WorkCreditConflict",

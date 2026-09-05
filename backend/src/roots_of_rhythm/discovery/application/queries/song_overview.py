@@ -1,4 +1,5 @@
 from asyncio import gather
+from collections import defaultdict
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from roots_of_rhythm.discovery.application.dto.common import (
@@ -14,21 +15,29 @@ from roots_of_rhythm.discovery.application.dto.songs import (
     SongLyricsVersionView,
     SongOverviewResponse,
     SongPeriodView,
+    SongRecordingGenreFacet,
+    SongRecordingSummary,
     SongWorkCreditView,
 )
 from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
-from roots_of_rhythm.discovery.application.projections.song_recordings import project_song_recordings
+from roots_of_rhythm.discovery.application.projections.recording_credits import project_primary_credits
+from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
 from roots_of_rhythm.music_catalog.application.lyrics_body_projection import project_lyrics_version_body
 
 if TYPE_CHECKING:
     from collections.abc import Collection
     from uuid import UUID
 
+    from roots_of_rhythm.historical_knowledge.domain import RecordingOriginClaim
     from roots_of_rhythm.historical_knowledge.public.song_context_reader import SongHistoricalKnowledgeReader
     from roots_of_rhythm.music_catalog.domain import (
+        ClassificationAssignment,
+        Genre,
+        Group,
         LyricsVersion,
         LyricsVersionCredit,
         LyricsVersionRelation,
+        Recording,
         WorkCredit,
     )
     from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReader
@@ -54,9 +63,9 @@ class SongOverviewQuery:
 
     async def get(self, song_id: UUID) -> SongOverviewResponse:
         music = await self._music.get_song_data(song_id)
-        work = music.work
-        if work is None:
+        if music.work is None:
             raise SongOverviewNotFound(str(song_id))
+
         outbound_relations = [relation for relation in music.work_relations if relation.source_work_id == song_id]
         lyrics_credits_by_version = {
             version.id: [credit for credit in music.lyrics_credits if credit.lyrics_version_id == version.id]
@@ -90,8 +99,8 @@ class SongOverviewQuery:
         people, knowledge = await gather(
             self._people.get_published_by_ids(person_ids),
             self._knowledge.get_song_data(
-                [version.source_version_id for version in music.lyrics_versions],
-                [recording.id for recording in music.recordings],
+                tuple(version.source_version_id for version in music.lyrics_versions),
+                tuple(recording.id for recording in music.recordings),
             ),
         )
         persons = {person.id: person for person in people.persons}
@@ -109,7 +118,7 @@ class SongOverviewQuery:
             for recording_id, claims in loaded_claims.items()
         }
 
-        recording_genres_view, recordings_view = project_song_recordings(
+        recording_genres_view, recordings_view = _project_song_recordings(
             song_id,
             list(music.recordings),
             recording_assignments,
@@ -120,18 +129,18 @@ class SongOverviewQuery:
         )
 
         return SongOverviewResponse(
-            id=str(work.id),
-            name=work.canonical_title,
-            aliases=list(work.aliases),
-            description=work.description,
-            period=SongPeriodView.from_period(work.period),
+            id=str(music.work.id),
+            name=music.work.canonical_title,
+            aliases=list(music.work.aliases),
+            description=music.work.description,
+            period=SongPeriodView.from_period(music.work.period),
             external_identities=[
                 ExternalIdentityView(
                     provider=identity.provider,
                     identifier=identity.identifier,
                     url=identity.url,
                 )
-                for identity in work.external_identities
+                for identity in music.work.external_identities
             ],
             credits=_work_credit_views(music.work_credits, persons),
             classifications=sorted(
@@ -224,3 +233,73 @@ def _other_lyrics_version_id(relation: LyricsVersionRelation, version_id: UUID) 
     if relation.source_lyrics_version_id == version_id:
         return relation.target_lyrics_version_id
     return relation.source_lyrics_version_id
+
+
+def _project_song_recordings(
+    work_id: UUID,
+    recordings: list[Recording],
+    assignments_by_recording: dict[UUID, list[ClassificationAssignment]],
+    genres: dict[UUID, Genre],
+    persons: dict[UUID, Person],
+    groups: dict[UUID, Group],
+    origin_claims_by_recording: dict[UUID, list[RecordingOriginClaim]] | None = None,
+) -> tuple[list[SongRecordingGenreFacet], list[SongRecordingSummary]]:
+    claims_by_recording = origin_claims_by_recording or {}
+    summaries: list[SongRecordingSummary] = []
+    facet_recording_ids: defaultdict[UUID, set[UUID]] = defaultdict(set)
+
+    for recording in recordings:
+        work_usage = next(
+            (usage for usage in recording.work_usages if usage.work_id == work_id),
+            None,
+        )
+        if work_usage is None:
+            continue
+
+        primary_credits = project_primary_credits(recording, persons, groups)
+        if not primary_credits:
+            continue
+
+        genre_concept_ids = {
+            assignment.concept_id
+            for assignment in assignments_by_recording.get(recording.id, ())
+            if assignment.concept_id in genres
+        }
+        summaries.append(
+            SongRecordingSummary(
+                id=str(recording.id),
+                title=recording.title,
+                recorded_period=SongPeriodView.from_period(recording.recorded_period),
+                first_release_date=None,
+                primary_credits=primary_credits,
+                genre_ids=sorted(str(concept_id) for concept_id in genre_concept_ids),
+                work_usage_kind=work_usage.usage_kind,
+                origin_badges=origin_badge_values(claims_by_recording.get(recording.id, ())),
+            )
+        )
+        if work_usage.is_complete or work_usage.is_partial:
+            for concept_id in genre_concept_ids:
+                facet_recording_ids[concept_id].add(recording.id)
+
+    summaries.sort(
+        key=lambda item: (
+            item.recorded_period.start is None,
+            item.first_release_date is None,
+            item.recorded_period.start.year if item.recorded_period.start is not None else 0,
+            item.title.casefold(),
+            item.id,
+        )
+    )
+    return (
+        sorted(
+            (
+                SongRecordingGenreFacet(
+                    genre=GenreSummary(str(genre_id), genres[genre_id].content.canonical_name),
+                    recording_count=len(recording_ids),
+                )
+                for genre_id, recording_ids in facet_recording_ids.items()
+            ),
+            key=lambda item: item.genre.name,
+        ),
+        summaries,
+    )

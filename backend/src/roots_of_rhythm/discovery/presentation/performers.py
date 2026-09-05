@@ -11,10 +11,10 @@ from roots_of_rhythm.discovery.application.dto.performers import (
     PerformerOverviewResponse,  # noqa: TC001
 )  # noqa: TC001 - Litestar resolves handler annotations at runtime
 from roots_of_rhythm.discovery.application.errors.performers import PerformerOverviewNotFound
-from roots_of_rhythm.discovery.application.performer_list import (
+from roots_of_rhythm.discovery.application.queries.performer_list import (
     PerformerListReader,  # noqa: TC001
 )
-from roots_of_rhythm.discovery.application.performer_overview import (
+from roots_of_rhythm.discovery.application.queries.performer_overview import (
     PerformerOverviewReader,  # noqa: TC001
 )
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse

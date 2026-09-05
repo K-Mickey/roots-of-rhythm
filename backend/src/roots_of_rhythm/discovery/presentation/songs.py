@@ -11,12 +11,8 @@ from roots_of_rhythm.discovery.application.dto.songs import (
     SongOverviewResponse,  # noqa: TC001
 )  # noqa: TC001 - Litestar resolves handler annotations at runtime
 from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
-from roots_of_rhythm.discovery.application.queries.song_overview import (
-    SongOverviewReader,  # noqa: TC001
-)
-from roots_of_rhythm.discovery.application.song_list import (
-    SongListReader,  # noqa: TC001
-)
+from roots_of_rhythm.discovery.application.queries.song_list import SongListReader  # noqa: TC001
+from roots_of_rhythm.discovery.application.queries.song_overview import SongOverviewReader  # noqa: TC001
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse
 
 logger = logging.getLogger(__name__)

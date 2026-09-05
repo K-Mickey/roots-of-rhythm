@@ -18,13 +18,21 @@ from roots_of_rhythm.historical_knowledge.application.ports import (
     RecordingOriginClaimRepository,
     SourceRepository,
 )
+from roots_of_rhythm.historical_knowledge.application.read_services.genre_relation_claims import (
+    GenreRelationClaimReadService,
+)
+from roots_of_rhythm.historical_knowledge.application.read_services.recording_knowledge import (
+    RecordingKnowledgeReadService,
+)
+from roots_of_rhythm.historical_knowledge.application.read_services.song_context import SongContextReadService
+from roots_of_rhythm.historical_knowledge.application.read_services.sources import SourceReadService
 from roots_of_rhythm.historical_knowledge.application.services import (
     GenreRelationClaimService,
     ListeningGuideService,
     RecordingOriginClaimService,
 )
 from roots_of_rhythm.historical_knowledge.application.source_service import SourceService
-from roots_of_rhythm.historical_knowledge.application.use_cases import (
+from roots_of_rhythm.historical_knowledge.application.write_services import (
     CreateGenreRelationClaim,
     CreateRecordingOriginClaim,
     PublishGenreRelationClaim,
@@ -45,6 +53,7 @@ __all__ = [
     "EndpointWorkMissing",
     "EndpointWorkNotPublished",
     "EvidenceFragmentNotReviewed",
+    "GenreRelationClaimReadService",
     "GenreRelationClaimService",
     "HistoricalKnowledgeUnitOfWork",
     "ListeningGuideNotFound",
@@ -53,11 +62,14 @@ __all__ = [
     "PublishGenreRelationClaim",
     "PublishListeningGuide",
     "PublishRecordingOriginClaim",
+    "RecordingKnowledgeReadService",
     "ReplaceListeningGuideObservations",
     "RecordingOriginClaimRepository",
     "RecordingOriginClaimService",
     "SourceNotFound",
+    "SourceReadService",
     "SourceRepository",
     "SourceService",
+    "SongContextReadService",
     "UniqueConstraintViolation",
 ]
