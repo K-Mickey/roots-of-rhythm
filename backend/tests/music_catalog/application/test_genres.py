@@ -1,7 +1,7 @@
 from uuid import UUID
 
 import pytest
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.music_catalog.fakes.legacy_uow import FakeMusicCatalogUnitOfWork
 
 from roots_of_rhythm.music_catalog.application import (
     GenreNameConflict,

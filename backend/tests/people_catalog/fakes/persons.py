@@ -1,13 +1,11 @@
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
 from roots_of_rhythm.people_catalog.domain import EditorialStatus
 
 if TYPE_CHECKING:
     from collections.abc import Collection
-    from types import TracebackType
     from uuid import UUID
 
-    from roots_of_rhythm.people_catalog.application.ports import PersonRepository
     from roots_of_rhythm.people_catalog.domain import Person
 
 
@@ -54,27 +52,3 @@ class FakePersonRepository:
 
     async def mark_deleted(self, person_id: UUID) -> None:
         self._persons.pop(person_id, None)
-
-
-class FakePeopleCatalogUnitOfWork:
-    def __init__(self, persons: dict[UUID, Person]) -> None:
-        self.persons: PersonRepository = FakePersonRepository(persons)
-        self.commits = 0
-        self.rollbacks = 0
-
-    async def __aenter__(self) -> Self:
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
-        self.rollbacks += 1
-
-    async def commit(self) -> None:
-        self.commits += 1
-
-    async def rollback(self) -> None:
-        self.rollbacks += 1

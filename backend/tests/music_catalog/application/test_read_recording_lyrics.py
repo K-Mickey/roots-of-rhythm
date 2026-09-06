@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid7
 
 import pytest
-from tests.music_catalog.fakes import (
+from tests.music_catalog.fakes.lyrics import (
     FakeLyricsVersionRelationRepository,
     FakeLyricsVersionRepository,
 )

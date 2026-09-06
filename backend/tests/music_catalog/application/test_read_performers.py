@@ -1,7 +1,8 @@
 from uuid import UUID, uuid7
 
 import pytest
-from tests.music_catalog.fakes import FakeClassificationAssignmentRepository, FakeGenreRepository
+from tests.music_catalog.fakes.assignments import FakeClassificationAssignmentRepository
+from tests.music_catalog.fakes.genres import FakeGenreRepository
 from tests.support.scopes import fake_transaction_scope
 
 from roots_of_rhythm.music_catalog.application.read_services.performers import PerformerReadService

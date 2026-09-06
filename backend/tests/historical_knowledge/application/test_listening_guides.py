@@ -2,12 +2,9 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid7
 
 import pytest
-from tests.historical_knowledge.fakes import (
-    FakeHistoricalKnowledgeUnitOfWork,
-    FakeSourceRepository,
-    StubListeningGuideRepository,
-)
-from tests.music_catalog.fakes import FakeRecordingRepository
+from tests.historical_knowledge.fakes.listening_guides import StubListeningGuideRepository
+from tests.music_catalog.fakes.recordings import FakeRecordingRepository
+from tests.support.scopes import CountingTransaction, counting_transaction_scope
 
 from roots_of_rhythm.historical_knowledge.application import (
     ListeningGuideNotFound,
@@ -29,30 +26,29 @@ def _operations(
     PublishListeningGuide,
     StubListeningGuideRepository,
     FakeRecordingRepository,
-    FakeHistoricalKnowledgeUnitOfWork,
+    CountingTransaction,
 ]:
+    scope, counting = counting_transaction_scope()
     guide_repository = StubListeningGuideRepository()
     recording_repository = FakeRecordingRepository(recordings)
-    transaction = FakeHistoricalKnowledgeUnitOfWork({}, FakeSourceRepository())
-    transaction.listening_guides = guide_repository
     return (
         ListeningGuideService(
-            lambda: transaction,
+            scope,
             lambda _transaction: guide_repository,
         ),
         ReplaceListeningGuideObservations(
-            lambda: transaction,
+            scope,
             lambda _transaction: guide_repository,
             lambda _transaction: recording_repository,
         ),
         PublishListeningGuide(
-            lambda: transaction,
+            scope,
             lambda _transaction: guide_repository,
             lambda _transaction: recording_repository,
         ),
         guide_repository,
         recording_repository,
-        transaction,
+        counting,
     )
 
 
@@ -63,7 +59,7 @@ def _observation(feature: str = "Theme") -> ListeningObservation:
 @pytest.mark.asyncio
 async def test_listening_guide_lifecycle_rechecks_only_published_recording() -> None:
     recording_id = uuid7()
-    service, replace, publish, guides, recordings, transaction = _operations(
+    service, replace, publish, guides, recordings, counting = _operations(
         {
             recording_id: Recording(
                 recording_id,
@@ -87,13 +83,13 @@ async def test_listening_guide_lifecycle_rechecks_only_published_recording() -> 
     assert archived.is_archived
     assert recordings.locked_ids == [recording_id, recording_id]
     assert guides.locked_ids == [guide.id] * 4
-    assert transaction.commits == 5
+    assert counting.commits == 5
 
 
 @pytest.mark.asyncio
 async def test_publish_reports_missing_guide_and_unpublished_recording() -> None:
     recording_id = uuid7()
-    service, _replace, publish, _guides, _recordings, _transaction = _operations(
+    service, _replace, publish, _guides, _recordings, _counting = _operations(
         {recording_id: Recording(recording_id, "Take")}
     )
 
@@ -115,7 +111,7 @@ async def test_replace_published_guide_requires_published_recording() -> None:
             editorial_status=MusicEditorialStatus.PUBLISHED,
         )
     }
-    service, replace, publish, _guides, _recordings, _transaction = _operations(recording_data)
+    service, replace, publish, _guides, _recordings, _counting = _operations(recording_data)
     guide = await service.create_draft(recording_id, (_observation(),))
     await publish.execute(guide.id)
     recording_data[recording_id] = Recording(recording_id, "Take")

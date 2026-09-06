@@ -27,7 +27,8 @@ from roots_of_rhythm.music_catalog.domain import EditorialStatus as GenreEditori
 from roots_of_rhythm.music_catalog.domain import Genre
 from tests.discovery.builders import published_genre, published_relation_claim
 from tests.discovery.readers_stubs import StubGenreReader
-from tests.historical_knowledge.fakes import FakePublishedGenreRelationClaimReader, FakeSourceRepository
+from tests.historical_knowledge.fakes.claims import FakePublishedGenreRelationClaimReader
+from tests.historical_knowledge.fakes.sources import FakeSourceRepository
 
 
 def _claim_reader(

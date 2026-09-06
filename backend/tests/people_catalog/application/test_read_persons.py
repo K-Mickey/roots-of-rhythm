@@ -1,7 +1,7 @@
 from uuid import uuid7
 
 import pytest
-from tests.people_catalog.fakes import FakePersonRepository
+from tests.people_catalog.fakes.persons import FakePersonRepository
 from tests.support.scopes import fake_transaction_scope
 
 from roots_of_rhythm.people_catalog.application.read_services.persons import PersonsReadService

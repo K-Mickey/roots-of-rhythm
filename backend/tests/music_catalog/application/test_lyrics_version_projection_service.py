@@ -1,8 +1,9 @@
 from uuid import UUID, uuid7
 
 import pytest
-from tests.historical_knowledge.fakes import FakeHistoricalKnowledgeUnitOfWork, FakeSourceRepository
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.historical_knowledge.fakes.legacy_uow import FakeHistoricalKnowledgeUnitOfWork
+from tests.historical_knowledge.fakes.sources import FakeSourceRepository
+from tests.music_catalog.fakes.legacy_uow import FakeMusicCatalogUnitOfWork
 
 from roots_of_rhythm.historical_knowledge.domain import Source, SourceAccessPolicy, SourceVersion
 from roots_of_rhythm.music_catalog.application.lyrics_body_projection import RIGHTS_RESTRICTED_REASON

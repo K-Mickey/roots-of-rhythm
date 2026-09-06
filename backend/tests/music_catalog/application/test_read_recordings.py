@@ -1,13 +1,11 @@
 from uuid import UUID, uuid7
 
 import pytest
-from tests.music_catalog.fakes import (
-    FakeClassificationAssignmentRepository,
-    FakeGenreRepository,
-    FakeGroupRepository,
-    FakeMusicalWorkRepository,
-    FakeRecordingRepository,
-)
+from tests.music_catalog.fakes.assignments import FakeClassificationAssignmentRepository
+from tests.music_catalog.fakes.genres import FakeGenreRepository
+from tests.music_catalog.fakes.groups import FakeGroupRepository
+from tests.music_catalog.fakes.recordings import FakeRecordingRepository
+from tests.music_catalog.fakes.works import FakeMusicalWorkRepository
 from tests.support.scopes import fake_transaction_scope
 
 from roots_of_rhythm.music_catalog.application.read_services.recordings import RecordingReadService

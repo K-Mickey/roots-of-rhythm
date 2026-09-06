@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid7
 
 import pytest
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.music_catalog.fakes.legacy_uow import FakeMusicCatalogUnitOfWork
 
 from roots_of_rhythm.music_catalog.application import (
     MusicalWorkService,

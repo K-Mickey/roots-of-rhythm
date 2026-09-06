@@ -1,9 +1,11 @@
-from typing import TYPE_CHECKING
 from uuid import UUID
 
 import pytest
-from tests.historical_knowledge.fakes import FakeHistoricalKnowledgeUnitOfWork, FakeSourceRepository
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.historical_knowledge.fakes.claims import FakeClaimRepository
+from tests.historical_knowledge.fakes.legacy_uow import FakeHistoricalKnowledgeUnitOfWork
+from tests.historical_knowledge.fakes.sources import FakeSourceRepository
+from tests.music_catalog.fakes.genres import FakeGenreRepository
+from tests.support.scopes import counting_transaction_scope
 
 from roots_of_rhythm.historical_knowledge.application import (
     ClaimNotFound,
@@ -29,11 +31,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
 )
 from roots_of_rhythm.music_catalog.domain import ClassificationContent, EditorialStatus, Genre
 
-if TYPE_CHECKING:
-    from roots_of_rhythm.application.transaction import Transaction
-    from roots_of_rhythm.historical_knowledge.application.ports import ClaimRepository, SourceRepository
-    from roots_of_rhythm.music_catalog.application.ports import GenreRepository
-
 
 def _genre(genre_id: UUID, *, published: bool) -> Genre:
     status = EditorialStatus.PUBLISHED if published else EditorialStatus.DRAFT
@@ -50,35 +47,25 @@ def _operations(
     PublishGenreRelationClaim,
     SourceService,
 ]:
-    historical = FakeHistoricalKnowledgeUnitOfWork(claims, sources)
-    music = FakeMusicCatalogUnitOfWork(genres)
-
-    def transaction_scope() -> FakeHistoricalKnowledgeUnitOfWork:
-        return historical
-
-    def claim_repository(_transaction: "Transaction") -> "ClaimRepository":
-        return historical.claims
-
-    def source_repository(_transaction: "Transaction") -> "SourceRepository":
-        return historical.sources
-
-    def genre_repository(_transaction: "Transaction") -> "GenreRepository":
-        return music.genres
+    scope, _counting = counting_transaction_scope()
+    claim_repository = FakeClaimRepository(claims)
+    genre_repository = FakeGenreRepository(genres)
+    source_service = SourceService(lambda: FakeHistoricalKnowledgeUnitOfWork(claims, sources))
 
     return (
         GenreRelationClaimService(
-            transaction_scope,
-            claim_repository,
-            source_repository,
+            scope,
+            lambda _transaction: claim_repository,
+            lambda _transaction: sources,
         ),
-        CreateGenreRelationClaim(transaction_scope, claim_repository, genre_repository),
+        CreateGenreRelationClaim(scope, lambda _transaction: claim_repository, lambda _transaction: genre_repository),
         PublishGenreRelationClaim(
-            transaction_scope,
-            claim_repository,
-            source_repository,
-            genre_repository,
+            scope,
+            lambda _transaction: claim_repository,
+            lambda _transaction: sources,
+            lambda _transaction: genre_repository,
         ),
-        SourceService(lambda: historical),
+        source_service,
     )
 
 

@@ -2,15 +2,17 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid7
 
 import pytest
-from tests.music_catalog.fakes import (
-    FakeClassificationAssignmentRepository,
-    FakeGenreRepository,
-    FakeGroupRepository,
+from tests.music_catalog.fakes.assignments import FakeClassificationAssignmentRepository
+from tests.music_catalog.fakes.genres import FakeGenreRepository
+from tests.music_catalog.fakes.groups import FakeGroupRepository
+from tests.music_catalog.fakes.lyrics import (
     FakeLyricsVersionCreditRepository,
     FakeLyricsVersionRelationRepository,
     FakeLyricsVersionRepository,
+)
+from tests.music_catalog.fakes.recordings import FakeRecordingRepository
+from tests.music_catalog.fakes.works import (
     FakeMusicalWorkRepository,
-    FakeRecordingRepository,
     FakeWorkCreditRepository,
     FakeWorkRelationRepository,
 )

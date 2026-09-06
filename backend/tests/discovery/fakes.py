@@ -99,7 +99,7 @@ class StubGroupOverviewReader:
         return self._result
 
 
-class StubSongListReader:
+class StubSongListQuery:
     def __init__(self, result: SongListResponse | Exception) -> None:
         self._result = result
 
@@ -109,7 +109,7 @@ class StubSongListReader:
         return self._result
 
 
-class StubSongOverviewReader:
+class StubSongOverviewQuery:
     def __init__(self, result: SongOverviewResponse | Exception) -> None:
         self._result = result
 

@@ -1,7 +1,8 @@
 from uuid import UUID, uuid7
 
 import pytest
-from tests.historical_knowledge.fakes import FakeClaimRepository, FakeSourceRepository
+from tests.historical_knowledge.fakes.claims import FakeClaimRepository
+from tests.historical_knowledge.fakes.sources import FakeSourceRepository
 from tests.support.scopes import fake_transaction_scope
 
 from roots_of_rhythm.historical_knowledge.application.read_services.genre_relation_claims import (

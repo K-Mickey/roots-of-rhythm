@@ -22,7 +22,7 @@ from roots_of_rhythm.entrypoints.dependencies import (
     SONG_OVERVIEW_READER_DEPENDENCY,
 )
 from roots_of_rhythm.music_catalog.domain import WorkCreditRole
-from tests.discovery.fakes import StubSongListReader, StubSongOverviewReader
+from tests.discovery.fakes import StubSongListQuery, StubSongOverviewQuery
 
 
 def _settings() -> Settings:
@@ -30,7 +30,7 @@ def _settings() -> Settings:
 
 
 def test_song_list_http_returns_200_shape() -> None:
-    reader = StubSongListReader(
+    reader = StubSongListQuery(
         SongListResponse(items=[SongSummary(id="song-1", name="Sixteen Tons")]),
     )
     with TestClient(
@@ -48,7 +48,7 @@ def test_song_list_http_returns_200_shape() -> None:
 
 
 def test_song_list_http_internal_error_does_not_use_song_not_found() -> None:
-    reader = StubSongListReader(RuntimeError("database unavailable"))
+    reader = StubSongListQuery(RuntimeError("database unavailable"))
     with TestClient(
         app=create_app(
             _settings(),
@@ -65,7 +65,7 @@ def test_song_list_http_internal_error_does_not_use_song_not_found() -> None:
 
 def test_song_overview_http_returns_all_public_fields() -> None:
     song_id = uuid7()
-    reader = StubSongOverviewReader(
+    reader = StubSongOverviewQuery(
         SongOverviewResponse(
             id=str(song_id),
             name="Sixteen Tons",
@@ -121,7 +121,7 @@ def test_song_overview_http_returns_all_public_fields() -> None:
 
 
 def test_song_overview_http_malformed_id_is_not_found() -> None:
-    reader = StubSongOverviewReader(SongOverviewNotFound("not-a-uuid"))
+    reader = StubSongOverviewQuery(SongOverviewNotFound("not-a-uuid"))
     with TestClient(
         app=create_app(
             _settings(),
@@ -138,7 +138,7 @@ def test_song_overview_http_malformed_id_is_not_found() -> None:
 
 def test_song_overview_http_unpublished_id_is_not_found() -> None:
     song_id = uuid7()
-    reader = StubSongOverviewReader(SongOverviewNotFound(str(song_id)))
+    reader = StubSongOverviewQuery(SongOverviewNotFound(str(song_id)))
     with TestClient(
         app=create_app(
             _settings(),

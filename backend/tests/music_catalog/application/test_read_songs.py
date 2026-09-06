@@ -1,7 +1,7 @@
 from uuid import uuid7
 
 import pytest
-from tests.music_catalog.fakes import FakeMusicalWorkRepository
+from tests.music_catalog.fakes.works import FakeMusicalWorkRepository
 from tests.support.scopes import fake_transaction_scope
 
 from roots_of_rhythm.music_catalog.application.read_services.songs import SongListReadService

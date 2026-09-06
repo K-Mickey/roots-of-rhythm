@@ -4,12 +4,11 @@ from typing import TYPE_CHECKING
 from uuid import UUID, uuid7
 
 import pytest
-from tests.historical_knowledge.fakes import (
-    FakeHistoricalKnowledgeUnitOfWork,
-    FakeSourceRepository,
-    StubRecordingOriginClaimRepository,
-)
-from tests.music_catalog.fakes import FakeMusicalWorkRepository, FakeRecordingRepository
+from tests.historical_knowledge.fakes.origin_claims import StubRecordingOriginClaimRepository
+from tests.historical_knowledge.fakes.sources import FakeSourceRepository
+from tests.music_catalog.fakes.recordings import FakeRecordingRepository
+from tests.music_catalog.fakes.works import FakeMusicalWorkRepository
+from tests.support.scopes import CountingTransaction, counting_transaction_scope
 
 from roots_of_rhythm.historical_knowledge.application import (
     ClaimNotFound,
@@ -73,29 +72,28 @@ def _operations(
     PublishRecordingOriginClaim,
     StubRecordingOriginClaimRepository,
     TrackingSourceRepository,
-    FakeHistoricalKnowledgeUnitOfWork,
+    CountingTransaction,
 ]:
+    scope, counting = counting_transaction_scope()
     origin_claims = claim_repository or StubRecordingOriginClaimRepository()
     source_repository = sources or TrackingSourceRepository()
-    transaction = FakeHistoricalKnowledgeUnitOfWork({}, source_repository)
-    transaction.recording_origin_claims = origin_claims
     recording_repository = FakeRecordingRepository(recordings)
     work_repository = FakeMusicalWorkRepository(works)
 
     return (
         RecordingOriginClaimService(
-            lambda: transaction,
+            scope,
             lambda _transaction: origin_claims,
             lambda _transaction: source_repository,
         ),
         CreateRecordingOriginClaim(
-            lambda: transaction,
+            scope,
             lambda _transaction: origin_claims,
             lambda _transaction: recording_repository,
             lambda _transaction: work_repository,
         ),
         PublishRecordingOriginClaim(
-            lambda: transaction,
+            scope,
             lambda _transaction: origin_claims,
             lambda _transaction: recording_repository,
             lambda _transaction: work_repository,
@@ -103,14 +101,14 @@ def _operations(
         ),
         origin_claims,
         source_repository,
-        transaction,
+        counting,
     )
 
 
 @pytest.mark.asyncio
 async def test_recording_origin_claim_lifecycle_uses_locked_batch_evidence() -> None:
     recording_id, work_id, fragment_id = uuid7(), uuid7(), uuid7()
-    service, create, publish, _claims, sources, transaction = _operations(
+    service, create, publish, _claims, sources, counting = _operations(
         {recording_id: Recording(recording_id, "Take", editorial_status=MusicEditorialStatus.PUBLISHED)},
         {
             work_id: MusicalWork(
@@ -146,17 +144,17 @@ async def test_recording_origin_claim_lifecycle_uses_locked_batch_evidence() -> 
     assert published.is_published
     assert archived.is_archived
     assert sources.locked_batches == [{fragment_id}, {fragment_id}]
-    assert transaction.commits == 5
+    assert counting.commits == 5
 
 
 @pytest.mark.asyncio
 async def test_create_requires_recording_then_work() -> None:
     recording_id, work_id = uuid7(), uuid7()
-    _service, create, _publish, _claims, _sources, _transaction = _operations({}, {})
+    _service, create, _publish, _claims, _sources, _counting = _operations({}, {})
     with pytest.raises(EndpointRecordingMissing, match=str(recording_id)):
         await create.execute(recording_id, work_id, RecordingOriginPredicate.FIRST_RECORDING_OF)
 
-    _service, create, _publish, _claims, _sources, _transaction = _operations(
+    _service, create, _publish, _claims, _sources, _counting = _operations(
         {recording_id: Recording(recording_id, "Take")},
         {},
     )
@@ -169,7 +167,7 @@ async def test_publish_reports_missing_claim_unpublished_recording_and_invalid_e
     recording_id, work_id, fragment_id = uuid7(), uuid7(), uuid7()
     recordings = {recording_id: Recording(recording_id, "Take")}
     works = {work_id: MusicalWork(work_id, "Work")}
-    service, create, publish, _claims, sources, _transaction = _operations(recordings, works)
+    service, create, publish, _claims, sources, _counting = _operations(recordings, works)
     with pytest.raises(ClaimNotFound):
         await publish.execute(uuid7())
 
@@ -221,7 +219,7 @@ async def test_create_preserves_repository_unique_conflict() -> None:
             raise UniqueConstraintViolation("origin constraint")
 
     recording_id, work_id = uuid7(), uuid7()
-    _service, create, _publish, _claims, _sources, _transaction = _operations(
+    _service, create, _publish, _claims, _sources, _counting = _operations(
         {recording_id: Recording(recording_id, "Take")},
         {work_id: MusicalWork(work_id, "Work")},
         claim_repository=ConflictingRepository(),

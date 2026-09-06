@@ -14,9 +14,6 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from roots_of_rhythm.historical_knowledge.domain import Source
-    from roots_of_rhythm.historical_knowledge.public.genre_relation_claim_reader import (
-        PublishedGenreRelationClaims,
-    )
     from roots_of_rhythm.historical_knowledge.public.recording_knowledge_reader import RecordingKnowledgeData
     from roots_of_rhythm.music_catalog.domain import Genre, Group, MusicalWork, Recording
     from roots_of_rhythm.music_catalog.public.group_reader import GroupOverviewData
@@ -206,15 +203,3 @@ class StubSourceReader:
 
     async def get_sources_by_ids(self, source_ids: Collection[UUID]) -> dict[UUID, Source]:
         return {source_id: self._sources[source_id] for source_id in source_ids if source_id in self._sources}
-
-
-class StubGenreRelationClaimReader:
-    def __init__(self, data: PublishedGenreRelationClaims | None = None) -> None:
-        self._data = data
-
-    async def read_for_genre(self, _genre_id: UUID) -> PublishedGenreRelationClaims:
-        from roots_of_rhythm.historical_knowledge.public.genre_relation_claim_reader import (
-            PublishedGenreRelationClaims,
-        )
-
-        return self._data if self._data is not None else PublishedGenreRelationClaims(claims=(), evidence_by_claim={})

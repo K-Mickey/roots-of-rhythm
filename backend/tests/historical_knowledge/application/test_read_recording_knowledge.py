@@ -1,11 +1,9 @@
 from uuid import uuid7
 
 import pytest
-from tests.historical_knowledge.fakes import (
-    FakeSourceRepository,
-    StubListeningGuideRepository,
-    StubRecordingOriginClaimRepository,
-)
+from tests.historical_knowledge.fakes.listening_guides import StubListeningGuideRepository
+from tests.historical_knowledge.fakes.origin_claims import StubRecordingOriginClaimRepository
+from tests.historical_knowledge.fakes.sources import FakeSourceRepository
 from tests.support.scopes import fake_transaction_scope
 
 from roots_of_rhythm.historical_knowledge.application.read_services.recording_knowledge import (

@@ -18,8 +18,33 @@ class FakeTransaction:
 
 
 def fake_transaction_scope() -> Callable[[], AbstractAsyncContextManager[Transaction]]:
+    return _build_scope(FakeTransaction)
+
+
+class CountingTransaction:
+    def __init__(self) -> None:
+        self.commits = 0
+
+    async def commit(self) -> None:
+        self.commits += 1
+
+    async def rollback(self) -> None:
+        return None
+
+
+def counting_transaction_scope() -> tuple[
+    Callable[[], AbstractAsyncContextManager[Transaction]],
+    CountingTransaction,
+]:
+    shared = CountingTransaction()
+    return _build_scope(lambda: shared), shared
+
+
+def _build_scope(
+    transaction_factory: Callable[[], Transaction],
+) -> Callable[[], AbstractAsyncContextManager[Transaction]]:
     @asynccontextmanager
     async def scope() -> AsyncIterator[Transaction]:
-        yield FakeTransaction()
+        yield transaction_factory()
 
     return scope

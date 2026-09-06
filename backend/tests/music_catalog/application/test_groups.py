@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from tests.music_catalog.fakes import FakeMusicCatalogUnitOfWork
+from tests.music_catalog.fakes.legacy_uow import FakeMusicCatalogUnitOfWork
 
 from roots_of_rhythm.music_catalog.application import GroupService
 from roots_of_rhythm.music_catalog.domain import Group, GroupContent

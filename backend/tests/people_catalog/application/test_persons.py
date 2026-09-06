@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from tests.people_catalog.fakes import FakePeopleCatalogUnitOfWork
+from tests.people_catalog.fakes.legacy_uow import FakePeopleCatalogUnitOfWork
 
 from roots_of_rhythm.people_catalog.application import PersonService
 from roots_of_rhythm.people_catalog.domain import EditorialStatus, Person, PersonContent
