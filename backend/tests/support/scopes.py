@@ -1,26 +1,12 @@
 from __future__ import annotations
 
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
 
     from roots_of_rhythm.application.transaction import Transaction
-
-_LeftT = TypeVar("_LeftT")
-_RightT = TypeVar("_RightT")
-
-
-def pair_scope(
-    left_factory: Callable[[], _LeftT],
-    right_factory: Callable[[], _RightT],
-) -> Callable[[], AbstractAsyncContextManager[tuple[_LeftT, _RightT]]]:
-    @asynccontextmanager
-    async def scope() -> AsyncIterator[tuple[_LeftT, _RightT]]:
-        yield left_factory(), right_factory()
-
-    return scope
 
 
 class FakeTransaction:

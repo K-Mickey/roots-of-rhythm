@@ -45,22 +45,39 @@ Backend содержит реально используемые общесис�
 
 ```text
 backend/src/roots_of_rhythm/
+├── application/
+│   └── transaction.py               # общий transaction port
 ├── config.py
 ├── entrypoints/
 │   ├── api.py
 │   ├── cli.py
-│   └── dependencies.py
+│   └── dependencies.py              # composition root API: transaction scope + repository factories
 ├── infrastructure/
 │   ├── database.py
 │   ├── service_columns.py
+│   ├── transaction.py               # SqlAlchemyTransactionScope и привязка session
+├── presentation/
+│   └── health.py
 ├── seed/
-│   ├── __init__.py
-│   ├── corpus.py
-│   └── runner.py
+│   ├── runner.py
+│   ├── genre_knowledge.py
+│   ├── people_and_groups.py
+│   ├── musical_works.py
+│   └── recording_corpus.py
+├── text_lengths.py
 ├── people_catalog/
 │   ├── domain/
 │   ├── application/
+│   │   ├── ports.py
+│   │   ├── service.py               # lifecycle PersonService (registry UoW)
+│   │   └── read_services/
+│   ├── public/
+│   │   └── published_person_reader.py
 │   └── infrastructure/
+│       ├── mapping.py
+│       ├── models.py
+│       ├── repository.py
+│       └── unit_of_work.py
 ├── music_catalog/
 │   ├── domain/
 │   │   ├── enums.py
@@ -69,84 +86,78 @@ backend/src/roots_of_rhythm/
 │   │   ├── genre.py
 │   │   ├── group.py
 │   │   ├── group_membership.py
+│   │   ├── lyrics_version.py
+│   │   ├── lyrics_version_credit.py
+│   │   ├── lyrics_version_relation.py
+│   │   ├── musical_work.py
+│   │   ├── recording.py
+│   │   ├── work_credit.py
+│   │   ├── work_relation.py
 │   │   └── value_objects.py
 │   ├── application/
 │   │   ├── errors.py
-│   │   ├── assignment_service.py
-│   │   ├── group_membership_service.py
-│   │   ├── group_service.py
 │   │   ├── ports.py
-│   │   └── service.py
+│   │   ├── *service.py             # lifecycle services (часть — registry UoW)
+│   │   ├── read_services/          # Music context public readers
+│   │   └── write_services/         # command use cases (Recording, ClassificationAssignment)
+│   ├── public/                     # Genre, Group, Performer, SongList, SongOverview, Recording, RecordingLyrics readers
 │   └── infrastructure/
-│       ├── mapping.py
-│       ├── models.py
-│       ├── assignment_repository.py
-│       ├── group_membership_repository.py
-│       ├── group_repository.py
-│       ├── repository.py
+│       ├── mapping/
+│       ├── models/
+│       ├── *repository.py
 │       └── unit_of_work.py
 ├── historical_knowledge/
 │   ├── domain/
 │   │   ├── claim.py
 │   │   ├── enums.py
 │   │   ├── errors.py
+│   │   ├── listening_guide.py
+│   │   ├── recording_origin_claim.py
 │   │   ├── source.py
 │   │   └── value_objects.py
 │   ├── application/
 │   │   ├── errors.py
-│   │   ├── ports/
-│   │   ├── services/
-│   │   ├── use_cases/
+│   │   ├── ports/                  # claim/source/listening-guide repositories, UoW
+│   │   ├── read_services/          # context readers
+│   │   ├── services/               # lifecycle services
+│   │   ├── write_services/         # command use cases (Claims, ListeningGuide)
 │   │   └── source_service.py
-│   ├── public/
-│   │   └── genre_relation_claim_reader.py
+│   ├── public/                     # GenreRelationClaim, RecordingKnowledge, SongContext, Source readers
 │   └── infrastructure/
-│       ├── claim_repository.py
-│       ├── genre_relation_claim_reader.py
 │       ├── mapping.py
-│       ├── models.py
-│       ├── source_repository.py
+│       ├── models/
+│       ├── *repository.py
 │       └── unit_of_work.py
-├── discovery/
-│   ├── application/
-│   │   ├── dto.py
-│   │   ├── errors.py
-│   │   ├── genre_overview.py
-│   │   ├── genre_list.py
-│   │   ├── genre_relation_projection.py
-│   │   ├── genre_relations.py
-│   │   ├── genre_sources.py
-│   │   ├── group_list.py
-│   │   ├── group_overview.py
-│   │   ├── performer_list.py
-│   │   └── performer_overview.py
-│   └── presentation/
-│       ├── schemas.py
-│       ├── genres.py
-│       ├── groups.py
-│       └── performers.py
-└── presentation/
-    └── health.py
-
-backend/tests/
-├── entrypoints/
-├── seed/
-├── discovery/
-│   ├── application/
-│   └── fakes.py
-├── music_catalog/
-│   ├── domain/
-│   ├── application/
-│   ├── infrastructure/
-│   └── fakes.py
-└── historical_knowledge/
-    ├── domain/
+└── discovery/
     ├── application/
-    ├── infrastructure/
-    └── fakes.py
+    │   ├── queries/                # read use cases (GenreList, SongOverview, ...)
+    │   ├── projections/            # чистые сборщики DTO
+    │   ├── dto/
+    │   └── errors/
+    └── presentation/
+        ├── schemas.py
+        ├── genres.py
+        ├── performers.py
+        ├── groups.py
+        ├── songs.py
+        └── recordings.py
 ```
 
-`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), корневой `presentation` — health probes, `discovery` — public Genre, Performer и Group read-side, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin`), `seed` — controlled Genre, Performer и Group corpus через domain services, `config.py` — application settings. `people_catalog` владеет Person. `music_catalog` владеет Genre/ClassificationConcept и ClassificationAssignment. `historical_knowledge` владеет GenreRelation Claim, Evidence references и Source/SourceVersion/SourceFragment stack с bibliographic metadata на Source и citation locator на Fragment; create/publish Claim используют transaction-only boundary и отдельно внедрённые repositories одной PostgreSQL session. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+`entrypoints` собирает процессы и lifecycle (включая CLI `seed`), корневой `presentation` — health probes, `discovery` — public Genre, Performer, Group, Song и Recording read-side, корневой `infrastructure` — общими runtime adapters (включая `ServiceColumnsMixin` и `SqlAlchemyTransactionScope`), `seed` — controlled Genre, Performer/Group, MusicalWork и Recording corpus через domain/application services, `config.py` — application settings. `application.transaction` — общий transaction port. `people_catalog` владеет Person. `music_catalog` владеет Genre/ClassificationConcept, ClassificationAssignment, Group, MusicalWork, LyricsVersion и Recording. `historical_knowledge` владеет GenreRelation Claim, RecordingOrigin Claim, ListeningGuide, Evidence references и Source/SourceVersion/SourceFragment stack; create/publish Claims используют transaction-only boundary и отдельно внедрённые repositories одной PostgreSQL session. Persistence следует [ADR-0005](decisions/0005-persistence-service-columns-and-soft-delete.md): сервисные колонки на таблицах, soft-delete identity aggregates, hard rewrite owned evidence references. Будущие contexts не создаются пустыми: story добавляет верхнеуровневый module и только реально используемые подпапки.
+
+Тесты зеркалят те же границы, плюс общие helpers:
+
+```text
+backend/tests/
+├── entrypoints/          # HTTP-уровень и интеграция с API
+├── seed/                 # corpus seeds против PostgreSQL
+├── architecture/         # static AST checks импортных границ (R1–R4)
+├── discovery/            # query/projection readers и их fakes
+├── music_catalog/        # domain/application/infrastructure музыкального контекста
+├── historical_knowledge/ # domain/application/infrastructure исторического контекста
+├── people_catalog/       # domain/application/infrastructure People
+└── support/              # общие transaction scopes и PostgreSQL helpers
+```
 
 ## Внутренняя структура модуля
 

@@ -171,6 +171,8 @@ Tracker: [#63](https://github.com/K-Mickey/roots-of-rhythm/issues/63).
 
 Зависит от `ARCH-002`, `ARCH-004` и `ARCH-005B`.
 
+Статус: `implemented` (2026-09-06).
+
 ### Результат
 
 Dependency assembly отражает новые contracts, а автоматические проверки не позволяют вернуть межконтекстные ORM imports и registry-style UoW в мигрированный код.
@@ -182,6 +184,19 @@ Dependency assembly отражает новые contracts, а автоматич
 - запретить Discovery/application operations импортировать infrastructure другого context;
 - удалить переходные factories только когда у них не осталось callers;
 - синхронизировать architecture/module documentation с фактическим состоянием миграции.
+
+Wiring выполнен без DI-фреймворка: API composition root (`entrypoints/dependencies.py`) использует `transaction_scope` и `repository_factory` на новых contracts, а seed-секции переиспользуют `repository_factory` из `entrypoints.dependencies` вместо локальных factory-функций для мигрированных write-path repositories. Registry-style UoW остаются только в ещё не мигрированных одноконтекстных services и в seed.
+
+Architecture checks реализованы как pytest-файл `tests/architecture/test_import_boundaries.py` со static AST-сканированием `backend/src` без новых зависимостей:
+
+- R1 — context или Discovery не импортирует infrastructure чужого context (исключение — `entrypoints` и `seed`);
+- R2 — public readers импортируют только свой context и общие root-модули;
+- R3 — domain импортирует только собственный domain (разрешён общий `text_lengths`);
+- R4 — application никогда не импортирует infrastructure ни одного context.
+
+Bounded contexts в проверке определяются автоматически по наличию `domain/` или `infrastructure/` подкаталога, а не зашиты как фиксированный список, — новый context попадает под guardrails без правки теста.
+
+Переходный `pair_scope` из `tests/support/scopes.py` удалён после подтверждения отсутствия callers; `fake_transaction_scope` сохранён.
 
 ### Проверка
 

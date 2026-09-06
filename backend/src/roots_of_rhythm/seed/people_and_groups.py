@@ -3,7 +3,8 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
+from roots_of_rhythm.entrypoints.dependencies import repository_factory
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentService,
     GroupMembershipService,
@@ -35,7 +36,6 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from roots_of_rhythm.application.transaction import Transaction
     from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
 
 
@@ -249,16 +249,18 @@ class PeopleAndGroupsSeed:
         self._group_memberships = GroupMembershipService(self._music_uow)
         transaction_scope = SqlAlchemyTransactionScope(session_factory)
 
-        def assignment_repository(transaction: "Transaction") -> SqlAlchemyClassificationAssignmentRepository:
-            return SqlAlchemyClassificationAssignmentRepository(sqlalchemy_session(transaction))
+        assignment_repository = repository_factory(SqlAlchemyClassificationAssignmentRepository)
+        genre_repository = repository_factory(SqlAlchemyGenreRepository)
+        group_repository = repository_factory(SqlAlchemyGroupRepository)
+        person_repository = repository_factory(SqlAlchemyPersonRepository)
 
         self._assignments = ClassificationAssignmentService(transaction_scope, assignment_repository)
         self._publish_assignment = PublishClassificationAssignment(
             transaction_scope,
             assignment_repository,
-            lambda transaction: SqlAlchemyGenreRepository(sqlalchemy_session(transaction)),
-            lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
-            lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
+            genre_repository,
+            group_repository,
+            person_repository,
         )
 
     async def run(self) -> None:

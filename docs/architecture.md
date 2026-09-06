@@ -27,6 +27,8 @@ Application operations следуют [ADR-0008](decisions/0008-application-oper
 
 Discovery queries являются read use cases. Они объединяют публичные проекции контекстов, но не читают чужие ORM-модели и не владеют исходными данными. Для составного чтения context-владелец может предоставить предметный public reader с batch-загрузкой в пределах своих таблиц. Целевая ответственность UoW — write-транзакция; repositories внедряются отдельно. Использовавшие несколько контекстов pair scopes удалены после миграции write-path на общую transaction boundary.
 
+Импортные границы защищены автоматическими static-проверками `tests/architecture/test_import_boundaries.py` (AST-скан `backend/src`, без новых зависимостей): context/Discovery не импортируют infrastructure чужого context (исключение — `entrypoints` и `seed`), public readers — только свой context плюс общие root-модули, domain — только собственный domain, application — никакое infrastructure. Направляющие правила и структура тестов: [правила зависимостей](module-structure.md) и [структура тестов](module-structure.md).
+
 ## Принятый application stack
 
 - backend: Python, Litestar, msgspec и Uvicorn;

@@ -3,6 +3,7 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+from roots_of_rhythm.entrypoints.dependencies import repository_factory
 from roots_of_rhythm.historical_knowledge.application import (
     CreateGenreRelationClaim,
     GenreRelationClaimService,
@@ -23,7 +24,7 @@ from roots_of_rhythm.historical_knowledge.domain import (
 from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
-from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
+from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope
 from roots_of_rhythm.music_catalog.application import GenreService
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
 from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
@@ -34,7 +35,6 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from roots_of_rhythm.application.transaction import Transaction
     from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
 
 
@@ -196,14 +196,9 @@ class GenreKnowledgeSeed:
         self._sources = SourceService(self._hk_uow)
         transaction_scope = SqlAlchemyTransactionScope(session_factory)
 
-        def claim_repository(transaction: "Transaction") -> SqlAlchemyClaimRepository:
-            return SqlAlchemyClaimRepository(sqlalchemy_session(transaction))
-
-        def source_repository(transaction: "Transaction") -> SqlAlchemySourceRepository:
-            return SqlAlchemySourceRepository(sqlalchemy_session(transaction))
-
-        def genre_repository(transaction: "Transaction") -> SqlAlchemyGenreRepository:
-            return SqlAlchemyGenreRepository(sqlalchemy_session(transaction))
+        claim_repository = repository_factory(SqlAlchemyClaimRepository)
+        source_repository = repository_factory(SqlAlchemySourceRepository)
+        genre_repository = repository_factory(SqlAlchemyGenreRepository)
 
         self._claims = GenreRelationClaimService(
             transaction_scope,
