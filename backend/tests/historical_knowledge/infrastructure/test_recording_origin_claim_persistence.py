@@ -1,7 +1,9 @@
+import asyncio
 from typing import TYPE_CHECKING
 from uuid import uuid7
 
 import pytest
+from sqlalchemy import select
 
 from roots_of_rhythm.historical_knowledge.application import (
     CreateRecordingOriginClaim,
@@ -21,6 +23,7 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
+from roots_of_rhythm.historical_knowledge.infrastructure.models import RecordingOriginClaimRecord
 from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
     SqlAlchemyRecordingOriginClaimRepository,
 )
@@ -45,11 +48,22 @@ from roots_of_rhythm.music_catalog.infrastructure.recording_repository import Sq
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+    from datetime import datetime
+    from uuid import UUID
+
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
     from roots_of_rhythm.application.transaction import Transaction
 
 pytestmark = pytest.mark.integration
+
+
+async def _claim_updated_at(session_factory: async_sessionmaker[AsyncSession], claim_id: UUID) -> datetime | None:
+    async with session_factory() as session:
+        value: datetime | None = await session.scalar(
+            select(RecordingOriginClaimRecord.updated_at).where(RecordingOriginClaimRecord.id == claim_id)
+        )
+        return value
 
 
 @pytest.mark.asyncio
@@ -133,11 +147,17 @@ async def test_recording_origin_claim_lifecycle_and_unique_constraint(engine: As
         claim.id,
         (ClaimEvidenceReference.create(fragment.id, EvidenceRole.SUPPORTS),),
     )
+    updated_at_before = await _claim_updated_at(session_factory, claim.id)
+
+    await asyncio.sleep(0.01)
     published = await publish.execute(claim.id)
 
     assert published.is_published
     async with hk_uow() as historical_uow:
         assert await historical_uow.recording_origin_claims.get(claim.id) == published
+    updated_at_after = await _claim_updated_at(session_factory, claim.id)
+    assert updated_at_before is not None and updated_at_after is not None
+    assert updated_at_after > updated_at_before
 
     with pytest.raises(UniqueConstraintViolation):
         await create.execute(recording_id, work_id, RecordingOriginPredicate.FIRST_RECORDING_OF)

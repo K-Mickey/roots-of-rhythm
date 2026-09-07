@@ -1,8 +1,10 @@
 # ADR-0005: сервисные колонки persistence и soft-delete
 
-Статус: `proposed`
+Статус: `accepted`
 
-Дата: 2026-08-18.
+Дата: 2026-08-18. Аудит и перевод в `accepted`: 2026-09-07.
+
+Аудит подтвердил контракт на всех таблицах: сервисные колонки non-null с DB-defaults, partial unique indexes `WHERE deleted = false` и `set_updated_at` triggers. Единственный дрифт — две таблицы из миграции 0014 (`recording_origin_claims`, `recording_origin_claim_evidence_references`) без `set_updated_at` trigger; закрыт миграцией `0015_fix_recording_origin_set_updated_at`. Схемный контракт проверяется интеграционным тестом `tests/infrastructure/test_service_columns_schema.py`.
 
 ## Контекст
 
