@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 from uuid import UUID, uuid7
 
 from litestar import Router, get
@@ -19,37 +20,73 @@ logger = logging.getLogger(__name__)
 
 
 def create_recordings_router() -> Router:
-    @get()
-    async def list_recordings(
-        recording_list_reader: NamedDependency[RecordingListReader],
-    ) -> RecordingListResponse | Response[ErrorResponse]:
-        try:
-            return await recording_list_reader.list()
-        except Exception:
-            request_id = str(uuid7())
-            logger.exception("Failed to list published Recordings", extra={"request_id": request_id})
-            return _error(500, "INTERNAL_ERROR", "Не удалось загрузить записи.", request_id)
-
-    @get("/{recording_id:str}")
-    async def get_recording(
-        recording_id: FromPath[str],
-        recording_overview_reader: NamedDependency[RecordingOverviewReader],
-    ) -> RecordingOverviewResponse | Response[ErrorResponse]:
-        try:
-            parsed = UUID(recording_id)
-        except ValueError:
-            return _error(404, "RECORDING_NOT_FOUND", "Запись не найдена.")
-        try:
-            return await recording_overview_reader.get(parsed)
-        except RecordingOverviewNotFound:
-            return _error(404, "RECORDING_NOT_FOUND", "Запись не найдена.")
-        except Exception:
-            request_id = str(uuid7())
-            logger.exception("Failed to assemble Recording overview", extra={"request_id": request_id})
-            return _error(500, "INTERNAL_ERROR", "Не удалось загрузить запись.", request_id)
-
-    return Router(path="/api/v1/recordings", route_handlers=[list_recordings, get_recording])
+    return Router(
+        path="/api/v1/recordings",
+        route_handlers=[
+            list_recordings,
+            get_recording,
+        ],
+    )
 
 
-def _error(status: int, code: str, message: str, request_id: str | None = None) -> Response[ErrorResponse]:
-    return Response(ErrorResponse(code, message, None, request_id or str(uuid7())), status_code=status)
+@get()
+async def list_recordings(
+    recording_list_reader: NamedDependency[RecordingListReader],
+) -> RecordingListResponse | Response[ErrorResponse]:
+    try:
+        return await recording_list_reader.list()
+    except Exception:
+        request_id = str(uuid7())
+        logger.exception("Failed to list published Recordings", extra={"request_id": request_id})
+        return Response(
+            ErrorResponse(
+                code="INTERNAL_ERROR",
+                message="Не удалось загрузить записи.",
+                details=None,
+                request_id=request_id,
+            ),
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+
+@get("/{recording_id:str}")
+async def get_recording(
+    recording_id: FromPath[str],
+    recording_overview_reader: NamedDependency[RecordingOverviewReader],
+) -> RecordingOverviewResponse | Response[ErrorResponse]:
+    try:
+        parsed = UUID(recording_id)
+    except ValueError:
+        return Response(
+            ErrorResponse(
+                code="RECORDING_NOT_FOUND",
+                message="Запись не найдена.",
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
+    try:
+        return await recording_overview_reader.get(parsed)
+    except RecordingOverviewNotFound:
+        return Response(
+            ErrorResponse(
+                code="RECORDING_NOT_FOUND",
+                message="Запись не найдена.",
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
+    except Exception:
+        request_id = str(uuid7())
+        logger.exception("Failed to assemble Recording overview", extra={"request_id": request_id})
+        return Response(
+            ErrorResponse(
+                code="INTERNAL_ERROR",
+                message="Не удалось загрузить запись.",
+                details=None,
+                request_id=request_id,
+            ),
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )

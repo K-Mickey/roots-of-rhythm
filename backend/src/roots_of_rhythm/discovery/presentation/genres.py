@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 from uuid import UUID, uuid7
 
 from litestar import Router, get
@@ -57,7 +58,15 @@ async def list_published_genres(
     except Exception:
         request_id = str(uuid7())
         logger.exception("Failed to list published Genres", extra={"request_id": request_id})
-        return _error_response(500, "INTERNAL_ERROR", _INTERNAL_ERROR_MESSAGE, request_id=request_id)
+        return Response(
+            ErrorResponse(
+                code="INTERNAL_ERROR",
+                message=_INTERNAL_ERROR_MESSAGE,
+                details=None,
+                request_id=request_id,
+            ),
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
 
 @get("/{genre_id:str}")
@@ -68,15 +77,39 @@ async def get_published_genre_overview(
     try:
         parsed_id = UUID(genre_id)
     except ValueError:
-        return _error_response(404, "GENRE_NOT_FOUND", _GENRE_NOT_FOUND_MESSAGE)
+        return Response(
+            ErrorResponse(
+                code="GENRE_NOT_FOUND",
+                message=_GENRE_NOT_FOUND_MESSAGE,
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
     try:
         return await genre_overview_reader.get(parsed_id)
     except GenreOverviewNotFound:
-        return _error_response(404, "GENRE_NOT_FOUND", _GENRE_NOT_FOUND_MESSAGE)
+        return Response(
+            ErrorResponse(
+                code="GENRE_NOT_FOUND",
+                message=_GENRE_NOT_FOUND_MESSAGE,
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
     except Exception:
         request_id = str(uuid7())
         logger.exception("Failed to assemble Genre overview", extra={"request_id": request_id})
-        return _error_response(500, "INTERNAL_ERROR", _INTERNAL_ERROR_MESSAGE, request_id=request_id)
+        return Response(
+            ErrorResponse(
+                code="INTERNAL_ERROR",
+                message=_INTERNAL_ERROR_MESSAGE,
+                details=None,
+                request_id=request_id,
+            ),
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
 
 @get("/{genre_id:str}/relations")
@@ -87,15 +120,39 @@ async def get_published_genre_relations(
     try:
         parsed_id = UUID(genre_id)
     except ValueError:
-        return _error_response(404, "GENRE_NOT_FOUND", _GENRE_NOT_FOUND_MESSAGE)
+        return Response(
+            ErrorResponse(
+                code="GENRE_NOT_FOUND",
+                message=_GENRE_NOT_FOUND_MESSAGE,
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
     try:
         return await genre_relations_reader.get(parsed_id)
     except GenreRelationsNotFound:
-        return _error_response(404, "GENRE_NOT_FOUND", _GENRE_NOT_FOUND_MESSAGE)
+        return Response(
+            ErrorResponse(
+                code="GENRE_NOT_FOUND",
+                message=_GENRE_NOT_FOUND_MESSAGE,
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
     except Exception:
         request_id = str(uuid7())
         logger.exception("Failed to assemble Genre relations", extra={"request_id": request_id})
-        return _error_response(500, "INTERNAL_ERROR", _INTERNAL_ERROR_MESSAGE, request_id=request_id)
+        return Response(
+            ErrorResponse(
+                code="INTERNAL_ERROR",
+                message=_INTERNAL_ERROR_MESSAGE,
+                details=None,
+                request_id=request_id,
+            ),
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
 
 @get("/{genre_id:str}/sources")
@@ -106,25 +163,36 @@ async def get_published_genre_sources(
     try:
         parsed_id = UUID(genre_id)
     except ValueError:
-        return _error_response(404, "GENRE_NOT_FOUND", _GENRE_NOT_FOUND_MESSAGE)
+        return Response(
+            ErrorResponse(
+                code="GENRE_NOT_FOUND",
+                message=_GENRE_NOT_FOUND_MESSAGE,
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
     try:
         return await genre_sources_reader.get(parsed_id)
     except GenreSourcesNotFound:
-        return _error_response(404, "GENRE_NOT_FOUND", _GENRE_NOT_FOUND_MESSAGE)
+        return Response(
+            ErrorResponse(
+                code="GENRE_NOT_FOUND",
+                message=_GENRE_NOT_FOUND_MESSAGE,
+                details=None,
+                request_id=str(uuid7()),
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+        )
     except Exception:
         request_id = str(uuid7())
         logger.exception("Failed to assemble Genre sources", extra={"request_id": request_id})
-        return _error_response(500, "INTERNAL_ERROR", _INTERNAL_ERROR_MESSAGE, request_id=request_id)
-
-
-def _error_response(
-    status_code: int,
-    code: str,
-    message: str,
-    *,
-    request_id: str | None = None,
-) -> Response[ErrorResponse]:
-    return Response(
-        ErrorResponse(code=code, message=message, details=None, request_id=request_id or str(uuid7())),
-        status_code=status_code,
-    )
+        return Response(
+            ErrorResponse(
+                code="INTERNAL_ERROR",
+                message=_INTERNAL_ERROR_MESSAGE,
+                details=None,
+                request_id=request_id,
+            ),
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
