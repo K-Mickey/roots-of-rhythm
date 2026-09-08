@@ -22,7 +22,7 @@ from roots_of_rhythm.discovery.application.dto.songs import (
 from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
 from roots_of_rhythm.discovery.application.projections.recording_credits import project_primary_credits
 from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
-from roots_of_rhythm.music_catalog.application.lyrics_body_projection import project_lyrics_version_body
+from roots_of_rhythm.music_catalog.application.projections.lyrics_body import project_lyrics_version_body
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -93,7 +93,7 @@ class SongOverviewQuery:
             credit.target_id
             for recording in music.recordings
             for credit in recording.credits
-            if credit.is_primary_billing and credit.is_person_target
+            if credit.is_primary_person
         )
 
         people, knowledge = await gather(
@@ -211,7 +211,7 @@ def _lyrics_relation_views(
 ) -> list[LyricsVersionRelationView]:
     views: list[LyricsVersionRelationView] = []
     for relation in relations:
-        other_id = _other_lyrics_version_id(relation, version_id)
+        other_id = relation.relative_lyrics_version_id(version_id)
         other_version = versions.get(other_id)
         if other_version is None:
             continue
@@ -227,12 +227,6 @@ def _lyrics_relation_views(
         )
     views.sort(key=lambda item: (item.relation_type.value, item.version.language_tag, item.version.label or ""))
     return views
-
-
-def _other_lyrics_version_id(relation: LyricsVersionRelation, version_id: UUID) -> UUID:
-    if relation.source_lyrics_version_id == version_id:
-        return relation.target_lyrics_version_id
-    return relation.source_lyrics_version_id
 
 
 def _project_song_recordings(

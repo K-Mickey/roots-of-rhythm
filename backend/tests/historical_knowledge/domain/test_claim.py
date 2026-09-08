@@ -18,8 +18,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
     SourceVersion,
     TemporalBound,
     TemporalPrecision,
-    canonicalize_relation_endpoints,
-    is_claim_publicly_visible,
 )
 
 
@@ -62,9 +60,10 @@ def test_overlaps_with_uses_canonical_id_order() -> None:
     lower = UUID(int=1)
     higher = UUID(int=2)
 
-    forward = canonicalize_relation_endpoints(lower, higher, RelationType.OVERLAPS_WITH)
-    swapped = canonicalize_relation_endpoints(higher, lower, RelationType.OVERLAPS_WITH)
-    directed = canonicalize_relation_endpoints(higher, lower, RelationType.INFLUENCED)
+    canonicalize = GenreRelationClaim.canonicalize_relation_endpoints
+    forward = canonicalize(lower, higher, RelationType.OVERLAPS_WITH)
+    swapped = canonicalize(higher, lower, RelationType.OVERLAPS_WITH)
+    directed = canonicalize(higher, lower, RelationType.INFLUENCED)
 
     assert forward == swapped == (lower, higher)
     assert directed == (higher, lower)
@@ -102,13 +101,6 @@ def test_publish_requires_completeness_and_evidence_rules() -> None:
 def test_all_relation_types_can_be_drafted(relation_type: RelationType) -> None:
     claim = GenreRelationClaim.create_draft(uuid7(), uuid7(), relation_type)
     assert claim.relation_type is relation_type
-
-
-def test_public_visibility_requires_published_claim_and_endpoints() -> None:
-    claim = _complete_claim(uuid7(), uuid7()).publish()
-    assert is_claim_publicly_visible(claim, subject_published=True, target_published=True)
-    assert not is_claim_publicly_visible(claim, subject_published=False, target_published=True)
-    assert not is_claim_publicly_visible(claim.archive(), subject_published=True, target_published=True)
 
 
 def test_source_fragment_review_lifecycle() -> None:

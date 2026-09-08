@@ -24,10 +24,10 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalPrecision,
 )
 from roots_of_rhythm.historical_knowledge.infrastructure.models import RecordingOriginClaimRecord
-from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.recording_origin_claim import (
     SqlAlchemyRecordingOriginClaimRepository,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.source import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
 from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
@@ -43,8 +43,8 @@ from roots_of_rhythm.music_catalog.domain import (
     WorkContent,
 )
 from roots_of_rhythm.music_catalog.domain import EditorialStatus as MusicEditorialStatus
-from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
-from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.musical_work import SqlAlchemyMusicalWorkRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:

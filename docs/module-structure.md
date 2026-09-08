@@ -69,7 +69,7 @@ backend/src/roots_of_rhythm/
 │   ├── domain/
 │   ├── application/
 │   │   ├── ports.py
-│   │   ├── service.py               # lifecycle PersonService (registry UoW)
+│   │   ├── services/               # lifecycle PersonService (registry UoW)
 │   │   └── read_services/
 │   ├── public/
 │   │   └── published_person_reader.py
@@ -97,9 +97,10 @@ backend/src/roots_of_rhythm/
 │   ├── application/
 │   │   ├── errors.py
 │   │   ├── ports.py
-│   │   ├── *service.py             # lifecycle services (часть — registry UoW)
-│   │   ├── read_services/          # Music context public readers
-│   │   └── write_services/         # command use cases (Recording, ClassificationAssignment)
+│   │   ├── services/               # lifecycle services (часть — registry UoW)
+│   │   ├── read_services/          # Music context public readers + lyrics projection service
+│   │   ├── write_services/         # command use cases (Recording, ClassificationAssignment)
+│   │   └── projections/            # чистые проекции (lyrics body)
 │   ├── public/                     # Genre, Group, Performer, SongList, SongOverview, Recording, RecordingLyrics readers
 │   └── infrastructure/
 │       ├── mapping/
@@ -119,19 +120,18 @@ backend/src/roots_of_rhythm/
 │   │   ├── errors.py
 │   │   ├── ports/                  # claim/source/listening-guide repositories, UoW
 │   │   ├── read_services/          # context readers
-│   │   ├── services/               # lifecycle services
-│   │   ├── write_services/         # command use cases (Claims, ListeningGuide)
-│   │   └── source_service.py
+│   │   ├── services/               # lifecycle services (включая SourceService)
+│   │   └── write_services/         # command use cases (Claims, ListeningGuide)
 │   ├── public/                     # GenreRelationClaim, RecordingKnowledge, SongContext, Source readers
 │   └── infrastructure/
-│       ├── mapping.py
+│       ├── mapping/                # пакет по aggregate: sources, genre_relation_claims, recording_origin_claims
 │       ├── models/
 │       ├── *repository.py
 │       └── unit_of_work.py
 └── discovery/
     ├── application/
     │   ├── queries/                # read use cases (GenreList, SongOverview, ...)
-    │   ├── projections/            # чистые сборщики DTO
+    │   ├── projections/            # чистые сборщики DTO (genre_relation, recording_credits)
     │   ├── dto/
     │   └── errors/
     └── presentation/

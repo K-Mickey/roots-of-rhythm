@@ -4,9 +4,7 @@ from roots_of_rhythm.discovery.application.dto.common import (
     GroupSummary,
     PerformerSummary,
 )
-from roots_of_rhythm.discovery.application.dto.recordings import (
-    RecordingPrimaryCreditView,
-)
+from roots_of_rhythm.discovery.application.dto.recordings import RecordingPrimaryCreditView
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -27,10 +25,12 @@ def project_primary_credits(
         target = persons.get(credit.target_id) if credit.is_person_target else groups.get(credit.target_id)
         if target is None:
             continue
-        summary = (
-            PerformerSummary(str(target.id), target.canonical_name)
-            if credit.is_person_target
-            else GroupSummary(str(target.id), target.canonical_name)
-        )
+
+        summary: PerformerSummary | GroupSummary
+        if credit.is_person_target:
+            summary = PerformerSummary(str(target.id), target.canonical_name)
+        else:
+            summary = GroupSummary(str(target.id), target.canonical_name)
+
         projected.append(RecordingPrimaryCreditView(credit.target_kind, summary))
     return projected

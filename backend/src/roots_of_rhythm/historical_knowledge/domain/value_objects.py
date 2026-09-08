@@ -2,7 +2,7 @@ from uuid import UUID
 
 import msgspec
 
-from roots_of_rhythm.historical_knowledge.domain.enums import EvidenceRole, RelationType, TemporalPrecision
+from roots_of_rhythm.historical_knowledge.domain.enums import EvidenceRole, TemporalPrecision
 from roots_of_rhythm.historical_knowledge.domain.errors import HistoricalKnowledgeDomainError
 from roots_of_rhythm.text_lengths import TEXT_64, TEXT_1024, TEXT_2048
 
@@ -97,15 +97,3 @@ class ClaimEvidenceReference(msgspec.Struct, frozen=True):
     @property
     def is_opposes(self) -> bool:
         return self.role is EvidenceRole.OPPOSES
-
-
-def canonicalize_relation_endpoints(
-    subject_genre_id: UUID,
-    target_genre_id: UUID,
-    relation_type: RelationType,
-) -> tuple[UUID, UUID]:
-    if subject_genre_id == target_genre_id:
-        raise HistoricalKnowledgeDomainError("subject and target Genre IDs must be distinct")
-    if relation_type is RelationType.OVERLAPS_WITH and subject_genre_id.int > target_genre_id.int:
-        return target_genre_id, subject_genre_id
-    return subject_genre_id, target_genre_id

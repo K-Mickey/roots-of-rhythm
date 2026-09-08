@@ -4,20 +4,6 @@ from psycopg import errors as psycopg_errors
 from sqlalchemy.exc import IntegrityError
 
 from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintViolation
-from roots_of_rhythm.music_catalog.infrastructure.assignment_repository import (
-    SqlAlchemyClassificationAssignmentRepository,
-)
-from roots_of_rhythm.music_catalog.infrastructure.group_membership_repository import (
-    SqlAlchemyGroupMembershipRepository,
-)
-from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_credit_repository import (
-    SqlAlchemyLyricsVersionCreditRepository,
-)
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_relation_repository import (
-    SqlAlchemyLyricsVersionRelationRepository,
-)
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_repository import SqlAlchemyLyricsVersionRepository
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
     CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
@@ -27,11 +13,25 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     WORK_CREDIT_UNIQUE_CONSTRAINT,
     WORK_RELATION_UNIQUE_CONSTRAINT,
 )
-from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
-from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
-from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
-from roots_of_rhythm.music_catalog.infrastructure.work_credit_repository import SqlAlchemyWorkCreditRepository
-from roots_of_rhythm.music_catalog.infrastructure.work_relation_repository import SqlAlchemyWorkRelationRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.assignment import (
+    SqlAlchemyClassificationAssignmentRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.repositories.genre import SqlAlchemyGenreRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.group import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.group_membership import (
+    SqlAlchemyGroupMembershipRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version import SqlAlchemyLyricsVersionRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version_credit import (
+    SqlAlchemyLyricsVersionCreditRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version_relation import (
+    SqlAlchemyLyricsVersionRelationRepository,
+)
+from roots_of_rhythm.music_catalog.infrastructure.repositories.musical_work import SqlAlchemyMusicalWorkRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.work_credit import SqlAlchemyWorkCreditRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.work_relation import SqlAlchemyWorkRelationRepository
 
 if TYPE_CHECKING:
     from types import TracebackType

@@ -72,14 +72,12 @@ class PublishListeningGuide:
             guide = await guide_repository.get(guide_id, for_update=True)
             if guide is None:
                 raise ListeningGuideNotFound(str(guide_id))
-            if (
-                await self._recording_repository_factory(transaction).get_published(
-                    guide.recording_id,
-                    for_update=True,
-                )
-                is None
-            ):
+
+            recording_repository = self._recording_repository_factory(transaction)
+            recording = await recording_repository.get_published(guide.recording_id, for_update=True)
+            if recording is None:
                 raise ListeningGuideRecordingNotPublished(str(guide.recording_id))
+
             published = guide.publish()
             await guide_repository.save(published)
             await transaction.commit()

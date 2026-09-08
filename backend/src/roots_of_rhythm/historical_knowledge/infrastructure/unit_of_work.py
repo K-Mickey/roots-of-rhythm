@@ -4,14 +4,14 @@ from psycopg import errors as psycopg_errors
 from sqlalchemy.exc import IntegrityError
 
 from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstraintViolation
-from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
-from roots_of_rhythm.historical_knowledge.infrastructure.listening_guide_repository import (
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.claim import SqlAlchemyClaimRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.listening_guide import (
     SqlAlchemyListeningGuideRepository,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.recording_origin_claim import (
     SqlAlchemyRecordingOriginClaimRepository,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.source import SqlAlchemySourceRepository
 
 if TYPE_CHECKING:
     from types import TracebackType

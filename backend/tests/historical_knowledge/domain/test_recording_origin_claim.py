@@ -14,7 +14,6 @@ from roots_of_rhythm.historical_knowledge.domain import (
     RecordingOriginPredicate,
     TemporalBound,
     TemporalPrecision,
-    is_recording_origin_badge_visible,
     origin_badge_values,
 )
 
@@ -76,35 +75,6 @@ def test_publish_requires_completeness_and_supported_evidence() -> None:
         (ClaimEvidenceReference.create(fragment, EvidenceRole.SUPPORTS, locator_text="p. 12"),)
     ).publish()
     assert published.is_published
-
-
-def test_badge_visibility_requires_published_supported_endpoints() -> None:
-    claim = (
-        _complete_claim(uuid7(), uuid7(), evidence_status=EvidenceStatus.SUPPORTED)
-        .replace_evidence((ClaimEvidenceReference.create(uuid7(), EvidenceRole.SUPPORTS),))
-        .publish()
-    )
-
-    assert is_recording_origin_badge_visible(
-        claim,
-        recording_published=True,
-        work_published=True,
-    )
-    assert not is_recording_origin_badge_visible(
-        claim,
-        recording_published=False,
-        work_published=True,
-    )
-    assert not is_recording_origin_badge_visible(
-        claim.replace_content(evidence_status=EvidenceStatus.UNVERIFIED),
-        recording_published=True,
-        work_published=True,
-    )
-    assert not is_recording_origin_badge_visible(
-        claim.archive(),
-        recording_published=True,
-        work_published=True,
-    )
 
 
 def test_replace_content_keeps_predicate_immutable() -> None:

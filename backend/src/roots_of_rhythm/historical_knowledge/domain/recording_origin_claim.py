@@ -181,15 +181,6 @@ class RecordingOriginClaim(msgspec.Struct, frozen=True):
             raise ClaimPublicationError(tuple(missing))
 
 
-def is_recording_origin_badge_visible(
-    claim: RecordingOriginClaim,
-    *,
-    recording_published: bool,
-    work_published: bool,
-) -> bool:
-    return claim.is_published and claim.is_supported and recording_published and work_published
-
-
 def origin_badge_values(claims: Sequence[RecordingOriginClaim]) -> list[str]:
     present = {claim.predicate for claim in claims}
     return [predicate.value for predicate in RecordingOriginPredicate if predicate in present]

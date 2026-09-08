@@ -9,7 +9,6 @@ from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.music_catalog.application import (
     RIGHTS_RESTRICTED_REASON,
     LyricsVersionConflict,
-    LyricsVersionProjectionService,
     LyricsVersionRelationService,
     LyricsVersionService,
     MusicalWorkService,
@@ -39,11 +38,6 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
 
     def hk_uow_factory() -> SqlAlchemyHistoricalKnowledgeUnitOfWork:
         return SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory)
-
-    projection = LyricsVersionProjectionService(
-        lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory),
-        hk_uow_factory,
-    )
 
     async with hk_uow_factory() as hk:
         source = Source.create("Lyrics corpus", access_policy=SourceAccessPolicy.ALLOW_PUBLIC_BODY)
@@ -120,9 +114,14 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
     assert len(relations) == 1
     assert relations[0].is_translation_of
 
-    disclosure = await projection.disclose_body_for_version(published_versions[0])
-    assert disclosure.body == "Jumpin' at the woodside"
-    assert disclosure.body_unavailable_reason is None
+    published = published_versions[0]
+    async with hk_uow_factory() as hk:
+        published_source_version = await hk.sources.get_version(published.source_version_id)
+        assert published_source_version is not None
+        published_source = await hk.sources.get_source(published_source_version.source_id)
+
+        assert published.body == "Jumpin' at the woodside"
+        assert published_source and published_source.access_policy is None
 
 
 @pytest.mark.asyncio
@@ -165,11 +164,6 @@ async def test_lyrics_body_withheld_when_source_policy_withholds(engine: AsyncEn
     def hk_uow_factory() -> SqlAlchemyHistoricalKnowledgeUnitOfWork:
         return SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory)
 
-    projection = LyricsVersionProjectionService(
-        lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory),
-        hk_uow_factory,
-    )
-
     async with hk_uow_factory() as hk:
         source = Source.create("Restricted lyrics")
         source_version = SourceVersion.create(source.id, "edition-1")
@@ -191,10 +185,14 @@ async def test_lyrics_body_withheld_when_source_policy_withholds(engine: AsyncEn
         ),
     )
     published = await lyrics_service.publish(version.id)
-    disclosure = await projection.disclose_body_for_version(published)
 
-    assert disclosure.body is None
-    assert disclosure.body_unavailable_reason == RIGHTS_RESTRICTED_REASON
+    async with hk_uow_factory() as hk:
+        published_source_version = await hk.sources.get_version(published.source_version_id)
+        assert published_source_version is not None
+        published_source = await hk.sources.get_source(published_source_version.source_id)
+
+        assert published.body is None
+        assert published_source and published_source.access_policy == RIGHTS_RESTRICTED_REASON
 
 
 @pytest.mark.asyncio

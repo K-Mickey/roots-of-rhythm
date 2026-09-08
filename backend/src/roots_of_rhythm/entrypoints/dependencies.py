@@ -23,14 +23,14 @@ from roots_of_rhythm.historical_knowledge.application import (
     SongContextReadService,
     SourceReadService,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
-from roots_of_rhythm.historical_knowledge.infrastructure.listening_guide_repository import (
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.claim import SqlAlchemyClaimRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.listening_guide import (
     SqlAlchemyListeningGuideRepository,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.recording_origin_claim import (
     SqlAlchemyRecordingOriginClaimRepository,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.source import SqlAlchemySourceRepository
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import (
     GenreReadService,
@@ -41,25 +41,25 @@ from roots_of_rhythm.music_catalog.application import (
     SongListReadService,
     SongOverviewReadService,
 )
-from roots_of_rhythm.music_catalog.infrastructure.assignment_repository import (
+from roots_of_rhythm.music_catalog.infrastructure.repositories.assignment import (
     SqlAlchemyClassificationAssignmentRepository,
 )
-from roots_of_rhythm.music_catalog.infrastructure.group_membership_repository import (
+from roots_of_rhythm.music_catalog.infrastructure.repositories.genre import SqlAlchemyGenreRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.group import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.group_membership import (
     SqlAlchemyGroupMembershipRepository,
 )
-from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_credit_repository import (
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version import SqlAlchemyLyricsVersionRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version_credit import (
     SqlAlchemyLyricsVersionCreditRepository,
 )
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_relation_repository import (
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version_relation import (
     SqlAlchemyLyricsVersionRelationRepository,
 )
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_repository import SqlAlchemyLyricsVersionRepository
-from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
-from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
-from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
-from roots_of_rhythm.music_catalog.infrastructure.work_credit_repository import SqlAlchemyWorkCreditRepository
-from roots_of_rhythm.music_catalog.infrastructure.work_relation_repository import SqlAlchemyWorkRelationRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.musical_work import SqlAlchemyMusicalWorkRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.work_credit import SqlAlchemyWorkCreditRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.work_relation import SqlAlchemyWorkRelationRepository
 from roots_of_rhythm.people_catalog.application import PersonsReadService
 from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
 

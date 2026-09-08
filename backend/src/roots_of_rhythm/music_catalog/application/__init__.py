@@ -1,6 +1,3 @@
-from roots_of_rhythm.music_catalog.application.assignment_service import (
-    ClassificationAssignmentService,
-)
 from roots_of_rhythm.music_catalog.application.errors import (
     ClassificationAssignmentConflict,
     ClassificationAssignmentGenreNotPublished,
@@ -34,18 +31,6 @@ from roots_of_rhythm.music_catalog.application.errors import (
     WorkRelationNotFound,
     WorkRelationWorkNotPublished,
 )
-from roots_of_rhythm.music_catalog.application.group_membership_service import GroupMembershipService
-from roots_of_rhythm.music_catalog.application.group_service import GroupService
-from roots_of_rhythm.music_catalog.application.lyrics_body_projection import (
-    RIGHTS_RESTRICTED_REASON,
-    LyricsBodyDisclosure,
-    project_lyrics_version_body,
-)
-from roots_of_rhythm.music_catalog.application.lyrics_version_credit_service import LyricsVersionCreditService
-from roots_of_rhythm.music_catalog.application.lyrics_version_projection_service import LyricsVersionProjectionService
-from roots_of_rhythm.music_catalog.application.lyrics_version_relation_service import LyricsVersionRelationService
-from roots_of_rhythm.music_catalog.application.lyrics_version_service import LyricsVersionService
-from roots_of_rhythm.music_catalog.application.musical_work_service import MusicalWorkService
 from roots_of_rhythm.music_catalog.application.ports import (
     ClassificationAssignmentRepository,
     GenreRepository,
@@ -61,6 +46,11 @@ from roots_of_rhythm.music_catalog.application.ports import (
     WorkCreditRepository,
     WorkRelationRepository,
 )
+from roots_of_rhythm.music_catalog.application.projections.lyrics_body import (
+    RIGHTS_RESTRICTED_REASON,
+    LyricsBodyDisclosure,
+    project_lyrics_version_body,
+)
 from roots_of_rhythm.music_catalog.application.read_services.genres import GenreReadService
 from roots_of_rhythm.music_catalog.application.read_services.groups import GroupReadService
 from roots_of_rhythm.music_catalog.application.read_services.performers import PerformerReadService
@@ -68,10 +58,21 @@ from roots_of_rhythm.music_catalog.application.read_services.recording_lyrics im
 from roots_of_rhythm.music_catalog.application.read_services.recordings import RecordingReadService
 from roots_of_rhythm.music_catalog.application.read_services.song_overview import SongOverviewReadService
 from roots_of_rhythm.music_catalog.application.read_services.songs import SongListReadService
-from roots_of_rhythm.music_catalog.application.recording_service import RecordingService
-from roots_of_rhythm.music_catalog.application.service import GenreService, UnitOfWorkFactory
-from roots_of_rhythm.music_catalog.application.work_credit_service import WorkCreditService
-from roots_of_rhythm.music_catalog.application.work_relation_service import WorkRelationService
+from roots_of_rhythm.music_catalog.application.services.assignment import (
+    ClassificationAssignmentService,
+)
+from roots_of_rhythm.music_catalog.application.services.genre import GenreService, UnitOfWorkFactory
+from roots_of_rhythm.music_catalog.application.services.group import GroupService
+from roots_of_rhythm.music_catalog.application.services.group_membership import GroupMembershipService
+from roots_of_rhythm.music_catalog.application.services.lyrics_version import LyricsVersionService
+from roots_of_rhythm.music_catalog.application.services.lyrics_version_credit import LyricsVersionCreditService
+from roots_of_rhythm.music_catalog.application.services.lyrics_version_relation import (
+    LyricsVersionRelationService,
+)
+from roots_of_rhythm.music_catalog.application.services.musical_work import MusicalWorkService
+from roots_of_rhythm.music_catalog.application.services.recording import RecordingService
+from roots_of_rhythm.music_catalog.application.services.work_credit import WorkCreditService
+from roots_of_rhythm.music_catalog.application.services.work_relation import WorkRelationService
 from roots_of_rhythm.music_catalog.application.write_services import (
     PublishClassificationAssignment,
     PublishRecording,
@@ -108,7 +109,6 @@ __all__ = [
     "LyricsVersionCreditService",
     "LyricsVersionEndpointNotPublished",
     "LyricsVersionNotFound",
-    "LyricsVersionProjectionService",
     "LyricsVersionRelationConflict",
     "LyricsVersionRelationNotFound",
     "LyricsVersionRelationRepository",

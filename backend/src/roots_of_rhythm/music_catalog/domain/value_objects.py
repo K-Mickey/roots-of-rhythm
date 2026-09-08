@@ -449,6 +449,14 @@ class RecordingCredit(msgspec.Struct, frozen=True):
         )
 
     @property
+    def is_primary_person(self) -> bool:
+        return self.is_primary_billing and self.is_person_target
+
+    @property
+    def is_primary_group(self) -> bool:
+        return self.is_primary_billing and self.is_group_target
+
+    @property
     def is_primary_billing(self) -> bool:
         return self.billing_role is BillingRole.PRIMARY
 

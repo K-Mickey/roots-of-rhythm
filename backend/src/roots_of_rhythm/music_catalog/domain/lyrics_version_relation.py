@@ -54,6 +54,11 @@ class LyricsVersionRelation(msgspec.Struct, frozen=True):
     def is_translation_of(self) -> bool:
         return self.relation_type is LyricsVersionRelationType.TRANSLATION_OF
 
+    def relative_lyrics_version_id(self, version_id: UUID) -> UUID:
+        if self.source_lyrics_version_id == version_id:
+            return self.target_lyrics_version_id
+        return self.source_lyrics_version_id
+
     def replace_content(self, content: LyricsVersionRelationContent) -> "LyricsVersionRelation":
         if content.relation_type is not self.relation_type:
             raise MusicCatalogDomainError("LyricsVersionRelationContent relation_type must match the relation type")

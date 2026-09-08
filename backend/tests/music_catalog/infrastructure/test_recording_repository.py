@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from roots_of_rhythm.music_catalog.application import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.domain import Recording, RecordingContent, RecordingWorkUsage, RecordingWorkUsageKind
 from roots_of_rhythm.music_catalog.infrastructure.models import RECORDING_WORK_USAGE_UNIQUE_CONSTRAINT
-from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 
 
 class _RecordingUniqueViolation(UniqueViolation):

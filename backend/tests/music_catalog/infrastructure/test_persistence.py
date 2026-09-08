@@ -22,11 +22,11 @@ from roots_of_rhythm.music_catalog.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.music_catalog.infrastructure.assignment_repository import (
+from roots_of_rhythm.music_catalog.infrastructure.repositories.assignment import (
     SqlAlchemyClassificationAssignmentRepository,
 )
-from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
-from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.genre import SqlAlchemyGenreRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.group import SqlAlchemyGroupRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.application import PersonService
 from roots_of_rhythm.people_catalog.domain import PersonContent

@@ -30,8 +30,8 @@ from roots_of_rhythm.historical_knowledge.application.services import (
     GenreRelationClaimService,
     ListeningGuideService,
     RecordingOriginClaimService,
+    SourceService,
 )
-from roots_of_rhythm.historical_knowledge.application.source_service import SourceService
 from roots_of_rhythm.historical_knowledge.application.write_services import (
     CreateGenreRelationClaim,
     CreateRecordingOriginClaim,

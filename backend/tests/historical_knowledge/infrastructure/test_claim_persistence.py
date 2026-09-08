@@ -21,8 +21,8 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.claim_repository import SqlAlchemyClaimRepository
-from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.claim import SqlAlchemyClaimRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.source import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
     SqlAlchemyHistoricalKnowledgeUnitOfWork,
 )
@@ -30,7 +30,7 @@ from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import GenreService
 from roots_of_rhythm.music_catalog.domain import ClassificationContent
-from roots_of_rhythm.music_catalog.infrastructure.repository import SqlAlchemyGenreRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.genre import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 
 if TYPE_CHECKING:

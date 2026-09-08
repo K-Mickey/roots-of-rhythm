@@ -8,7 +8,7 @@ from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope
 from roots_of_rhythm.music_catalog.domain import Recording, RecordingContent
 from roots_of_rhythm.music_catalog.infrastructure.models import RecordingRecord
-from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
 from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
 from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository

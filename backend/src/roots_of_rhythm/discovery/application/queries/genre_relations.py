@@ -12,16 +12,9 @@ from roots_of_rhythm.discovery.application.dto.genres import (
     GenreRelationsResponse,
     GenreRelationView,
 )
-from roots_of_rhythm.discovery.application.errors.genres import (
-    GenreRelationsAssemblyError,
-    GenreRelationsNotFound,
-)
-from roots_of_rhythm.discovery.application.projections.genre_relation_projection import (
-    GenreRelationProjectionError,
-    ensure_page_endpoint,
-    ordered_public_claims_for_page,
-    related_genre_id,
-)
+from roots_of_rhythm.discovery.application.errors.genres import GenreRelationsAssemblyError, GenreRelationsNotFound
+from roots_of_rhythm.discovery.application.projections.genre_relation import ordered_public_claims_for_page
+from roots_of_rhythm.historical_knowledge.domain.errors import GenreRelationBelongError
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -65,12 +58,12 @@ class GenreRelationsQuery:
             return GenreRelationsResponse(genre_id=str(genre_id), relations=[])
 
         try:
-            related_ids = {related_genre_id(claim, genre_id) for claim in claims}
-        except GenreRelationProjectionError as error:
+            related_ids = {claim.related_genre_id(genre_id) for claim in claims}
+        except GenreRelationBelongError as error:
             raise GenreRelationsAssemblyError(str(error)) from error
 
         related_genres = await self._genres.get_published_by_ids(related_ids)
-        claims = tuple(claim for claim in claims if related_genre_id(claim, genre_id) in related_genres)
+        claims = tuple(claim for claim in claims if claim.related_genre_id(genre_id) in related_genres)
         try:
             ordered = ordered_public_claims_for_page(
                 claims,
@@ -89,12 +82,12 @@ class GenreRelationsQuery:
                     for claim in ordered
                 ],
             )
-        except GenreRelationProjectionError as error:
+        except GenreRelationBelongError as error:
             raise GenreRelationsAssemblyError(str(error)) from error
 
 
 def _relation_perspective(claim: GenreRelationClaim, page_genre_id: UUID) -> RelationPerspective:
-    ensure_page_endpoint(claim, page_genre_id)
+    claim.ensure_page_endpoint(page_genre_id)
     if claim.is_overlaps_with:
         return RelationPerspective.SYMMETRIC
     if claim.subject_genre_id == page_genre_id:
@@ -109,7 +102,7 @@ def _map_relation(
     related_genres: Mapping[UUID, Genre],
     evidence: Sequence[PublicEvidenceReference],
 ) -> GenreRelationView:
-    related_id = related_genre_id(claim, page_genre_id)
+    related_id = claim.related_genre_id(page_genre_id)
     related = related_genres[related_id]
     if claim.explanation is None:
         raise GenreRelationsAssemblyError("published relation is missing explanation")

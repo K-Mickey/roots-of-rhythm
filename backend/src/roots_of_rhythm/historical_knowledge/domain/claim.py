@@ -8,7 +8,11 @@ from roots_of_rhythm.historical_knowledge.domain.enums import (
     EvidenceStatus,
     RelationType,
 )
-from roots_of_rhythm.historical_knowledge.domain.errors import ClaimPublicationError
+from roots_of_rhythm.historical_knowledge.domain.errors import (
+    ClaimPublicationError,
+    GenreRelationBelongError,
+    HistoricalKnowledgeDomainError,
+)
 from roots_of_rhythm.historical_knowledge.domain.value_objects import (
     ClaimEvidenceReference,
     ClaimProvenance,
@@ -16,7 +20,6 @@ from roots_of_rhythm.historical_knowledge.domain.value_objects import (
     HistoricalPeriod,
     _replacement,
     _required_text,
-    canonicalize_relation_endpoints,
 )
 from roots_of_rhythm.text_lengths import TEXT_1024
 
@@ -43,7 +46,7 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
         *,
         claim_id: UUID | None = None,
     ) -> Self:
-        subject, target = canonicalize_relation_endpoints(subject_genre_id, target_genre_id, relation_type)
+        subject, target = cls.canonicalize_relation_endpoints(subject_genre_id, target_genre_id, relation_type)
         return cls(
             id=claim_id or uuid7(),
             subject_genre_id=subject,
@@ -83,6 +86,16 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
     def is_contributed_to_emergence_of(self) -> bool:
         return self.relation_type is RelationType.CONTRIBUTED_TO_EMERGENCE_OF
 
+    def ensure_page_endpoint(self, page_genre_id: UUID) -> None:
+        if page_genre_id not in (self.subject_genre_id, self.target_genre_id):
+            raise GenreRelationBelongError("page Genre is not an endpoint of the visible relation")
+
+    def related_genre_id(self, page_genre_id: UUID) -> UUID:
+        self.ensure_page_endpoint(page_genre_id)
+        if self.subject_genre_id == page_genre_id:
+            return self.target_genre_id
+        return self.subject_genre_id
+
     def get_verified_evidence_references(self) -> tuple[ClaimEvidenceReference, ...]:
         if self.is_supported:
             return tuple(reference for reference in self.evidence_references if reference.is_supports)
@@ -105,7 +118,7 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
         clear_provenance: bool = False,
     ) -> "GenreRelationClaim":
         next_type = self.relation_type if relation_type is None else relation_type
-        subject, target = canonicalize_relation_endpoints(self.subject_genre_id, self.target_genre_id, next_type)
+        subject, target = self.canonicalize_relation_endpoints(self.subject_genre_id, self.target_genre_id, next_type)
         next_explanation = _replacement(self.explanation, explanation, clear=clear_explanation)
         if next_explanation is not None:
             next_explanation = _required_text(next_explanation, "explanation", max_length=TEXT_1024)
@@ -158,6 +171,18 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
     def archive(self) -> "GenreRelationClaim":
         return self._with_status(EditorialStatus.ARCHIVED)
 
+    @staticmethod
+    def canonicalize_relation_endpoints(
+        subject_genre_id: UUID,
+        target_genre_id: UUID,
+        relation_type: RelationType,
+    ) -> tuple[UUID, UUID]:
+        if subject_genre_id == target_genre_id:
+            raise HistoricalKnowledgeDomainError("subject and target Genre IDs must be distinct")
+        if relation_type is RelationType.OVERLAPS_WITH and subject_genre_id.int > target_genre_id.int:
+            return target_genre_id, subject_genre_id
+        return subject_genre_id, target_genre_id
+
     def _with_status(self, status: EditorialStatus) -> "GenreRelationClaim":
         return GenreRelationClaim(
             id=self.id,
@@ -189,12 +214,3 @@ class GenreRelationClaim(msgspec.Struct, frozen=True):
             missing.append("opposing_evidence")
         if missing:
             raise ClaimPublicationError(tuple(missing))
-
-
-def is_claim_publicly_visible(
-    claim: GenreRelationClaim,
-    *,
-    subject_published: bool,
-    target_published: bool,
-) -> bool:
-    return claim.is_published and subject_published and target_published

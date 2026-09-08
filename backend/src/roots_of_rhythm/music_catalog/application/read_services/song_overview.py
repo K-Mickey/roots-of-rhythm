@@ -159,9 +159,7 @@ class SongOverviewReadService:
                 version_ids
             )
             other_lyrics_ids = {
-                item.target_lyrics_version_id
-                if item.source_lyrics_version_id == version.id
-                else item.source_lyrics_version_id
+                item.relative_lyrics_version_id(version.id)
                 for version in lyrics_versions
                 for item in lyrics_relations.get(version.id, ())
             } - set(version_ids)
@@ -188,7 +186,7 @@ class SongOverviewReadService:
                     credit.target_id
                     for recording in recordings
                     for credit in recording.credits
-                    if credit.is_primary_billing and credit.is_group_target
+                    if credit.is_primary_group
                 },
             )
         return (

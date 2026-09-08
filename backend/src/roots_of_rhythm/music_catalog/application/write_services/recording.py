@@ -134,14 +134,10 @@ async def _validate_publication(
     if not published_works:
         raise RecordingWorkNotPublished(str(recording.id))
 
-    group_ids = {
-        credit.target_id for credit in recording.credits if credit.is_primary_billing and credit.is_group_target
-    }
+    group_ids = {credit.target_id for credit in recording.credits if credit.is_primary_group}
     published_groups = await group_repository.get_published_by_ids(group_ids, for_update=True)
     if not published_groups:
-        person_ids = {
-            credit.target_id for credit in recording.credits if credit.is_primary_billing and credit.is_person_target
-        }
+        person_ids = {credit.target_id for credit in recording.credits if credit.is_primary_person}
         published_people = await person_repository.get_published_by_ids(person_ids, for_update=True)
         if not published_people:
             raise RecordingPrimaryTargetNotPublished(str(recording.id))

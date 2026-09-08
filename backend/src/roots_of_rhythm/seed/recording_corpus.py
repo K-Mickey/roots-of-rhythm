@@ -28,13 +28,13 @@ from roots_of_rhythm.historical_knowledge.domain import (
     TemporalBound,
     TemporalPrecision,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.listening_guide_repository import (
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.listening_guide import (
     SqlAlchemyListeningGuideRepository,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.recording_origin_claim_repository import (
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.recording_origin_claim import (
     SqlAlchemyRecordingOriginClaimRepository,
 )
-from roots_of_rhythm.historical_knowledge.infrastructure.source_repository import SqlAlchemySourceRepository
+from roots_of_rhythm.historical_knowledge.infrastructure.repositories.source import SqlAlchemySourceRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope
 from roots_of_rhythm.music_catalog.application import (
@@ -64,10 +64,10 @@ from roots_of_rhythm.music_catalog.domain import (
 from roots_of_rhythm.music_catalog.domain import EvidenceStatus as MusicEvidenceStatus
 from roots_of_rhythm.music_catalog.domain import TemporalBound as MusicTemporalBound
 from roots_of_rhythm.music_catalog.domain import TemporalPrecision as MusicTemporalPrecision
-from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_repository import SqlAlchemyLyricsVersionRepository
-from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
-from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.group import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version import SqlAlchemyLyricsVersionRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.musical_work import SqlAlchemyMusicalWorkRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
 from roots_of_rhythm.seed.genre_knowledge import COUNTRY_ID, RHYTHM_AND_BLUES_ID, SOURCE_VERSION_LABEL

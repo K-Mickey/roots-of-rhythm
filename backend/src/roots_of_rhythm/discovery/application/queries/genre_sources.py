@@ -1,15 +1,9 @@
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from roots_of_rhythm.discovery.application.dto.genres import GenreSourcesResponse, SourceView
-from roots_of_rhythm.discovery.application.errors.genres import (
-    GenreSourcesAssemblyError,
-    GenreSourcesNotFound,
-)
-from roots_of_rhythm.discovery.application.projections.genre_relation_projection import (
-    GenreRelationProjectionError,
-    ordered_public_claims_for_page,
-    related_genre_id,
-)
+from roots_of_rhythm.discovery.application.errors.genres import GenreSourcesAssemblyError, GenreSourcesNotFound
+from roots_of_rhythm.discovery.application.projections.genre_relation import ordered_public_claims_for_page
+from roots_of_rhythm.historical_knowledge.domain.errors import GenreRelationBelongError
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -48,19 +42,19 @@ class GenreSourcesQuery:
             return GenreSourcesResponse(genre_id=str(genre_id), sources=[])
 
         try:
-            related_ids = {related_genre_id(claim, genre_id) for claim in claims}
-        except GenreRelationProjectionError as error:
+            related_ids = {claim.related_genre_id(genre_id) for claim in claims}
+        except GenreRelationBelongError as error:
             raise GenreSourcesAssemblyError(str(error)) from error
 
         related_genres = await self._genres.get_published_by_ids(related_ids)
-        claims = tuple(claim for claim in claims if related_genre_id(claim, genre_id) in related_genres)
+        claims = tuple(claim for claim in claims if claim.related_genre_id(genre_id) in related_genres)
         try:
             ordered_claims = ordered_public_claims_for_page(
                 claims,
                 page_genre_id=genre_id,
                 related_genres=related_genres,
             )
-        except GenreRelationProjectionError as error:
+        except GenreRelationBelongError as error:
             raise GenreSourcesAssemblyError(str(error)) from error
 
         ordered_source_ids: list[UUID] = []

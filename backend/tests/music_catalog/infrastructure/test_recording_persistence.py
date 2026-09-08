@@ -34,15 +34,15 @@ from roots_of_rhythm.music_catalog.domain import (
     TemporalPrecision,
     WorkContent,
 )
-from roots_of_rhythm.music_catalog.infrastructure.group_repository import SqlAlchemyGroupRepository
-from roots_of_rhythm.music_catalog.infrastructure.lyrics_version_repository import SqlAlchemyLyricsVersionRepository
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     RecordingCreditRecord,
     RecordingLyricsUsageRecord,
     RecordingWorkUsageRecord,
 )
-from roots_of_rhythm.music_catalog.infrastructure.musical_work_repository import SqlAlchemyMusicalWorkRepository
-from roots_of_rhythm.music_catalog.infrastructure.recording_repository import SqlAlchemyRecordingRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.group import SqlAlchemyGroupRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version import SqlAlchemyLyricsVersionRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.musical_work import SqlAlchemyMusicalWorkRepository
+from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.application import PersonService
 from roots_of_rhythm.people_catalog.domain import PersonContent

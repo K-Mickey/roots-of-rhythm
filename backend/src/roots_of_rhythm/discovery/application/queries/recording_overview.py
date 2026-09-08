@@ -20,7 +20,7 @@ from roots_of_rhythm.discovery.application.dto.songs import (
 )
 from roots_of_rhythm.discovery.application.errors.recordings import RecordingOverviewNotFound
 from roots_of_rhythm.historical_knowledge.domain import origin_badge_values
-from roots_of_rhythm.music_catalog.application.lyrics_body_projection import project_lyrics_version_body
+from roots_of_rhythm.music_catalog.application.projections.lyrics_body import project_lyrics_version_body
 
 if TYPE_CHECKING:
     from uuid import UUID

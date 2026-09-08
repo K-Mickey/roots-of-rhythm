@@ -61,16 +61,10 @@ class RecordingReadService:
                 )
             recording_ids = [recording.id for recording in recordings]
             person_ids = {
-                credit.target_id
-                for recording in recordings
-                for credit in recording.credits
-                if credit.is_primary_billing and credit.is_person_target
+                credit.target_id for recording in recordings for credit in recording.credits if credit.is_primary_person
             }
             group_ids = {
-                credit.target_id
-                for recording in recordings
-                for credit in recording.credits
-                if credit.is_primary_billing and credit.is_group_target
+                credit.target_id for recording in recordings for credit in recording.credits if credit.is_primary_group
             }
 
         assignments_by_recording, groups = await gather(
