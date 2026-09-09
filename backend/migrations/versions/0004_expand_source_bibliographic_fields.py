@@ -8,7 +8,7 @@ Create Date: 2026-08-18
 import sqlalchemy as sa
 from alembic import op
 
-from roots_of_rhythm.text_lengths import TEXT_64, TEXT_2048
+from roots_of_rhythm.utils.text_lengths import TEXT_64, TEXT_2048
 
 revision: str = "0004"
 down_revision: str | None = "0003"

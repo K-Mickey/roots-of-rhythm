@@ -21,7 +21,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
     TEMPORAL_PRECISION_CHECK,
     MusicCatalogBase,
 )
-from roots_of_rhythm.text_lengths import TEXT_16, TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text_lengths import TEXT_16, TEXT_32, TEXT_64, TEXT_1024
 
 _RECORDING_ID_FOREIGN_KEY = "recordings.id"
 RECORDING_UNIQUE_CONSTRAINTS = frozenset(

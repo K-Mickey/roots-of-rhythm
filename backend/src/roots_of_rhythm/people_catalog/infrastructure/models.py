@@ -8,11 +8,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
 from roots_of_rhythm.people_catalog.domain.enums import EditorialStatus, TemporalPrecision
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.sql import enum_in_check
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 # Retained for migration 0005 compatibility; current metadata no longer creates this index.
 PERSON_NAME_UNIQUE_CONSTRAINT = "uq_persons_canonical_name_ci"
-EDITORIAL_STATUS_CHECK = f"editorial_status IN ({', '.join(repr(status.value) for status in EditorialStatus)})"
+EDITORIAL_STATUS_CHECK = enum_in_check("editorial_status", EditorialStatus)
 TEMPORAL_PRECISION_CHECK = (
     "({year_column} IS NULL AND {precision_column} IS NULL) OR "
     "({year_column} IS NOT NULL AND {precision_column} IN "

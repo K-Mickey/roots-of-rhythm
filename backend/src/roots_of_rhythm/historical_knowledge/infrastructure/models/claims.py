@@ -15,7 +15,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models.base import (
     HistoricalKnowledgeBase,
 )
 from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_2048
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_2048
 
 
 class GenreRelationClaimRecord(ServiceColumnsMixin, HistoricalKnowledgeBase):

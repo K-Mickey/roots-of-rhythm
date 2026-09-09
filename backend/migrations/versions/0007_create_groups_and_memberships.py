@@ -17,7 +17,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     PERIOD_START_YEAR_COLUMN,
     TEMPORAL_PRECISION_CHECK,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 revision: str = "0007"
 down_revision: str | None = "0006"

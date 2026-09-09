@@ -5,6 +5,11 @@ from litestar.testing import TestClient
 
 from roots_of_rhythm.config import Settings
 from roots_of_rhythm.entrypoints.api import create_app
+from roots_of_rhythm.historical_knowledge.application import SourceService
+from roots_of_rhythm.historical_knowledge.domain import SourceAccessPolicy
+from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
+from roots_of_rhythm.infrastructure.database import create_session_factory
+from roots_of_rhythm.music_catalog.application import RIGHTS_RESTRICTED_REASON
 from roots_of_rhythm.seed import genre_knowledge as genre_data
 from roots_of_rhythm.seed import musical_works as work_data
 from roots_of_rhythm.seed import recording_corpus as recording_data
@@ -49,6 +54,21 @@ async def test_spiritual_overview_exposes_fallback_lyrics(seeded_engine: AsyncEn
     assert {item["body"] for item in payload["lyrics_versions"]} == {
         recording_data.ENGLISH_BODY,
         recording_data.RUSSIAN_BODY,
+    }
+
+
+async def test_song_overview_withholds_lyrics_body_when_source_policy_withholds(seeded_engine: AsyncEngine) -> None:
+    session_factory = create_session_factory(seeded_engine)
+    sources = SourceService(lambda: SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory))
+    await sources.set_access_policy(recording_data.PUBLIC_DOMAIN_SOURCE_ID, SourceAccessPolicy.WITHHOLD_PUBLIC_BODY)
+
+    database_url = seeded_engine.url.render_as_string(hide_password=False)
+    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+        response = client.get(f"/api/v1/songs/{work_data.NOBODY_KNOWS_TROUBLE_ID}")
+
+    assert response.status_code == 200
+    assert {(item["body"], item["body_unavailable_reason"]) for item in response.json()["lyrics_versions"]} == {
+        (None, RIGHTS_RESTRICTED_REASON)
     }
 
 

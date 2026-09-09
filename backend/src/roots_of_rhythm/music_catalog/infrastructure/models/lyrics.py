@@ -16,7 +16,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
     WORK_CREDIT_ROLE_CHECK,
     MusicCatalogBase,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_4096
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_4096
 
 
 class LyricsVersionRecord(ServiceColumnsMixin, MusicCatalogBase):

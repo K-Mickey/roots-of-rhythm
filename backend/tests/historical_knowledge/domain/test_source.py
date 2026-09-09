@@ -4,7 +4,7 @@ import pytest
 
 from roots_of_rhythm.historical_knowledge.domain import Source, SourceAccessPolicy
 from roots_of_rhythm.historical_knowledge.domain.errors import HistoricalKnowledgeDomainError
-from roots_of_rhythm.text_lengths import TEXT_64, TEXT_2048
+from roots_of_rhythm.utils.text_lengths import TEXT_64, TEXT_2048
 
 
 def test_source_create_accepts_bibliographic_fields() -> None:

@@ -29,10 +29,10 @@ _SHARED_ROOT_HELPERS = frozenset(
         "roots_of_rhythm.application",
         "roots_of_rhythm.config",
         "roots_of_rhythm.infrastructure.service_columns",
-        "roots_of_rhythm.text_lengths",
+        "roots_of_rhythm.utils",
     }
 )
-_DOMAIN_ALLOWED_ROOT = frozenset({"roots_of_rhythm.text_lengths"})
+_DOMAIN_ALLOWED_ROOT = frozenset({"roots_of_rhythm.utils"})
 _PACKAGE = "roots_of_rhythm"
 
 
@@ -90,7 +90,8 @@ def _check(
 
     if own_layer == "domain":
         if imported_context is None:
-            if imported not in _DOMAIN_ALLOWED_ROOT:
+            part_of_root = any(imported == root or imported.startswith(f"{root}.") for root in _DOMAIN_ALLOWED_ROOT)
+            if not part_of_root:
                 return f"{location} — R3: domain imports non-context root module"
             return None
         if imported_context != own_context or layer != "domain":

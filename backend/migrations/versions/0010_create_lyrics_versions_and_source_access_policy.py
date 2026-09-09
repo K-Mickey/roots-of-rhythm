@@ -18,7 +18,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     LYRICS_VERSION_RELATION_TYPE_CHECK,
     WORK_CREDIT_ROLE_CHECK,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_4096
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_4096
 
 revision: str = "0010"
 down_revision: str | None = "0009"

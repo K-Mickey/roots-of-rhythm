@@ -18,7 +18,7 @@ from roots_of_rhythm.people_catalog.infrastructure.models import (
     EDITORIAL_STATUS_CHECK as PERSON_EDITORIAL_STATUS_CHECK,
 )
 from roots_of_rhythm.people_catalog.infrastructure.models import PERSON_NAME_UNIQUE_CONSTRAINT
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 revision: str = "0005"
 down_revision: str | None = "0004"

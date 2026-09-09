@@ -16,7 +16,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
     TARGET_KIND_CHECK,
     MusicCatalogBase,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 
 class ClassificationConceptRecord(ServiceColumnsMixin, MusicCatalogBase):

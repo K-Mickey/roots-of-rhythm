@@ -10,7 +10,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models.base import (
     HistoricalKnowledgeBase,
 )
 from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 LISTENING_GUIDE_ACTIVE_RECORDING_INDEX = "uq_listening_guides_active_recording"
 LISTENING_OBSERVATION_ACTIVE_POSITION_INDEX = "uq_listening_observations_active_position"

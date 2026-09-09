@@ -22,7 +22,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models.base import (
     WORK_RELATION_UNIQUE_CONSTRAINT,
     MusicCatalogBase,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 
 class ExternalIdentityData(TypedDict):

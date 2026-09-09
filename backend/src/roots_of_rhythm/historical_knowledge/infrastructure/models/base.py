@@ -9,14 +9,15 @@ from roots_of_rhythm.historical_knowledge.domain.enums import (
     RelationType,
     SourceAccessPolicy,
 )
+from roots_of_rhythm.utils.sql import enum_in_check
 
-RECORDING_ORIGIN_PREDICATE_CHECK = f"predicate IN ({', '.join(repr(item.value) for item in RecordingOriginPredicate)})"
-RELATION_TYPE_CHECK = f"relation_type IN ({', '.join(repr(item.value) for item in RelationType)})"
-EDITORIAL_STATUS_CHECK = f"editorial_status IN ({', '.join(repr(item.value) for item in EditorialStatus)})"
-EVIDENCE_STATUS_CHECK = f"evidence_status IN ({', '.join(repr(item.value) for item in EvidenceStatus)})"
-EVIDENCE_ROLE_CHECK = f"role IN ({', '.join(repr(item.value) for item in EvidenceRole)})"
-FRAGMENT_REVIEW_CHECK = f"review_status IN ({', '.join(repr(item.value) for item in FragmentReviewStatus)})"
-SOURCE_ACCESS_POLICY_CHECK = f"access_policy IN ({', '.join(repr(policy.value) for policy in SourceAccessPolicy)})"
+RECORDING_ORIGIN_PREDICATE_CHECK = enum_in_check("predicate", RecordingOriginPredicate)
+RELATION_TYPE_CHECK = enum_in_check("relation_type", RelationType)
+EDITORIAL_STATUS_CHECK = enum_in_check("editorial_status", EditorialStatus)
+EVIDENCE_STATUS_CHECK = enum_in_check("evidence_status", EvidenceStatus)
+EVIDENCE_ROLE_CHECK = enum_in_check("role", EvidenceRole)
+FRAGMENT_REVIEW_CHECK = enum_in_check("review_status", FragmentReviewStatus)
+SOURCE_ACCESS_POLICY_CHECK = enum_in_check("access_policy", SourceAccessPolicy)
 CLAIM_ENDPOINTS_UNIQUE_INDEX = "uq_genre_relation_claims_endpoints_type"
 RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX = "uq_recording_origin_claims_endpoints_predicate"
 

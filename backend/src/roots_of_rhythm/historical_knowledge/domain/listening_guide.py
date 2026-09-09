@@ -6,8 +6,8 @@ import msgspec
 
 from roots_of_rhythm.historical_knowledge.domain.enums import EditorialStatus
 from roots_of_rhythm.historical_knowledge.domain.errors import HistoricalKnowledgeDomainError
-from roots_of_rhythm.historical_knowledge.domain.value_objects import _required_text
-from roots_of_rhythm.text_lengths import TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text import required_text
+from roots_of_rhythm.utils.text_lengths import TEXT_64, TEXT_1024
 
 
 class ListeningObservation(msgspec.Struct, frozen=True):
@@ -40,11 +40,15 @@ class ListeningObservation(msgspec.Struct, frozen=True):
             raise HistoricalKnowledgeDomainError("listening range must satisfy 0 <= start < end")
         return cls(
             id=observation_id or uuid7(),
-            feature=_required_text(feature, "feature", max_length=TEXT_64),
-            explanation=_required_text(explanation, "explanation", max_length=TEXT_1024),
+            feature=required_text(feature, "feature", max_length=TEXT_64, error=HistoricalKnowledgeDomainError),
+            explanation=required_text(
+                explanation, "explanation", max_length=TEXT_1024, error=HistoricalKnowledgeDomainError
+            ),
             author_id=author_id,
             authored_at=authored_at,
-            context=None if context is None else _required_text(context, "context", max_length=TEXT_1024),
+            context=None
+            if context is None
+            else required_text(context, "context", max_length=TEXT_1024, error=HistoricalKnowledgeDomainError),
             start_seconds=start_seconds,
             end_seconds=end_seconds,
         )

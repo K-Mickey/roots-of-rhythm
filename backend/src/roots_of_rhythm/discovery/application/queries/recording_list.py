@@ -49,10 +49,7 @@ class RecordingListQuery:
                 genre = genres.get(assignment.concept_id)
                 if genre is not None:
                     recording_genres.append(GenreSummary(str(genre.id), genre.content.canonical_name))
-            recording_genres = sorted(
-                recording_genres,
-                key=lambda item: item.name,
-            )
+            recording_genres = sorted(recording_genres, key=lambda item: item.name)
             items.append(
                 RecordingListItem(
                     id=str(recording.id),

@@ -12,6 +12,7 @@ from roots_of_rhythm.music_catalog.application import (
     LyricsVersionRelationService,
     LyricsVersionService,
     MusicalWorkService,
+    project_lyrics_version_body,
 )
 from roots_of_rhythm.music_catalog.domain import (
     LyricsCreationMethod,
@@ -119,9 +120,12 @@ async def test_lyrics_version_persistence_round_trip_and_order(engine: AsyncEngi
         published_source_version = await hk.sources.get_version(published.source_version_id)
         assert published_source_version is not None
         published_source = await hk.sources.get_source(published_source_version.source_id)
+        assert published_source is not None
+        assert published_source.access_policy is SourceAccessPolicy.ALLOW_PUBLIC_BODY
 
-        assert published.body == "Jumpin' at the woodside"
-        assert published_source and published_source.access_policy is None
+    disclosure = project_lyrics_version_body(published, published_source.access_policy)
+    assert disclosure.body == "Jumpin' at the woodside"
+    assert disclosure.body_unavailable_reason is None
 
 
 @pytest.mark.asyncio
@@ -190,9 +194,13 @@ async def test_lyrics_body_withheld_when_source_policy_withholds(engine: AsyncEn
         published_source_version = await hk.sources.get_version(published.source_version_id)
         assert published_source_version is not None
         published_source = await hk.sources.get_source(published_source_version.source_id)
+        assert published_source is not None
+        assert published_source.access_policy is SourceAccessPolicy.WITHHOLD_PUBLIC_BODY
 
-        assert published.body is None
-        assert published_source and published_source.access_policy == RIGHTS_RESTRICTED_REASON
+    assert published.body == "Hidden lyrics"  # body скрыт только на чтении, в хранилище он остаётся
+    disclosure = project_lyrics_version_body(published, published_source.access_policy)
+    assert disclosure.body is None
+    assert disclosure.body_unavailable_reason == RIGHTS_RESTRICTED_REASON
 
 
 @pytest.mark.asyncio

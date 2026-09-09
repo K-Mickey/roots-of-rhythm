@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from roots_of_rhythm.music_catalog.public.performer_reader import PerformerReader
+    from roots_of_rhythm.people_catalog.domain import PersonDate
     from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
 
 
@@ -46,22 +47,8 @@ class PerformerOverviewQuery:
             name=person.canonical_name,
             aliases=list(person.aliases),
             biography=person.biography,
-            birth_date=(
-                PersonDateView(
-                    year=person.birth_date.year,
-                    precision=person.birth_date.precision,
-                )
-                if person.birth_date is not None
-                else None
-            ),
-            death_date=(
-                PersonDateView(
-                    year=person.death_date.year,
-                    precision=person.death_date.precision,
-                )
-                if person.death_date is not None
-                else None
-            ),
+            birth_date=_map_person_date(person.birth_date),
+            death_date=_map_person_date(person.death_date),
             external_identities=[
                 ExternalIdentityView(
                     provider=identity.provider,
@@ -73,3 +60,12 @@ class PerformerOverviewQuery:
             primary_image=None,
             genres=summaries,
         )
+
+
+def _map_person_date(date_: PersonDate | None) -> PersonDateView | None:
+    if date_ is None:
+        return None
+    return PersonDateView(
+        year=date_.year,
+        precision=date_.precision,
+    )

@@ -3,6 +3,7 @@ from uuid import UUID, uuid7
 
 import msgspec
 
+from roots_of_rhythm.historical_knowledge.domain import HistoricalKnowledgeDomainError
 from roots_of_rhythm.historical_knowledge.domain.enums import (
     EditorialStatus,
     EvidenceStatus,
@@ -15,9 +16,9 @@ from roots_of_rhythm.historical_knowledge.domain.value_objects import (
     GeographicContext,
     HistoricalPeriod,
     _replacement,
-    _required_text,
 )
-from roots_of_rhythm.text_lengths import TEXT_1024
+from roots_of_rhythm.utils.text import required_text
+from roots_of_rhythm.utils.text_lengths import TEXT_1024
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -98,7 +99,9 @@ class RecordingOriginClaim(msgspec.Struct, frozen=True):
     ) -> "RecordingOriginClaim":
         next_explanation = _replacement(self.explanation, explanation, clear=clear_explanation)
         if next_explanation is not None:
-            next_explanation = _required_text(next_explanation, "explanation", max_length=TEXT_1024)
+            next_explanation = required_text(
+                next_explanation, "explanation", max_length=TEXT_1024, error=HistoricalKnowledgeDomainError
+            )
         next_temporal = _replacement(self.temporal, temporal, clear=clear_temporal)
         next_geographic = _replacement(self.geographic, geographic, clear=clear_geographic)
         next_provenance = _replacement(self.provenance, provenance, clear=clear_provenance)

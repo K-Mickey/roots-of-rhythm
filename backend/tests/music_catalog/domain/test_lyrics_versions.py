@@ -15,18 +15,18 @@ from roots_of_rhythm.music_catalog.domain import (
     LyricsVersionRelationType,
     MusicCatalogDomainError,
 )
-from roots_of_rhythm.music_catalog.domain.value_objects import canonicalize_language_tag
+from roots_of_rhythm.utils.language import canonicalize_language_tag
 
 
 def test_canonicalize_language_tag_accepts_short_codes() -> None:
-    assert canonicalize_language_tag("en") == "en"
-    assert canonicalize_language_tag("EN-gb") == "en-GB"
-    assert canonicalize_language_tag("ru") == "ru"
+    assert canonicalize_language_tag("en", error=ValueError) == "en"
+    assert canonicalize_language_tag("EN-gb", error=ValueError) == "en-GB"
+    assert canonicalize_language_tag("ru", error=ValueError) == "ru"
 
 
 def test_canonicalize_language_tag_rejects_invalid_tag() -> None:
     with pytest.raises(MusicCatalogDomainError, match="language tag"):
-        canonicalize_language_tag("not-a-language")
+        canonicalize_language_tag("not-a-language", error=MusicCatalogDomainError)
 
 
 def test_lyrics_version_allows_multiple_languages_and_labels() -> None:

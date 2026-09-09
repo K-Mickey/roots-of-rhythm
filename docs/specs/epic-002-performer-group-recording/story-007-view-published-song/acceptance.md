@@ -48,7 +48,7 @@ Tracker: story [#33](https://github.com/K-Mickey/roots-of-rhythm/issues/33), tas
 | AC-5 | pass | `test_song_overview_http_*_not_found`; `not-found.tsx`; API/SSR 404 для unknown id |
 | AC-6 | pass | `SongPageContent.test.tsx` empty overview; `test_musical_work_publish_with_title_and_provenance_only`; e2e work без секции «Текст» |
 | AC-7 | pass (tests) | `SongPageContent.test.tsx` + `test_song_overview_returns_public_fields_*` + `test_song_overview_related_works_include_only_outbound_source_relations`; seed **не** содержит `related_works` |
-| AC-8 | pass (tests) | `SongPageContent.test.tsx` unavailable body; `test_lyrics_version_projection_service` withheld body; seed **без** `lyrics_versions` |
+| AC-8 | pass (tests) | `SongPageContent.test.tsx` unavailable body; `test_song_list_integration.py::test_song_overview_withholds_lyrics_body_when_source_policy_withholds` и `test_lyrics_version_persistence.py` (withheld/allowed disclosure); seed **без** `lyrics_versions` |
 | AC-9 | pass (tests) | `labels.test.ts`; tab label «машинный перевод» в `SongPageContent.test.tsx`; seed без machine translation |
 
 ## NFR

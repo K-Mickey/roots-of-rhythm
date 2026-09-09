@@ -16,7 +16,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     FRAGMENT_REVIEW_CHECK,
     RELATION_TYPE_CHECK,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_2048
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_2048
 
 revision: str = "0002"
 down_revision: str | None = "0001"

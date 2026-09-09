@@ -15,7 +15,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     EVIDENCE_STATUS_CHECK,
     RECORDING_ORIGIN_PREDICATE_CHECK,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_2048
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024, TEXT_2048
 
 revision: str = "0014"
 down_revision: str | None = "0013"

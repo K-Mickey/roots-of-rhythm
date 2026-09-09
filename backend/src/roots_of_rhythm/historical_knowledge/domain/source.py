@@ -3,12 +3,10 @@ from uuid import UUID, uuid7
 
 import msgspec
 
+from roots_of_rhythm.historical_knowledge.domain import HistoricalKnowledgeDomainError
 from roots_of_rhythm.historical_knowledge.domain.enums import FragmentReviewStatus, SourceAccessPolicy
-from roots_of_rhythm.historical_knowledge.domain.value_objects import (
-    _optional_text,
-    _required_text,
-)
-from roots_of_rhythm.text_lengths import TEXT_64, TEXT_1024, TEXT_2048
+from roots_of_rhythm.utils.text import optional_text, required_text
+from roots_of_rhythm.utils.text_lengths import TEXT_64, TEXT_1024, TEXT_2048
 
 
 class Source(msgspec.Struct, frozen=True):
@@ -36,20 +34,26 @@ class Source(msgspec.Struct, frozen=True):
     ) -> Self:
         return cls(
             id=source_id or uuid7(),
-            title=_required_text(title, "source title", max_length=TEXT_64),
-            author=_optional_text(author, "author", max_length=TEXT_64),
-            responsible_organization=_optional_text(
+            title=required_text(title, "source title", max_length=TEXT_64, error=HistoricalKnowledgeDomainError),
+            author=optional_text(author, "author", max_length=TEXT_64, error=HistoricalKnowledgeDomainError),
+            responsible_organization=optional_text(
                 responsible_organization,
                 "responsible organization",
                 max_length=TEXT_64,
+                error=HistoricalKnowledgeDomainError,
             ),
-            publication=_optional_text(publication, "publication", max_length=TEXT_64),
-            publication_date=_optional_text(
+            publication=optional_text(
+                publication, "publication", max_length=TEXT_64, error=HistoricalKnowledgeDomainError
+            ),
+            publication_date=optional_text(
                 publication_date,
                 "publication date",
                 max_length=TEXT_64,
+                error=HistoricalKnowledgeDomainError,
             ),
-            external_url=_optional_text(external_url, "external url", max_length=TEXT_2048),
+            external_url=optional_text(
+                external_url, "external url", max_length=TEXT_2048, error=HistoricalKnowledgeDomainError
+            ),
             access_policy=access_policy,
         )
 
@@ -71,7 +75,7 @@ class SourceVersion(msgspec.Struct, frozen=True):
         return cls(
             id=version_id or uuid7(),
             source_id=source_id,
-            label=_required_text(label, "version label", max_length=TEXT_64),
+            label=required_text(label, "version label", max_length=TEXT_64, error=HistoricalKnowledgeDomainError),
         )
 
 
@@ -94,8 +98,12 @@ class SourceFragment(msgspec.Struct, frozen=True):
         return cls(
             id=fragment_id or uuid7(),
             source_version_id=source_version_id,
-            locator_text=_optional_text(locator_text, "locator text", max_length=TEXT_1024),
-            external_url=_optional_text(external_url, "external url", max_length=TEXT_2048),
+            locator_text=optional_text(
+                locator_text, "locator text", max_length=TEXT_1024, error=HistoricalKnowledgeDomainError
+            ),
+            external_url=optional_text(
+                external_url, "external url", max_length=TEXT_2048, error=HistoricalKnowledgeDomainError
+            ),
         )
 
     @property

@@ -16,31 +16,25 @@ from roots_of_rhythm.music_catalog.domain.enums import (
     WorkCreditRole,
     WorkRelationType,
 )
+from roots_of_rhythm.utils.sql import enum_in_check
 
 CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT = "uq_classification_concepts_kind_canonical_name_ci"
 
-KIND_CHECK = f"kind IN ({', '.join(repr(kind.value) for kind in ClassificationKind)})"
-TARGET_KIND_CHECK = f"target_kind IN ({', '.join(repr(kind.value) for kind in ClassificationTargetKind)})"
-EDITORIAL_STATUS_CHECK = f"editorial_status IN ({', '.join(repr(status.value) for status in EditorialStatus)})"
-EVIDENCE_STATUS_CHECK = f"evidence_status IN ({', '.join(repr(status.value) for status in EvidenceStatus)})"
-WORK_CREDIT_ROLE_CHECK = f"role IN ({', '.join(repr(role.value) for role in WorkCreditRole)})"
-WORK_RELATION_TYPE_CHECK = f"relation_type IN ({', '.join(repr(kind.value) for kind in WorkRelationType)})"
-LYRICS_USAGE_KIND_CHECK = f"usage_kind IN ({', '.join(repr(kind.value) for kind in LyricsUsageKind)})"
-LYRICS_CREATION_METHOD_CHECK = (
-    f"creation_method IN ({', '.join(repr(method.value) for method in LyricsCreationMethod)})"
-)
-LYRICS_VERSION_RELATION_TYPE_CHECK = (
-    f"relation_type IN ({', '.join(repr(kind.value) for kind in LyricsVersionRelationType)})"
-)
-RECORDING_CREDIT_TARGET_KIND_CHECK = (
-    f"target_kind IN ({', '.join(repr(kind.value) for kind in RecordingCreditTargetKind)})"
-)
-BILLING_ROLE_CHECK = f"billing_role IN ({', '.join(repr(role.value) for role in BillingRole)})"
+KIND_CHECK = enum_in_check("kind", ClassificationKind)
+TARGET_KIND_CHECK = enum_in_check("target_kind", ClassificationTargetKind)
+EDITORIAL_STATUS_CHECK = enum_in_check("editorial_status", EditorialStatus)
+EVIDENCE_STATUS_CHECK = enum_in_check("evidence_status", EvidenceStatus)
+WORK_CREDIT_ROLE_CHECK = enum_in_check("role", WorkCreditRole)
+WORK_RELATION_TYPE_CHECK = enum_in_check("relation_type", WorkRelationType)
+LYRICS_USAGE_KIND_CHECK = enum_in_check("usage_kind", LyricsUsageKind)
+LYRICS_CREATION_METHOD_CHECK = enum_in_check("creation_method", LyricsCreationMethod)
+LYRICS_VERSION_RELATION_TYPE_CHECK = enum_in_check("relation_type", LyricsVersionRelationType)
+RECORDING_CREDIT_TARGET_KIND_CHECK = enum_in_check("target_kind", RecordingCreditTargetKind)
+BILLING_ROLE_CHECK = enum_in_check("billing_role", BillingRole)
 RECORDING_CONTRIBUTION_KIND_CHECK = (
-    "contribution_kind IS NULL OR contribution_kind IN "
-    f"({', '.join(repr(kind.value) for kind in RecordingContributionKind)})"
+    f"contribution_kind IS NULL OR {enum_in_check('contribution_kind', RecordingContributionKind)}"
 )
-RECORDING_WORK_USAGE_KIND_CHECK = f"usage_kind IN ({', '.join(repr(kind.value) for kind in RecordingWorkUsageKind)})"
+RECORDING_WORK_USAGE_KIND_CHECK = enum_in_check("usage_kind", RecordingWorkUsageKind)
 CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT = "uq_classification_assignments_target_concept"
 WORK_CREDIT_UNIQUE_CONSTRAINT = "uq_work_credits_work_person_role"
 WORK_RELATION_UNIQUE_CONSTRAINT = "uq_work_relations_source_target_type"

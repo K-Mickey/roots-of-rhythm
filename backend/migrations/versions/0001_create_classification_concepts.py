@@ -14,7 +14,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     EDITORIAL_STATUS_CHECK,
     KIND_CHECK,
 )
-from roots_of_rhythm.text_lengths import TEXT_32, TEXT_64, TEXT_1024
+from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
 revision: str = "0001"
 down_revision: str | None = None
