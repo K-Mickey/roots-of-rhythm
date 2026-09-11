@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from contextlib import contextmanager
 from os import environ
 from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import delete, event
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, make_url
 
 from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     ClaimEvidenceReferenceRecord,
@@ -21,7 +22,9 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     SourceRecord,
     SourceVersionRecord,
 )
+from roots_of_rhythm.infrastructure.base import PgConfig
 from roots_of_rhythm.infrastructure.database import create_database_engine
+from roots_of_rhythm.infrastructure.pg_accessor import PgAccessor
 from roots_of_rhythm.music_catalog.infrastructure.models import (
     ClassificationAssignmentRecord,
     ClassificationConceptRecord,
@@ -44,6 +47,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
 
     from sqlalchemy.ext.asyncio import AsyncEngine
+
 
 _CORPUS_TABLES = (
     ListeningObservationRecord,
@@ -71,6 +75,8 @@ _CORPUS_TABLES = (
     ClassificationConceptRecord,
     PersonRecord,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _resolve_database_url() -> str:
@@ -105,3 +111,50 @@ async def engine() -> AsyncIterator[AsyncEngine]:
     yield database_engine
     await _wipe_corpus(database_engine)
     await database_engine.dispose()
+
+
+@pytest.fixture
+async def pg(engine: AsyncEngine) -> AsyncIterator[PgAccessor]:
+    """Живой PgAccessor к тестовой БД (engine-параметр нужен для wipe-порядка)."""
+    url = make_url(environ["TEST_DATABASE_URL"])
+    config = PgConfig(
+        database=url.database or "",
+        host=url.host or "127.0.0.1",
+        port=url.port or 5432,
+        username=url.username,
+        password=url.password,
+    )
+    accessor = PgAccessor(config)
+    await accessor.connect()
+    try:
+        yield accessor
+    finally:
+        await close_leaked_pg_request_scope(accessor)
+        await accessor.disconnect()
+
+
+async def close_leaked_pg_request_scope(pg: PgAccessor) -> None:
+    """Close a request scope leaked across tests under session-scoped asyncio loop.
+
+    Production ``reset_request_scope()`` only clears the ContextVar and leaves the
+    connection checked out (idle in transaction), which then blocks TRUNCATE/DROP.
+    This test helper rolls back/closes the orphaned session so the pool can reuse it.
+    """
+    scope = pg._current_scope.get()
+    if scope is None:
+        return
+
+    pg.reset_request_scope()
+    scope._closed = True
+
+    try:
+        await scope._main_session.rollback()
+    except Exception:
+        logger.exception("failed to rollback leaked test pg session")
+
+    try:
+        await scope._main_session.close()
+    except Exception:
+        logger.exception("failed to close leaked test pg session")
+
+    await scope.close_children()

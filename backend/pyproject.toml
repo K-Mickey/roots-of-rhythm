@@ -5,8 +5,10 @@ description = "Litestar backend for the Roots of Rhythm music history project"
 requires-python = ">=3.14,<3.15"
 dependencies = [
     "alembic>=1.16,<2",
+    "asyncpg>=0.31.0",
     "click>=8.3,<9",
     "litestar>=2.18,<3",
+    "more-itertools>=11.1.0",
     "msgspec>=0.19,<1",
     "psycopg[binary]>=3.2,<4",
     "python-decouple>=3.8,<4",
