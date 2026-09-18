@@ -10,7 +10,6 @@ from roots_of_rhythm.historical_knowledge.application.errors import (
     ListeningGuideNotFound,
     ListeningGuideRecordingNotPublished,
     SourceNotFound,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.historical_knowledge.application.ports import (
     ClaimRepository,
@@ -71,5 +70,4 @@ __all__ = [
     "SourceRepository",
     "SourceService",
     "SongContextReadService",
-    "UniqueConstraintViolation",
 ]

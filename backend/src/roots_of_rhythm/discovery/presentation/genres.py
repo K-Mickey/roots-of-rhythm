@@ -3,33 +3,25 @@ from http import HTTPStatus
 from uuid import UUID, uuid7
 
 from litestar import Router, get
-from litestar.di import NamedDependency  # noqa: TC002 - Litestar inspects handler annotations at runtime
-from litestar.params import FromPath  # noqa: TC002 - required at runtime for Litestar path binding
+from litestar.di import NamedDependency
+from litestar.params import FromPath
 from litestar.response import Response
 
 from roots_of_rhythm.discovery.application.dto.genres import (
-    GenreListResponse,  # noqa: TC001
-    GenreOverviewResponse,  # noqa: TC001
-    GenreRelationsResponse,  # noqa: TC001
-    GenreSourcesResponse,  # noqa: TC001
-)  # noqa: TC001 - Litestar resolves handler annotations at runtime
+    GenreListResponse,
+    GenreOverviewResponse,
+    GenreRelationsResponse,
+    GenreSourcesResponse,
+)
 from roots_of_rhythm.discovery.application.errors.genres import (
     GenreOverviewNotFound,
     GenreRelationsNotFound,
     GenreSourcesNotFound,
 )
-from roots_of_rhythm.discovery.application.queries.genre_list import (
-    GenreListReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-)
-from roots_of_rhythm.discovery.application.queries.genre_overview import (
-    GenreOverviewReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-)
-from roots_of_rhythm.discovery.application.queries.genre_relations import (
-    GenreRelationsReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-)
-from roots_of_rhythm.discovery.application.queries.genre_sources import (
-    GenreSourcesReader,  # noqa: TC001 - Litestar inspects handler annotations at runtime
-)
+from roots_of_rhythm.discovery.application.queries.genre_list import GenreListReader
+from roots_of_rhythm.discovery.application.queries.genre_overview import GenreOverviewReader
+from roots_of_rhythm.discovery.application.queries.genre_relations import GenreRelationsReader
+from roots_of_rhythm.discovery.application.queries.genre_sources import GenreSourcesReader
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse
 
 logger = logging.getLogger(__name__)
@@ -39,7 +31,7 @@ _INTERNAL_ERROR_MESSAGE = "Не удалось загрузить материа
 
 def create_genres_router() -> Router:
     return Router(
-        path="/api/v1/genres",
+        path="/genres",
         route_handlers=[
             list_published_genres,
             get_published_genre_overview,

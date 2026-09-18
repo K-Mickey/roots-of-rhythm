@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.infrastructure.database import apply_write_lock
 from roots_of_rhythm.music_catalog.domain import EditorialStatus, WorkCredit
 from roots_of_rhythm.music_catalog.infrastructure.mapping import (
@@ -9,7 +11,8 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     update_work_credit_record,
     work_credit_from_record,
 )
-from roots_of_rhythm.music_catalog.infrastructure.models import WorkCreditRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import WORK_CREDIT_UNIQUE_CONSTRAINT, WorkCreditRecord
+from roots_of_rhythm.utils.sql import is_unique_violation
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -23,6 +26,7 @@ class SqlAlchemyWorkCreditRepository:
 
     async def add(self, credit: WorkCredit) -> None:
         self._session.add(record_from_work_credit(credit))
+        await self._flush_unique_constraint()
 
     async def get(self, credit_id: UUID, *, for_update: bool = False) -> WorkCredit | None:
         return await self._get(credit_id, for_update=for_update)
@@ -48,6 +52,7 @@ class SqlAlchemyWorkCreditRepository:
         if record is None:
             raise LookupError(str(credit.id))
         update_work_credit_record(record, credit)
+        await self._flush_unique_constraint()
 
     async def mark_deleted(self, credit_id: UUID) -> None:
         record = await self._get_record(credit_id, for_update=True)
@@ -81,3 +86,11 @@ class SqlAlchemyWorkCreditRepository:
         statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
+
+    async def _flush_unique_constraint(self) -> None:
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            if is_unique_violation(error, WORK_CREDIT_UNIQUE_CONSTRAINT):
+                raise UniqueConstraintViolation(WORK_CREDIT_UNIQUE_CONSTRAINT) from error
+            raise

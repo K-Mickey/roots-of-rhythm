@@ -1,18 +1,7 @@
 from typing import TYPE_CHECKING, Self
 
-from psycopg import errors as psycopg_errors
 from sqlalchemy.exc import IntegrityError
 
-from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintViolation
-from roots_of_rhythm.music_catalog.infrastructure.models import (
-    CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
-    CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
-    LYRICS_VERSION_CREDIT_UNIQUE_CONSTRAINT,
-    LYRICS_VERSION_RELATION_UNIQUE_CONSTRAINT,
-    LYRICS_VERSION_UNIQUE_CONSTRAINT,
-    WORK_CREDIT_UNIQUE_CONSTRAINT,
-    WORK_RELATION_UNIQUE_CONSTRAINT,
-)
 from roots_of_rhythm.music_catalog.infrastructure.repositories.assignment import (
     SqlAlchemyClassificationAssignmentRepository,
 )
@@ -89,23 +78,8 @@ class SqlAlchemyMusicCatalogUnitOfWork:
     async def commit(self) -> None:
         try:
             await self._session.commit()
-        except IntegrityError as error:
+        except IntegrityError:
             await self.rollback()
-
-            name = None
-            if isinstance(error.orig, psycopg_errors.UniqueViolation):
-                name = error.orig.diag.constraint_name
-
-            if name in {
-                CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
-                CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
-                WORK_CREDIT_UNIQUE_CONSTRAINT,
-                WORK_RELATION_UNIQUE_CONSTRAINT,
-                LYRICS_VERSION_UNIQUE_CONSTRAINT,
-                LYRICS_VERSION_CREDIT_UNIQUE_CONSTRAINT,
-                LYRICS_VERSION_RELATION_UNIQUE_CONSTRAINT,
-            }:
-                raise UniqueConstraintViolation(name) from error
             raise
 
     async def rollback(self) -> None:

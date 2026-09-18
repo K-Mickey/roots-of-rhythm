@@ -31,20 +31,19 @@ from roots_of_rhythm.music_catalog.domain import (
 from roots_of_rhythm.music_catalog.public.recording_lyrics_reader import RecordingLyricsProjection
 from roots_of_rhythm.music_catalog.public.recording_reader import RecordingOverviewData
 from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReadData
-from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
 from tests.discovery.application.queries.test_song_overview_recordings import (
     _assignment,
     _genre,
     _recording,
 )
 from tests.discovery.readers_stubs import (
-    StubPublishedPeopleReader,
     StubRecordingKnowledgeReader,
     StubRecordingLyricsReader,
     StubRecordingReader,
     StubSongHistoricalKnowledgeReader,
     StubSongMusicReader,
 )
+from tests.people_catalog.support.fake_service import FakePersonService
 
 
 def _published_origin_claim(
@@ -83,7 +82,7 @@ def _overview_reader(
     knowledge = RecordingKnowledgeData(listening_guide=None, origin_claims=claims, source_access_by_version=())
     return RecordingOverviewQuery(
         StubRecordingReader(overview_data=overview),
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=())),
+        FakePersonService(),
         StubRecordingLyricsReader(RecordingLyricsProjection(items=())),
         StubRecordingKnowledgeReader(knowledge),
     )
@@ -170,7 +169,7 @@ async def test_song_overview_shows_origin_badges_only_for_current_work() -> None
                 groups=(group,),
             )
         ),
-        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        FakePersonService(),
         StubSongHistoricalKnowledgeReader(
             SongHistoricalKnowledgeReadData((), tuple(claim for items in claims.values() for claim in items)),
         ),

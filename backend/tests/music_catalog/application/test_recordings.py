@@ -6,9 +6,10 @@ from tests.music_catalog.fakes.groups import FakeGroupRepository
 from tests.music_catalog.fakes.lyrics import FakeLyricsVersionRepository
 from tests.music_catalog.fakes.recordings import FakeRecordingRepository
 from tests.music_catalog.fakes.works import FakeMusicalWorkRepository
-from tests.people_catalog.fakes.persons import FakePersonRepository
+from tests.people_catalog.support.fake_repository import FakePersonRepository
 from tests.support.scopes import counting_transaction_scope
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.application import (
     PublishRecording,
     RecordingConflict,
@@ -19,7 +20,6 @@ from roots_of_rhythm.music_catalog.application import (
     RecordingService,
     RecordingWorkNotPublished,
     ReplaceRecordingContent,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.domain import (
     BillingRole,
@@ -104,7 +104,7 @@ def _operations(
         work_repository_factory=lambda _transaction: music.works,
         lyrics_version_repository_factory=lambda _transaction: music.lyrics_versions,
         group_repository_factory=lambda _transaction: music.groups,
-        person_repository_factory=lambda _transaction: people.persons,
+        person_repository=people.persons,
     )
     replace = ReplaceRecordingContent(
         transaction_scope=scope,
@@ -112,7 +112,7 @@ def _operations(
         work_repository_factory=lambda _transaction: music.works,
         lyrics_version_repository_factory=lambda _transaction: music.lyrics_versions,
         group_repository_factory=lambda _transaction: music.groups,
-        person_repository_factory=lambda _transaction: people.persons,
+        person_repository=people.persons,
     )
     return service, publish, replace, music, people
 

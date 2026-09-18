@@ -69,7 +69,7 @@ from roots_of_rhythm.music_catalog.infrastructure.repositories.lyrics_version im
 from roots_of_rhythm.music_catalog.infrastructure.repositories.musical_work import SqlAlchemyMusicalWorkRepository
 from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
-from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
+from roots_of_rhythm.people_catalog.infrastructure.person_repository import PgPersonRepository
 from roots_of_rhythm.seed.genre_knowledge import COUNTRY_ID, RHYTHM_AND_BLUES_ID, SOURCE_VERSION_LABEL
 from roots_of_rhythm.seed.musical_works import NOBODY_KNOWS_TROUBLE_ID, SIXTEEN_TONS_ID
 from roots_of_rhythm.seed.people_and_groups import (
@@ -86,6 +86,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from roots_of_rhythm.application.ports import DbAccessor, UnitOfWork
     from roots_of_rhythm.historical_knowledge.application.ports import HistoricalKnowledgeUnitOfWork
 
 
@@ -387,7 +388,13 @@ PUBLIC_DOMAIN_RECORDINGS = (
 
 
 class RecordingCorpusSeed:
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self, session_factory: async_sessionmaker[AsyncSession], database: DbAccessor, uow: UnitOfWork
+    ) -> None:
+        self._uow = uow
+
+        person_repository = PgPersonRepository(database)
+
         self._music_uow: Callable[[], SqlAlchemyMusicCatalogUnitOfWork] = lambda: SqlAlchemyMusicCatalogUnitOfWork(
             session_factory
         )
@@ -406,7 +413,6 @@ class RecordingCorpusSeed:
         work_repository_factory = repository_factory(SqlAlchemyMusicalWorkRepository)
         lyrics_version_repository_factory = repository_factory(SqlAlchemyLyricsVersionRepository)
         group_repository_factory = repository_factory(SqlAlchemyGroupRepository)
-        person_repository_factory = repository_factory(SqlAlchemyPersonRepository)
 
         self._recordings = RecordingService(transaction_scope, recording_repository_factory)
         self._publish_recording = PublishRecording(
@@ -415,7 +421,7 @@ class RecordingCorpusSeed:
             work_repository_factory=work_repository_factory,
             lyrics_version_repository_factory=lyrics_version_repository_factory,
             group_repository_factory=group_repository_factory,
-            person_repository_factory=person_repository_factory,
+            person_repository=person_repository,
         )
         self._replace_recording_content = ReplaceRecordingContent(
             transaction_scope=transaction_scope,
@@ -423,7 +429,7 @@ class RecordingCorpusSeed:
             work_repository_factory=work_repository_factory,
             lyrics_version_repository_factory=lyrics_version_repository_factory,
             group_repository_factory=group_repository_factory,
-            person_repository_factory=person_repository_factory,
+            person_repository=person_repository,
         )
         self._recording_origin_claims = RecordingOriginClaimService(
             transaction_scope,

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from uuid import UUID
 
     from roots_of_rhythm.music_catalog.public.group_reader import GroupReader
-    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
+    from roots_of_rhythm.people_catalog.public.published_person import PeopleCatalog
 
 
 @runtime_checkable
@@ -26,7 +26,7 @@ class GroupOverviewQuery:
     def __init__(
         self,
         groups: GroupReader,
-        people: PublishedPeopleReader,
+        people: PeopleCatalog,
     ) -> None:
         self._groups = groups
         self._people = people
@@ -45,7 +45,7 @@ class GroupOverviewQuery:
         members: list[GroupMemberView] = []
         person_ids = tuple(membership.person_id for membership in data.memberships)
         people_data = await self._people.get_published_by_ids(person_ids)
-        persons = {person.id: person for person in people_data.persons}
+        persons = {person.id: person for person in people_data}
         for membership in data.memberships:
             person = persons.get(membership.person_id)
             if person is None:

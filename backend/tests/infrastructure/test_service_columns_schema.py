@@ -13,9 +13,7 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import text
 
-from roots_of_rhythm.historical_knowledge.infrastructure.models import HistoricalKnowledgeBase
-from roots_of_rhythm.music_catalog.infrastructure.models import MusicCatalogBase
-from roots_of_rhythm.people_catalog.infrastructure.models import PeopleCatalogBase
+from roots_of_rhythm.infrastructure.models import BaseModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -26,10 +24,7 @@ SERVICE_COLUMNS = ("created_at", "updated_at", "deleted")
 
 
 def _all_tables() -> set[str]:
-    tables: set[str] = set()
-    for base in (MusicCatalogBase, HistoricalKnowledgeBase, PeopleCatalogBase):
-        tables.update(base.metadata.tables)
-    return tables
+    return set(BaseModel.metadata.tables.keys())
 
 
 async def _non_null_service_columns(engine: AsyncEngine, table_name: str) -> list[str]:
@@ -65,13 +60,13 @@ async def _has_updated_at_trigger(engine: AsyncEngine, table_name: str) -> bool:
         return count == 1
 
 
-async def test_all_tables_follow_service_columns_and_update_trigger_contract(engine: AsyncEngine) -> None:
+async def test_all_tables_follow_service_columns_and_update_trigger_contract(seeded_engine: AsyncEngine) -> None:
     failures: list[str] = []
     for table_name in sorted(_all_tables()):
-        columns_issues = await _non_null_service_columns(engine, table_name)
+        columns_issues = await _non_null_service_columns(seeded_engine, table_name)
         if columns_issues:
             failures.append(f"{table_name}: service columns missing or nullable: {', '.join(columns_issues)}")
-        if not await _has_updated_at_trigger(engine, table_name):
+        if not await _has_updated_at_trigger(seeded_engine, table_name):
             failures.append(f"{table_name}: missing trg_{table_name}_set_updated_at trigger")
 
     assert not failures, "ADR-0005 schema contract violations:\n" + "\n".join(failures)

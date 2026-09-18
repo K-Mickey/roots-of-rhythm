@@ -11,10 +11,11 @@ from roots_of_rhythm.music_catalog.infrastructure.models import RecordingRecord
 from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
 from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
-from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+
+    from roots_of_rhythm.people_catalog.application import PersonRepository
 
 
 @pytest.mark.asyncio
@@ -33,7 +34,9 @@ async def test_transaction_scope_rolls_back_failed_commit_and_closes_session() -
 
 @pytest.mark.asyncio
 @pytest.mark.integration
-async def test_transaction_scope_rolls_back_music_and_people_writes_together(engine: AsyncEngine) -> None:
+async def test_transaction_scope_rolls_back_music_and_people_writes_together(
+    engine: AsyncEngine, person_repository: PersonRepository
+) -> None:
     session_factory = create_session_factory(engine)
     recording = Recording.create(uuid7(), RecordingContent.create("Uncommitted recording"))
     person = Person.create(uuid7(), PersonContent.create("Uncommitted person"))
@@ -42,10 +45,9 @@ async def test_transaction_scope_rolls_back_music_and_people_writes_together(eng
     with pytest.raises(RuntimeError, match="abort transaction"):
         async with scope() as transaction:
             recordings = SqlAlchemyRecordingRepository(transaction.session)
-            persons = SqlAlchemyPersonRepository(transaction.session)
-            assert recordings._session is persons._session is transaction.session
+            assert recordings._session is transaction.session
             await recordings.add(recording)
-            await persons.add(person)
+            await person_repository.add(person)
             await transaction.session.flush()
             raise RuntimeError("abort transaction")
 

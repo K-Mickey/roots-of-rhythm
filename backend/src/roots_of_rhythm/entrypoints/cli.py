@@ -3,8 +3,11 @@ import asyncio
 import click
 import uvicorn
 
-from roots_of_rhythm.config import settings
+from roots_of_rhythm.config import pg_settings, settings
+from roots_of_rhythm.infrastructure.base import create_pg_config
 from roots_of_rhythm.infrastructure.database import create_database_engine, create_session_factory
+from roots_of_rhythm.infrastructure.pg_accessor import PgAccessor
+from roots_of_rhythm.infrastructure.uow import PgUnitOfWork
 from roots_of_rhythm.seed import CorpusSeedRunner
 
 
@@ -36,9 +39,13 @@ def run_seed() -> None:
 
 async def _seed() -> None:
     engine = create_database_engine(settings.database_url)
+    database = PgAccessor(create_pg_config(pg_settings))
     try:
+        await database.connect()
+        uow = PgUnitOfWork(database)
         session_factory = create_session_factory(engine)
-        await CorpusSeedRunner(session_factory).run()
+        await CorpusSeedRunner(session_factory=session_factory, database=database, uow=uow).run()
         click.echo("Seed completed: controlled music corpus.")
     finally:
         await engine.dispose()
+        await database.disconnect()

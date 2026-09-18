@@ -23,13 +23,12 @@ from roots_of_rhythm.music_catalog.public.recording_lyrics_reader import (
     RecordingLyricsProjection,
 )
 from roots_of_rhythm.music_catalog.public.recording_reader import RecordingOverviewData
-from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
 from tests.discovery.readers_stubs import (
-    StubPublishedPeopleReader,
     StubRecordingKnowledgeReader,
     StubRecordingLyricsReader,
     StubRecordingReader,
 )
+from tests.people_catalog.support.fake_service import FakePersonService
 
 
 @pytest.mark.asyncio
@@ -73,7 +72,7 @@ async def test_recording_overview_query_projects_published_recording() -> None:
     )
     query = RecordingOverviewQuery(
         StubRecordingReader(overview_data=overview),
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=())),
+        FakePersonService(),
         StubRecordingLyricsReader(RecordingLyricsProjection(items=())),
         StubRecordingKnowledgeReader(
             RecordingKnowledgeData(listening_guide=None, origin_claims=(), source_access_by_version=())
@@ -101,7 +100,7 @@ async def test_recording_overview_query_raises_when_read_data_missing_recording(
     )
     query = RecordingOverviewQuery(
         StubRecordingReader(overview_data=overview),
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=())),
+        FakePersonService(),
         StubRecordingLyricsReader(RecordingLyricsProjection(items=())),
         StubRecordingKnowledgeReader(
             RecordingKnowledgeData(listening_guide=None, origin_claims=(), source_access_by_version=())
@@ -148,7 +147,7 @@ async def test_recording_overview_query_raises_when_no_published_works_remain() 
     )
     query = RecordingOverviewQuery(
         StubRecordingReader(overview_data=overview),
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=())),
+        FakePersonService(),
         StubRecordingLyricsReader(RecordingLyricsProjection(items=())),
         StubRecordingKnowledgeReader(
             RecordingKnowledgeData(listening_guide=None, origin_claims=(), source_access_by_version=())

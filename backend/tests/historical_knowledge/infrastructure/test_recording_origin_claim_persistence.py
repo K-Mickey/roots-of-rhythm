@@ -5,12 +5,12 @@ from uuid import uuid7
 import pytest
 from sqlalchemy import select
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.historical_knowledge.application import (
     CreateRecordingOriginClaim,
     PublishRecordingOriginClaim,
     RecordingOriginClaimService,
     SourceService,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,

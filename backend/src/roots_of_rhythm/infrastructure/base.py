@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+    from roots_of_rhythm.config import PGSettings
+
 PG_RO_CHILD_INFO_KEY: Final = "pg_ro_child"
 CHILD_CANCEL_GRACE_SECONDS: Final = 1.0
 
@@ -39,6 +41,16 @@ class PgConfig(msgspec.Struct, frozen=True, kw_only=True):
             raise ValueError("ro_pool_max_size must be >= 1")
         if self.ro_max_overflow < 0:
             raise ValueError("ro_max_overflow must be >= 0")
+
+
+def create_pg_config(settings: PGSettings) -> PgConfig:
+    return PgConfig(
+        database=settings.database,
+        host=settings.host,
+        port=settings.port,
+        username=settings.username,
+        password=settings.password,
+    )
 
 
 def build_session_makers(

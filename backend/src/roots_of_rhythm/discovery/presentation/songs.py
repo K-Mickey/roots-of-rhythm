@@ -3,17 +3,14 @@ from http import HTTPStatus
 from uuid import UUID, uuid7
 
 from litestar import Router, get
-from litestar.di import NamedDependency  # noqa: TC002 - Litestar inspects handler annotations at runtime
-from litestar.params import FromPath  # noqa: TC002 - required at runtime for Litestar path binding
+from litestar.di import NamedDependency
+from litestar.params import FromPath
 from litestar.response import Response
 
-from roots_of_rhythm.discovery.application.dto.songs import (
-    SongListResponse,  # noqa: TC001
-    SongOverviewResponse,  # noqa: TC001
-)  # noqa: TC001 - Litestar resolves handler annotations at runtime
+from roots_of_rhythm.discovery.application.dto.songs import SongListResponse, SongOverviewResponse
 from roots_of_rhythm.discovery.application.errors.songs import SongOverviewNotFound
-from roots_of_rhythm.discovery.application.queries.song_list import SongListReader  # noqa: TC001
-from roots_of_rhythm.discovery.application.queries.song_overview import SongOverviewReader  # noqa: TC001
+from roots_of_rhythm.discovery.application.queries.song_list import SongListReader
+from roots_of_rhythm.discovery.application.queries.song_overview import SongOverviewReader
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse
 
 logger = logging.getLogger(__name__)
@@ -23,7 +20,7 @@ _INTERNAL_ERROR_MESSAGE = "Не удалось загрузить материа
 
 def create_songs_router() -> Router:
     return Router(
-        path="/api/v1/songs",
+        path="/songs",
         route_handlers=[
             list_published_songs,
             get_published_song_overview,

@@ -24,23 +24,22 @@ from roots_of_rhythm.people_catalog.domain import (
     EditorialStatus as PersonEditorialStatus,
 )
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
-from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
-from tests.discovery.readers_stubs import StubGroupReader, StubPublishedPeopleReader
+from tests.discovery.readers_stubs import StubGroupReader
+from tests.people_catalog.support.fake_service import FakePersonService
 
 if TYPE_CHECKING:
     from collections.abc import Collection
 
 
-class SpyPersonReader(StubPublishedPeopleReader):
+class SpyPersonReader(FakePersonService):
     def __init__(self, persons: dict[UUID, Person]) -> None:
-        super().__init__(PublishedPeopleReadData(tuple(persons.values())))
+        super().__init__((tuple(persons.values())))
         self._persons = persons
         self.published_by_ids_calls: list[set[UUID]] = []
 
-    async def get_published_by_ids(self, person_ids: "Collection[UUID]") -> PublishedPeopleReadData:
+    async def get_published_by_ids(self, person_ids: "Collection[UUID]") -> tuple[Person, ...]:
         self.published_by_ids_calls.append(set(person_ids))
-        persons = [self._persons[pid] for pid in person_ids if pid in self._persons]
-        return PublishedPeopleReadData(tuple(persons))
+        return tuple(self._persons[pid] for pid in person_ids if pid in self._persons)
 
 
 @pytest.mark.asyncio
@@ -153,7 +152,7 @@ async def test_group_overview_query_projects_group_genres_and_members() -> None:
 
 @pytest.mark.asyncio
 async def test_group_overview_query_hides_missing_group() -> None:
-    query = GroupOverviewQuery(StubGroupReader(by_id={}), StubPublishedPeopleReader(PublishedPeopleReadData(())))
+    query = GroupOverviewQuery(StubGroupReader(by_id={}), FakePersonService())
 
     with pytest.raises(GroupOverviewNotFound):
         await query.get(uuid7())

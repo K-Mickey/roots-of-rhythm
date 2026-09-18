@@ -25,12 +25,11 @@ from roots_of_rhythm.music_catalog.domain import (
     WorkContent,
 )
 from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReadData
-from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
 from tests.discovery.readers_stubs import (
-    StubPublishedPeopleReader,
     StubSongHistoricalKnowledgeReader,
     StubSongMusicReader,
 )
+from tests.people_catalog.support.fake_service import FakePersonService
 
 
 def _genre(name: str) -> Genre:
@@ -141,7 +140,7 @@ async def test_song_overview_builds_recording_facets_and_chronology() -> None:
                 groups=(group,),
             )
         ),
-        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        FakePersonService(),
         StubSongHistoricalKnowledgeReader(),
     )
 

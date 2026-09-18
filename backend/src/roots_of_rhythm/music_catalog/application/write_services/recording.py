@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.application.transaction import Transaction, TransactionScopeFactory
 from roots_of_rhythm.music_catalog.application.errors import (
     RecordingConflict,
@@ -10,7 +11,6 @@ from roots_of_rhythm.music_catalog.application.errors import (
     RecordingNotFound,
     RecordingPrimaryTargetNotPublished,
     RecordingWorkNotPublished,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.application.ports import (
     GroupRepository,
@@ -18,7 +18,6 @@ from roots_of_rhythm.music_catalog.application.ports import (
     MusicalWorkRepository,
     RecordingRepository,
 )
-from roots_of_rhythm.people_catalog.application.ports import PersonRepository
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -27,12 +26,12 @@ if TYPE_CHECKING:
         Recording,
         RecordingContent,
     )
+    from roots_of_rhythm.people_catalog.application.ports import PersonRepository
 
 type RecordingRepositoryFactory = Callable[[Transaction], RecordingRepository]
 type MusicalWorkRepositoryFactory = Callable[[Transaction], MusicalWorkRepository]
 type LyricsVersionRepositoryFactory = Callable[[Transaction], LyricsVersionRepository]
 type GroupRepositoryFactory = Callable[[Transaction], GroupRepository]
-type PersonRepositoryFactory = Callable[[Transaction], PersonRepository]
 
 
 class PublishRecording:
@@ -43,14 +42,14 @@ class PublishRecording:
         work_repository_factory: MusicalWorkRepositoryFactory,
         lyrics_version_repository_factory: LyricsVersionRepositoryFactory,
         group_repository_factory: GroupRepositoryFactory,
-        person_repository_factory: PersonRepositoryFactory,
+        person_repository: PersonRepository,
     ) -> None:
         self._transaction_scope = transaction_scope
         self._recording_repository_factory = recording_repository_factory
         self._work_repository_factory = work_repository_factory
         self._lyrics_version_repository_factory = lyrics_version_repository_factory
         self._group_repository_factory = group_repository_factory
-        self._person_repository_factory = person_repository_factory
+        self._person_repository = person_repository
 
     async def execute(self, recording_id: UUID) -> Recording:
         async with self._transaction_scope() as transaction:
@@ -64,7 +63,7 @@ class PublishRecording:
                 published,
                 self._work_repository_factory(transaction),
                 self._group_repository_factory(transaction),
-                self._person_repository_factory(transaction),
+                self._person_repository,
                 self._lyrics_version_repository_factory(transaction),
             )
 
@@ -85,14 +84,14 @@ class ReplaceRecordingContent:
         work_repository_factory: MusicalWorkRepositoryFactory,
         lyrics_version_repository_factory: LyricsVersionRepositoryFactory,
         group_repository_factory: GroupRepositoryFactory,
-        person_repository_factory: PersonRepositoryFactory,
+        person_repository: PersonRepository,
     ) -> None:
         self._transaction_scope = transaction_scope
         self._recording_repository_factory = recording_repository_factory
         self._work_repository_factory = work_repository_factory
         self._lyrics_version_repository_factory = lyrics_version_repository_factory
         self._group_repository_factory = group_repository_factory
-        self._person_repository_factory = person_repository_factory
+        self._person_repository = person_repository
 
     async def execute(self, recording_id: UUID, content: RecordingContent) -> Recording:
         async with self._transaction_scope() as transaction:
@@ -107,7 +106,7 @@ class ReplaceRecordingContent:
                     updated,
                     self._work_repository_factory(transaction),
                     self._group_repository_factory(transaction),
-                    self._person_repository_factory(transaction),
+                    self._person_repository,
                     self._lyrics_version_repository_factory(transaction),
                 )
 

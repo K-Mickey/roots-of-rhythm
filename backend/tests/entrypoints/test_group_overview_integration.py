@@ -1,22 +1,19 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from litestar.testing import TestClient
 
-from roots_of_rhythm.config import Settings
-from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.seed import genre_knowledge as genre_data
 from roots_of_rhythm.seed import people_and_groups as artist_data
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+    from litestar import Litestar
+    from litestar.testing import TestClient
 
 pytestmark = pytest.mark.integration
 
 
-async def test_group_overview_integration_returns_seeded_basie_orchestra(seeded_engine: AsyncEngine) -> None:
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
-    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+async def test_group_overview_integration_returns_seeded_basie_orchestra(seeded_client: TestClient[Litestar]) -> None:
+    with seeded_client as client:
         response = client.get(f"/api/v1/groups/{artist_data.COUNT_BASIE_ORCHESTRA_ID}")
 
     assert response.status_code == 200

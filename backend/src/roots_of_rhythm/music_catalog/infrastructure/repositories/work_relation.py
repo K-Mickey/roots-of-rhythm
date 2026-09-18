@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import or_, select
+from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.infrastructure.database import apply_write_lock
 from roots_of_rhythm.music_catalog.domain import EditorialStatus, WorkRelation
 from roots_of_rhythm.music_catalog.infrastructure.mapping import (
@@ -9,7 +11,8 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     update_work_relation_record,
     work_relation_from_record,
 )
-from roots_of_rhythm.music_catalog.infrastructure.models import WorkRelationRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import WORK_RELATION_UNIQUE_CONSTRAINT, WorkRelationRecord
+from roots_of_rhythm.utils.sql import is_unique_violation
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -23,6 +26,7 @@ class SqlAlchemyWorkRelationRepository:
 
     async def add(self, relation: WorkRelation) -> None:
         self._session.add(record_from_work_relation(relation))
+        await self._flush_unique_constraint()
 
     async def get(self, relation_id: UUID, *, for_update: bool = False) -> WorkRelation | None:
         return await self._get(relation_id, for_update=for_update)
@@ -51,6 +55,7 @@ class SqlAlchemyWorkRelationRepository:
         if record is None:
             raise LookupError(str(relation.id))
         update_work_relation_record(record, relation)
+        await self._flush_unique_constraint()
 
     async def mark_deleted(self, relation_id: UUID) -> None:
         record = await self._get_record(relation_id, for_update=True)
@@ -84,3 +89,11 @@ class SqlAlchemyWorkRelationRepository:
         statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
+
+    async def _flush_unique_constraint(self) -> None:
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            if is_unique_violation(error, WORK_RELATION_UNIQUE_CONSTRAINT):
+                raise UniqueConstraintViolation(WORK_RELATION_UNIQUE_CONSTRAINT) from error
+            raise

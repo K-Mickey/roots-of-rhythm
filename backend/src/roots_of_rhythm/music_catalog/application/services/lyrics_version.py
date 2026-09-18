@@ -1,10 +1,10 @@
 from collections.abc import Callable
 from uuid import UUID, uuid7
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.application.errors import (
     LyricsVersionConflict,
     LyricsVersionNotFound,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
 from roots_of_rhythm.music_catalog.domain import LyricsVersion, LyricsVersionContent
@@ -31,8 +31,11 @@ class LyricsVersionService:
                 source_version_id,
                 content,
             )
-            await uow.lyrics_versions.add(version)
-            await self._commit(uow)
+            try:
+                await uow.lyrics_versions.add(version)
+                await self._commit(uow)
+            except UniqueConstraintViolation as error:
+                raise LyricsVersionConflict from error
             return version
 
     async def replace_content(self, version_id: UUID, content: LyricsVersionContent) -> LyricsVersion:

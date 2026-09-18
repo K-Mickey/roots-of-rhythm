@@ -14,7 +14,7 @@ from roots_of_rhythm.discovery.application.projections.recording_credits import 
 
 if TYPE_CHECKING:
     from roots_of_rhythm.music_catalog.public.recording_reader import RecordingReader
-    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
+    from roots_of_rhythm.people_catalog.public.published_person import PeopleCatalog
 
 
 @runtime_checkable
@@ -23,7 +23,7 @@ class RecordingListReader(Protocol):
 
 
 class RecordingListQuery:
-    def __init__(self, recordings: RecordingReader, people: PublishedPeopleReader) -> None:
+    def __init__(self, recordings: RecordingReader, people: PeopleCatalog) -> None:
         self._recordings = recordings
         self._people = people
 
@@ -37,7 +37,7 @@ class RecordingListQuery:
         groups = data.groups
 
         people_data = await self._people.get_published_by_ids(data.person_ids)
-        persons = {person.id: person for person in people_data.persons}
+        persons = {person.id: person for person in people_data}
 
         items: list[RecordingListItem] = []
         for recording in recordings:

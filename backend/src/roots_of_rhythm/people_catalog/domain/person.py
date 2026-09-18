@@ -36,6 +36,18 @@ class Person(msgspec.Struct, frozen=True):
             editorial_status=editorial_status,
         )
 
+    @property
+    def is_published(self) -> bool:
+        return self.editorial_status is EditorialStatus.PUBLISHED
+
+    @property
+    def is_archived(self) -> bool:
+        return self.editorial_status is EditorialStatus.ARCHIVED
+
+    @property
+    def is_draft(self) -> bool:
+        return self.editorial_status is EditorialStatus.DRAFT
+
     def replace_content(self, content: PersonContent) -> "Person":
         return Person.create(self.id, content, editorial_status=self.editorial_status)
 

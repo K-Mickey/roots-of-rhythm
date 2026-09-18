@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from roots_of_rhythm.historical_knowledge.public.recording_knowledge_reader import RecordingKnowledgeReader
     from roots_of_rhythm.music_catalog.public.recording_lyrics_reader import RecordingLyricsReader
     from roots_of_rhythm.music_catalog.public.recording_reader import RecordingReader
-    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
+    from roots_of_rhythm.people_catalog.public.published_person import PeopleCatalog
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class RecordingOverviewQuery:
     def __init__(
         self,
         recordings: RecordingReader,
-        people: PublishedPeopleReader,
+        people: PeopleCatalog,
         lyrics: RecordingLyricsReader,
         knowledge: RecordingKnowledgeReader,
     ) -> None:
@@ -58,7 +58,7 @@ class RecordingOverviewQuery:
             raise RecordingOverviewNotFound(str(recording_id))
 
         people_data = await self._people.get_published_by_ids(data.person_ids)
-        persons = {person.id: person for person in people_data.persons}
+        persons = {person.id: person for person in people_data}
 
         visible_credits = []
         for credit in recording.credits:

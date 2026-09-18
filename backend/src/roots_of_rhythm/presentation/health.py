@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable
+from http import HTTPStatus
 from typing import Literal
 
 import msgspec
@@ -21,7 +22,7 @@ def create_health_router(readiness_probe: ReadinessProbe) -> Router:
     @get("/ready")
     async def readiness() -> HealthResponse | Response[HealthResponse]:
         if not await readiness_probe():
-            return Response(HealthResponse(status="unavailable"), status_code=503)
+            return Response(HealthResponse(status="unavailable"), status_code=HTTPStatus.SERVICE_UNAVAILABLE)
         return HealthResponse(status="ok")
 
     return Router(path="/health", route_handlers=[liveness, readiness])

@@ -62,7 +62,7 @@ Integration tests работают только с отдельной БД `root
 
 - `make test-db-setup` создаёт `roots_of_rhythm_test`, если её нет, через `docker compose exec postgres` — поэтому setup работает и на уже инициализированном named volume, где `docker-entrypoint-initdb.d` больше не выполняется;
 - migrations применяются к `TEST_DATABASE_URL` (`make migrate` по-прежнему относится только к development-БД);
-- fixtures в `backend/tests/support/postgres.py` очищают corpus tables (`classification_assignments`, `persons`, `classification_concepts`, claims, sources) и читают `TEST_DATABASE_URL`. pytest-env задаёт default на `roots_of_rhythm_test` (`D:` — не перезаписывает уже заданную переменную).
+- fixtures в `backend/tests/support/postgres.py` очищают corpus tables (`classification_assignments`, `fake_repository.py`, `classification_concepts`, claims, sources) и читают `TEST_DATABASE_URL`. pytest-env задаёт default на `roots_of_rhythm_test` (`D:` — не перезаписывает уже заданную переменную).
 
 Перезапуск `make test-db-setup` идемпотентен: существующая БД не пересоздаётся, `alembic upgrade head` завершается без изменений.
 

@@ -24,8 +24,6 @@ if TYPE_CHECKING:
         RecordingOverviewData,
     )
     from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReadData
-    from roots_of_rhythm.people_catalog.domain import Person
-    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
 
 
 class StubSongMusicReader:
@@ -34,20 +32,6 @@ class StubSongMusicReader:
 
     async def get_song_data(self, _song_id: UUID) -> SongMusicReadData:
         return self._data
-
-
-class StubPublishedPeopleReader:
-    def __init__(self, data: PublishedPeopleReadData) -> None:
-        self._data = data
-
-    async def get_published_by_ids(self, _person_ids: Collection[UUID]) -> PublishedPeopleReadData:
-        return self._data
-
-    async def get_published(self, _person_id: UUID) -> Person | None:
-        return next(iter(self._data.persons), None)
-
-    async def list_published(self) -> tuple[Person, ...]:
-        return self._data.persons
 
 
 class StubSongHistoricalKnowledgeReader:

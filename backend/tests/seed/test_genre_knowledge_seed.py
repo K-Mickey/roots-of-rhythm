@@ -7,23 +7,25 @@ from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import (
 )
 from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
-from roots_of_rhythm.seed import CorpusSeedRunner
 from roots_of_rhythm.seed import genre_knowledge as data
+from tests.support.seed import run_corpus_seed
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
+
+    from roots_of_rhythm.application.ports import DbAccessor, UnitOfWork
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.mark.asyncio
-async def test_genre_knowledge_seed(engine: AsyncEngine) -> None:
+async def test_genre_knowledge_seed(engine: AsyncEngine, database: DbAccessor, uow: UnitOfWork) -> None:
     session_factory = create_session_factory(engine)
-    await CorpusSeedRunner(session_factory).run()
+    await run_corpus_seed(engine, database, uow)
 
-    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
+    async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as music_uow:
         genres = [
-            await uow.genres.get_published(genre_id)
+            await music_uow.genres.get_published(genre_id)
             for genre_id in (data.JAZZ_ID, data.SWING_ID, data.JUMP_BLUES_ID, data.COUNTRY_ID, data.RHYTHM_AND_BLUES_ID)
         ]
     assert [genre.content.canonical_name for genre in genres if genre is not None] == [
@@ -35,13 +37,13 @@ async def test_genre_knowledge_seed(engine: AsyncEngine) -> None:
     ]
     assert all(genre is not None and genre.is_published for genre in genres)
 
-    async with SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory) as uow:
-        developed = await uow.claims.get(data.SWING_FROM_JAZZ_CLAIM_ID)
-        contributed = await uow.claims.get(data.SWING_TO_JUMP_CLAIM_ID)
-        smithsonian = await uow.sources.get_source(data.SMITHSONIAN_SOURCE_ID)
-        loc = await uow.sources.get_source(data.LOC_SOURCE_ID)
+    async with SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory) as history_uow:
+        developed = await history_uow.claims.get(data.SWING_FROM_JAZZ_CLAIM_ID)
+        contributed = await history_uow.claims.get(data.SWING_TO_JUMP_CLAIM_ID)
+        smithsonian = await history_uow.sources.get_source(data.SMITHSONIAN_SOURCE_ID)
+        loc = await history_uow.sources.get_source(data.LOC_SOURCE_ID)
         fragments = [
-            await uow.sources.get_fragment(fragment_id)
+            await history_uow.sources.get_fragment(fragment_id)
             for fragment_id in (
                 data.JAZZ_INTRO_FRAGMENT_ID,
                 data.JAZZ_BLUES_FRAGMENT_ID,

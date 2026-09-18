@@ -21,7 +21,7 @@ services:
     build:
       context: backend
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-roots}:${POSTGRES_PASSWORD:-roots}@postgres:5432/${POSTGRES_DB:-roots_of_rhythm}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-roots}:${POSTGRES_PASSWORD:-roots}@postgres:5432/${POSTGRES_DB:-roots_of_rhythm}
       API_HOST: 0.0.0.0
       API_PORT: 8000
       API_RELOAD: "false"

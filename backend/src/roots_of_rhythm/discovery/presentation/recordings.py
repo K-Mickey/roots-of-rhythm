@@ -3,17 +3,14 @@ from http import HTTPStatus
 from uuid import UUID, uuid7
 
 from litestar import Router, get
-from litestar.di import NamedDependency  # noqa: TC002 - Litestar inspects annotations
-from litestar.params import FromPath  # noqa: TC002 - Litestar inspects annotations
+from litestar.di import NamedDependency
+from litestar.params import FromPath
 from litestar.response import Response
 
-from roots_of_rhythm.discovery.application.dto.recordings import (
-    RecordingListResponse,  # noqa: TC001
-    RecordingOverviewResponse,  # noqa: TC001
-)  # noqa: TC001 - Litestar resolves handler annotations at runtime
+from roots_of_rhythm.discovery.application.dto.recordings import RecordingListResponse, RecordingOverviewResponse
 from roots_of_rhythm.discovery.application.errors.recordings import RecordingOverviewNotFound
-from roots_of_rhythm.discovery.application.queries.recording_list import RecordingListReader  # noqa: TC001
-from roots_of_rhythm.discovery.application.queries.recording_overview import RecordingOverviewReader  # noqa: TC001
+from roots_of_rhythm.discovery.application.queries.recording_list import RecordingListReader
+from roots_of_rhythm.discovery.application.queries.recording_overview import RecordingOverviewReader
 from roots_of_rhythm.discovery.presentation.schemas import ErrorResponse
 
 logger = logging.getLogger(__name__)
@@ -21,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def create_recordings_router() -> Router:
     return Router(
-        path="/api/v1/recordings",
+        path="/recordings",
         route_handlers=[
             list_recordings,
             get_recording,

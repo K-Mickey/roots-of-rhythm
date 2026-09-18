@@ -30,12 +30,11 @@ from roots_of_rhythm.people_catalog.domain import (
     EditorialStatus as PersonEditorialStatus,
 )
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
-from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
 from tests.discovery.readers_stubs import (
-    StubPublishedPeopleReader,
     StubSongHistoricalKnowledgeReader,
     StubSongMusicReader,
 )
+from tests.people_catalog.support.fake_service import FakePersonService
 
 
 @pytest.mark.asyncio
@@ -110,7 +109,7 @@ async def test_song_overview_returns_public_fields_credits_classifications_and_r
                 related_works=(related_work,),
             )
         ),
-        StubPublishedPeopleReader(PublishedPeopleReadData((merle_travis,))),
+        FakePersonService((merle_travis,)),
         StubSongHistoricalKnowledgeReader(),
     )
 
@@ -177,7 +176,7 @@ async def test_song_overview_shows_each_relation_once_for_each_published_endpoin
         StubSongMusicReader(
             SongMusicReadData(work, lyrics_versions=(first, second), lyrics_relations=(relation,)),
         ),
-        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        FakePersonService(),
         StubSongHistoricalKnowledgeReader(),
     ).get(work_id)
 
@@ -190,7 +189,7 @@ async def test_song_overview_hides_missing_and_non_public_works(status: Editoria
     work_id = uuid7()
     query = SongOverviewQuery(
         StubSongMusicReader(SongMusicReadData(None)),
-        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        FakePersonService(),
         StubSongHistoricalKnowledgeReader(),
     )
 
@@ -243,7 +242,7 @@ async def test_song_overview_related_works_include_only_outbound_source_relation
                 related_works=(original,),
             )
         ),
-        StubPublishedPeopleReader(PublishedPeopleReadData(())),
+        FakePersonService(),
         StubSongHistoricalKnowledgeReader(),
     )
 

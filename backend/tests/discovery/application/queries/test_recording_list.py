@@ -23,8 +23,8 @@ from roots_of_rhythm.music_catalog.domain import (
     TemporalPrecision,
 )
 from roots_of_rhythm.music_catalog.public.recording_reader import RecordingListData
-from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
-from tests.discovery.readers_stubs import StubPublishedPeopleReader, StubRecordingReader
+from tests.discovery.readers_stubs import StubRecordingReader
+from tests.people_catalog.support.fake_service import FakePersonService
 
 
 def _genre(name: str) -> Genre:
@@ -84,10 +84,7 @@ async def test_recording_list_query_projects_recordings_from_read_data() -> None
         groups={group.id: group},
         person_ids=frozenset(),
     )
-    query = RecordingListQuery(
-        StubRecordingReader(list_data=list_data),
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=())),
-    )
+    query = RecordingListQuery(StubRecordingReader(list_data=list_data), FakePersonService())
 
     response = await query.list()
 
@@ -106,10 +103,7 @@ async def test_recording_list_query_empty() -> None:
         groups={},
         person_ids=frozenset(),
     )
-    query = RecordingListQuery(
-        StubRecordingReader(list_data=empty),
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=())),
-    )
+    query = RecordingListQuery(StubRecordingReader(list_data=empty), FakePersonService())
 
     response = await query.list()
 

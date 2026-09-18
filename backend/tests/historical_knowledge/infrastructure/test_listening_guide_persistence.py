@@ -5,7 +5,7 @@ from uuid import uuid7
 import pytest
 from sqlalchemy import func, select
 
-from roots_of_rhythm.historical_knowledge.application import UniqueConstraintViolation
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.historical_knowledge.domain import ListeningGuide, ListeningObservation
 from roots_of_rhythm.historical_knowledge.infrastructure.models import ListeningObservationRecord
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork

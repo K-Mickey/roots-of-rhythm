@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from roots_of_rhythm.infrastructure.pg_accessor import PgAccessor
+    from roots_of_rhythm.application.ports import DbAccessor
 
 
 class PgUnitOfWork:
-    def __init__(self, pg: PgAccessor) -> None:
+    def __init__(self, pg: DbAccessor) -> None:
         self._pg = pg
 
     @asynccontextmanager

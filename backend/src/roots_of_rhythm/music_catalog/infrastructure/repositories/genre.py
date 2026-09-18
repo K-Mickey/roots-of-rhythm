@@ -1,11 +1,17 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.infrastructure.database import apply_write_lock
 from roots_of_rhythm.music_catalog.domain import ClassificationKind, EditorialStatus, Genre
 from roots_of_rhythm.music_catalog.infrastructure.mapping import genre_from_record, record_from_genre, update_record
-from roots_of_rhythm.music_catalog.infrastructure.models import ClassificationConceptRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import (
+    CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT,
+    ClassificationConceptRecord,
+)
+from roots_of_rhythm.utils.sql import is_unique_violation
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -20,6 +26,7 @@ class SqlAlchemyGenreRepository:
 
     async def add(self, genre: Genre) -> None:
         self._session.add(record_from_genre(genre))
+        await self._flush_unique_constraint()
 
     async def get(self, genre_id: UUID, *, for_update: bool = False) -> Genre | None:
         return await self._get(genre_id, for_update=for_update)
@@ -90,6 +97,7 @@ class SqlAlchemyGenreRepository:
         if record is None:
             raise LookupError(str(genre.id))
         update_record(record, genre)
+        await self._flush_unique_constraint()
 
     async def mark_deleted(self, genre_id: UUID) -> None:
         record = await self._get_record(genre_id, for_update=True)
@@ -147,3 +155,11 @@ class SqlAlchemyGenreRepository:
         statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
+
+    async def _flush_unique_constraint(self) -> None:
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            if is_unique_violation(error, CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT):
+                raise UniqueConstraintViolation(CLASSIFICATION_CONCEPT_NAME_UNIQUE_CONSTRAINT) from error
+            raise

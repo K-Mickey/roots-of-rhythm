@@ -1,5 +1,4 @@
-from sqlalchemy.orm import DeclarativeBase
-
+from roots_of_rhythm.infrastructure.models import BaseModel
 from roots_of_rhythm.music_catalog.domain.enums import (
     BillingRole,
     ClassificationKind,
@@ -36,6 +35,7 @@ RECORDING_CONTRIBUTION_KIND_CHECK = (
 )
 RECORDING_WORK_USAGE_KIND_CHECK = enum_in_check("usage_kind", RecordingWorkUsageKind)
 CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT = "uq_classification_assignments_target_concept"
+
 WORK_CREDIT_UNIQUE_CONSTRAINT = "uq_work_credits_work_person_role"
 WORK_RELATION_UNIQUE_CONSTRAINT = "uq_work_relations_source_target_type"
 LYRICS_VERSION_UNIQUE_CONSTRAINT = "uq_lyrics_versions_work_language_usage_label"
@@ -55,5 +55,5 @@ PERIOD_END_YEAR_COLUMN = "period_end_year"
 PERIOD_END_PRECISION_COLUMN = "period_end_precision"
 
 
-class MusicCatalogBase(DeclarativeBase):
-    pass
+class MusicCatalogBase(BaseModel):
+    __abstract__ = True

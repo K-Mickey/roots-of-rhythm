@@ -1,2 +1,0 @@
-class PersonNotFound(LookupError):
-    pass

@@ -25,10 +25,8 @@ from roots_of_rhythm.music_catalog.infrastructure.repositories.genre import SqlA
 from roots_of_rhythm.music_catalog.infrastructure.repositories.group import SqlAlchemyGroupRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
 from roots_of_rhythm.people_catalog.application import PersonService
-from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
 from roots_of_rhythm.people_catalog.domain import PersonContent
-from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
-from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
+from roots_of_rhythm.people_catalog.infrastructure.person_repository import PgPersonRepository
 from roots_of_rhythm.seed.genre_knowledge import JAZZ_ID, JUMP_BLUES_ID, SWING_ID
 
 if TYPE_CHECKING:
@@ -36,7 +34,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from roots_of_rhythm.people_catalog.application.ports import PeopleCatalogUnitOfWork
+    from roots_of_rhythm.application.ports import DbAccessor, UnitOfWork
 
 
 # --- Performers -------------------------------------------------------------
@@ -237,14 +235,17 @@ SEED_RECORDING_PERFORMERS: tuple[tuple[UUID, str], ...] = (
 
 
 class PeopleAndGroupsSeed:
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self, session_factory: async_sessionmaker[AsyncSession], database: DbAccessor, uow: UnitOfWork
+    ) -> None:
+        self._uow = uow
+
+        person_repository = PgPersonRepository(database)
+
         self._music_uow: Callable[[], SqlAlchemyMusicCatalogUnitOfWork] = lambda: SqlAlchemyMusicCatalogUnitOfWork(
             session_factory
         )
-        self._people_uow: Callable[[], PeopleCatalogUnitOfWork] = lambda: SqlAlchemyPeopleCatalogUnitOfWork(
-            session_factory
-        )
-        self._persons = PersonService(self._people_uow)
+        self._persons = PersonService(uow=uow, person_repository=person_repository)
         self._groups = GroupService(self._music_uow)
         self._group_memberships = GroupMembershipService(self._music_uow)
         transaction_scope = SqlAlchemyTransactionScope(session_factory)
@@ -252,7 +253,6 @@ class PeopleAndGroupsSeed:
         assignment_repository = repository_factory(SqlAlchemyClassificationAssignmentRepository)
         genre_repository = repository_factory(SqlAlchemyGenreRepository)
         group_repository = repository_factory(SqlAlchemyGroupRepository)
-        person_repository = repository_factory(SqlAlchemyPersonRepository)
 
         self._assignments = ClassificationAssignmentService(transaction_scope, assignment_repository)
         self._publish_assignment = PublishClassificationAssignment(
@@ -279,13 +279,13 @@ class PeopleAndGroupsSeed:
             await self._ensure_published_person(person_id, name)
 
     async def _ensure_published_person(self, person_id: UUID, name: str) -> None:
-        async with self._people_uow() as uow:
-            existing = await uow.persons.get(person_id)
+        async with self._uow():
+            existing = await self._persons._person_repository.get(person_id)
         if existing is None:
             await self._persons.create(PersonContent.create(name), person_id=person_id)
             await self._persons.publish(person_id)
             return
-        if existing.editorial_status is not PersonEditorialStatus.PUBLISHED:
+        if not existing.is_published:
             await self._persons.publish(person_id)
 
     async def _ensure_assignments(self) -> None:

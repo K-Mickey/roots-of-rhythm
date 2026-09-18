@@ -1,23 +1,20 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from litestar.testing import TestClient
 
-from roots_of_rhythm.config import Settings
-from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.seed import genre_knowledge as genre_data
 from tests.support.postgres import collect_select_statements
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+    from litestar import Litestar
+    from litestar.testing import TestClient
 
 pytestmark = pytest.mark.integration
 
 
-async def test_genre_sources_integration_returns_seeded_swing_bibliography(seeded_engine: AsyncEngine) -> None:
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
+async def test_genre_sources_integration_returns_seeded_swing_bibliography(seeded_client: TestClient[Litestar]) -> None:
     with (
-        TestClient(app=create_app(Settings(database_url=database_url))) as client,
+        seeded_client as client,
         collect_select_statements() as selects,
     ):
         sources_response = client.get(f"/api/v1/genres/{genre_data.SWING_ID}/sources")
@@ -40,9 +37,7 @@ async def test_genre_sources_integration_returns_seeded_swing_bibliography(seede
     assert second["responsible_organization"] == genre_data.LOC_RESPONSIBLE_ORGANIZATION
     assert second["external_url"] == genre_data.LOC_EXTERNAL_URL
 
-    with TestClient(
-        app=create_app(Settings(database_url=seeded_engine.url.render_as_string(hide_password=False)))
-    ) as client:
+    with seeded_client as client:
         relations_response = client.get(f"/api/v1/genres/{genre_data.SWING_ID}/relations")
     assert relations_response.status_code == 200
     relation_source_ids = {

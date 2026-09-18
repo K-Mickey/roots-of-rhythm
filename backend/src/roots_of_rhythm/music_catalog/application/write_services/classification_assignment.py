@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.application.transaction import Transaction, TransactionScopeFactory
 from roots_of_rhythm.music_catalog.application.errors import (
     ClassificationAssignmentConflict,
@@ -9,7 +10,6 @@ from roots_of_rhythm.music_catalog.application.errors import (
     ClassificationAssignmentNotFound,
     ClassificationAssignmentPersonNotPublished,
     ClassificationAssignmentTargetUnsupported,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.application.ports import (
     ClassificationAssignmentRepository,
@@ -17,15 +17,15 @@ from roots_of_rhythm.music_catalog.application.ports import (
     GroupRepository,
 )
 from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, ClassificationTargetKind
-from roots_of_rhythm.people_catalog.application.ports import PersonRepository
 
 if TYPE_CHECKING:
     from uuid import UUID
 
+    from roots_of_rhythm.people_catalog.application.ports import PersonRepository
+
 type ClassificationAssignmentRepositoryFactory = Callable[[Transaction], ClassificationAssignmentRepository]
 type GenreRepositoryFactory = Callable[[Transaction], GenreRepository]
 type GroupRepositoryFactory = Callable[[Transaction], GroupRepository]
-type PersonRepositoryFactory = Callable[[Transaction], PersonRepository]
 
 
 class PublishClassificationAssignment:
@@ -35,13 +35,13 @@ class PublishClassificationAssignment:
         assignment_repository_factory: ClassificationAssignmentRepositoryFactory,
         genre_repository_factory: GenreRepositoryFactory,
         group_repository_factory: GroupRepositoryFactory,
-        person_repository_factory: PersonRepositoryFactory,
+        person_repository: PersonRepository,
     ) -> None:
         self._transaction_scope = transaction_scope
         self._assignment_repository_factory = assignment_repository_factory
         self._genre_repository_factory = genre_repository_factory
         self._group_repository_factory = group_repository_factory
-        self._person_repository_factory = person_repository_factory
+        self._person_repository = person_repository
 
     async def execute(self, assignment_id: UUID) -> ClassificationAssignment:
         async with self._transaction_scope() as transaction:
@@ -72,8 +72,7 @@ class PublishClassificationAssignment:
 
         match assignment.target_kind:
             case ClassificationTargetKind.PERSON:
-                person_repository = self._person_repository_factory(transaction)
-                if await person_repository.get_published(assignment.target_id, for_update=True) is None:
+                if await self._person_repository.get_published(assignment.target_id, for_update=True) is None:
                     raise ClassificationAssignmentPersonNotPublished(str(assignment.target_id))
             case ClassificationTargetKind.GROUP:
                 group_repository = self._group_repository_factory(transaction)

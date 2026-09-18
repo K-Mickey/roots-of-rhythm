@@ -1,10 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from litestar.testing import TestClient
 
-from roots_of_rhythm.config import Settings
-from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.historical_knowledge.application import SourceService
 from roots_of_rhythm.historical_knowledge.domain import SourceAccessPolicy
 from roots_of_rhythm.historical_knowledge.infrastructure.unit_of_work import SqlAlchemyHistoricalKnowledgeUnitOfWork
@@ -14,16 +11,18 @@ from roots_of_rhythm.seed import genre_knowledge as genre_data
 from roots_of_rhythm.seed import musical_works as work_data
 from roots_of_rhythm.seed import recording_corpus as recording_data
 from tests.support.postgres import collect_select_statements
+from tests.support.test_client import create_client
 
 if TYPE_CHECKING:
+    from litestar import Litestar
+    from litestar.testing import TestClient
     from sqlalchemy.ext.asyncio import AsyncEngine
 
 pytestmark = pytest.mark.integration
 
 
-async def test_song_list_integration_returns_seeded_titles_in_order(seeded_engine: AsyncEngine) -> None:
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
-    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+async def test_song_list_integration_returns_seeded_titles_in_order(seeded_client: TestClient[Litestar]) -> None:
+    with seeded_client as client:
         response = client.get("/api/v1/songs")
 
     assert response.status_code == 200
@@ -40,9 +39,8 @@ async def test_song_list_integration_returns_seeded_titles_in_order(seeded_engin
     }
 
 
-async def test_spiritual_overview_exposes_fallback_lyrics(seeded_engine: AsyncEngine) -> None:
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
-    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+async def test_spiritual_overview_exposes_fallback_lyrics(seeded_client: TestClient[Litestar]) -> None:
+    with seeded_client as client:
         response = client.get(f"/api/v1/songs/{work_data.NOBODY_KNOWS_TROUBLE_ID}")
 
     assert response.status_code == 200
@@ -62,8 +60,7 @@ async def test_song_overview_withholds_lyrics_body_when_source_policy_withholds(
     sources = SourceService(lambda: SqlAlchemyHistoricalKnowledgeUnitOfWork(session_factory))
     await sources.set_access_policy(recording_data.PUBLIC_DOMAIN_SOURCE_ID, SourceAccessPolicy.WITHHOLD_PUBLIC_BODY)
 
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
-    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+    with create_client() as client:
         response = client.get(f"/api/v1/songs/{work_data.NOBODY_KNOWS_TROUBLE_ID}")
 
     assert response.status_code == 200
@@ -72,10 +69,9 @@ async def test_song_overview_withholds_lyrics_body_when_source_policy_withholds(
     }
 
 
-async def test_song_overview_integration_returns_seeded_credits(seeded_engine: AsyncEngine) -> None:
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
+async def test_song_overview_integration_returns_seeded_credits(seeded_client: TestClient[Litestar]) -> None:
     with (
-        TestClient(app=create_app(Settings(database_url=database_url))) as client,
+        seeded_client as client,
         collect_select_statements() as selects,
     ):
         response = client.get(f"/api/v1/songs/{work_data.SIXTEEN_TONS_ID}")

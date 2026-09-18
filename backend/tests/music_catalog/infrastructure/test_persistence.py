@@ -4,6 +4,7 @@ from uuid import uuid7
 import pytest
 from sqlalchemy import inspect
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.infrastructure.database import create_session_factory
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
 from roots_of_rhythm.music_catalog.application import (
@@ -12,7 +13,6 @@ from roots_of_rhythm.music_catalog.application import (
     GenreNameConflict,
     GenreService,
     PublishClassificationAssignment,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationContent,
@@ -28,15 +28,13 @@ from roots_of_rhythm.music_catalog.infrastructure.repositories.assignment import
 from roots_of_rhythm.music_catalog.infrastructure.repositories.genre import SqlAlchemyGenreRepository
 from roots_of_rhythm.music_catalog.infrastructure.repositories.group import SqlAlchemyGroupRepository
 from roots_of_rhythm.music_catalog.infrastructure.unit_of_work import SqlAlchemyMusicCatalogUnitOfWork
-from roots_of_rhythm.people_catalog.application import PersonService
 from roots_of_rhythm.people_catalog.domain import PersonContent
-from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
-from roots_of_rhythm.people_catalog.infrastructure.unit_of_work import SqlAlchemyPeopleCatalogUnitOfWork
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
     from roots_of_rhythm.application.transaction import Transaction
+    from roots_of_rhythm.people_catalog.public import PeopleCatalog
 
 
 pytestmark = pytest.mark.integration
@@ -97,10 +95,11 @@ async def test_repository_round_trip_and_public_filter(engine: AsyncEngine) -> N
 
 
 @pytest.mark.asyncio
-async def test_assignment_repository_round_trips_publication_content(engine: AsyncEngine) -> None:
+async def test_assignment_repository_round_trips_publication_content(
+    engine: AsyncEngine, person_service: PeopleCatalog
+) -> None:
     session_factory = create_session_factory(engine)
     genres = GenreService(lambda: SqlAlchemyMusicCatalogUnitOfWork(session_factory))
-    persons = PersonService(lambda: SqlAlchemyPeopleCatalogUnitOfWork(session_factory))
     transaction_scope = SqlAlchemyTransactionScope(session_factory)
 
     def assignment_repository(transaction: "Transaction") -> SqlAlchemyClassificationAssignmentRepository:
@@ -112,13 +111,13 @@ async def test_assignment_repository_round_trips_publication_content(engine: Asy
         assignment_repository,
         lambda transaction: SqlAlchemyGenreRepository(sqlalchemy_session(transaction)),
         lambda transaction: SqlAlchemyGroupRepository(sqlalchemy_session(transaction)),
-        lambda transaction: SqlAlchemyPersonRepository(sqlalchemy_session(transaction)),
+        person_service._person_repository,  # type: ignore[attr-defined]
     )
     jazz = await genres.create(ClassificationContent.create("Jazz", definition="A genre."))
     await genres.publish(jazz.id)
     person_id = uuid7()
-    await persons.create(PersonContent.create("Test Performer"), person_id=person_id)
-    await persons.publish(person_id)
+    await person_service.create(PersonContent.create("Test Performer"), person_id=person_id)
+    await person_service.publish(person_id)
     claim_id = uuid7()
     assignment = await assignments.create_for_person(
         person_id,
@@ -168,8 +167,8 @@ async def test_unit_of_work_rolls_back_and_unique_name_is_case_insensitive(engin
     duplicate = await service.create(ClassificationContent.create("Jump Blues"))
     duplicate_case = duplicate.replace_content(ClassificationContent.create("swing"))
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:
-        await uow.genres.save(duplicate_case)
         with pytest.raises(UniqueConstraintViolation):
+            await uow.genres.save(duplicate_case)
             await uow.commit()
 
     async with SqlAlchemyMusicCatalogUnitOfWork(session_factory) as uow:

@@ -10,6 +10,7 @@ from tests.music_catalog.fakes.recordings import FakeRecordingRepository
 from tests.music_catalog.fakes.works import FakeMusicalWorkRepository
 from tests.support.scopes import CountingTransaction, counting_transaction_scope
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.historical_knowledge.application import (
     ClaimNotFound,
     CreateRecordingOriginClaim,
@@ -21,7 +22,6 @@ from roots_of_rhythm.historical_knowledge.application import (
     PublishRecordingOriginClaim,
     RecordingOriginClaimService,
     SourceNotFound,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.historical_knowledge.domain import (
     ClaimEvidenceReference,

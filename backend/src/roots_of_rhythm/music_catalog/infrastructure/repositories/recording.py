@@ -1,12 +1,11 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-from psycopg import errors as psycopg_errors
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.infrastructure.database import apply_write_lock
-from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.domain import EditorialStatus, Recording
 from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     record_from_recording,
@@ -21,6 +20,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     RecordingRecord,
     RecordingWorkUsageRecord,
 )
+from roots_of_rhythm.utils.sql import is_unique_violation
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -268,9 +268,7 @@ class SqlAlchemyRecordingRepository:
         try:
             await self._session.flush()
         except IntegrityError as error:
-            constraint_name = None
-            if isinstance(error.orig, psycopg_errors.UniqueViolation):
-                constraint_name = error.orig.diag.constraint_name
-            if constraint_name in RECORDING_UNIQUE_CONSTRAINTS:
-                raise UniqueConstraintViolation(constraint_name) from error
+            for constraint in RECORDING_UNIQUE_CONSTRAINTS:
+                if is_unique_violation(error, constraint):
+                    raise UniqueConstraintViolation(constraint) from error
             raise

@@ -32,6 +32,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.repositories.recording_
 )
 from roots_of_rhythm.historical_knowledge.infrastructure.repositories.source import SqlAlchemySourceRepository
 from roots_of_rhythm.infrastructure.transaction import SqlAlchemyTransactionScope, sqlalchemy_session
+from roots_of_rhythm.infrastructure.uow import PgUnitOfWork
 from roots_of_rhythm.music_catalog.application import (
     GenreReadService,
     GroupReadService,
@@ -60,12 +61,13 @@ from roots_of_rhythm.music_catalog.infrastructure.repositories.musical_work impo
 from roots_of_rhythm.music_catalog.infrastructure.repositories.recording import SqlAlchemyRecordingRepository
 from roots_of_rhythm.music_catalog.infrastructure.repositories.work_credit import SqlAlchemyWorkCreditRepository
 from roots_of_rhythm.music_catalog.infrastructure.repositories.work_relation import SqlAlchemyWorkRelationRepository
-from roots_of_rhythm.people_catalog.application import PersonsReadService
-from roots_of_rhythm.people_catalog.infrastructure.repository import SqlAlchemyPersonRepository
+from roots_of_rhythm.people_catalog.application import PersonService
+from roots_of_rhythm.people_catalog.infrastructure.person_repository import PgPersonRepository
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from roots_of_rhythm.application.ports import DbAccessor
     from roots_of_rhythm.application.transaction import Transaction
 
 
@@ -93,10 +95,14 @@ def repository_factory[T](repository_type: Callable[[AsyncSession], T]) -> Calla
 
 
 def create_api_dependencies(
+    db_accessor: DbAccessor,
     session_factory: async_sessionmaker[AsyncSession],
     overrides: DependencyProviders | None = None,
 ) -> dict[str, Provide]:
     transaction_scope = SqlAlchemyTransactionScope(session_factory)
+    uow = PgUnitOfWork(db_accessor)
+
+    person_repo = PgPersonRepository(db_accessor)
 
     genre_repo = repository_factory(SqlAlchemyGenreRepository)
     group_repo = repository_factory(SqlAlchemyGroupRepository)
@@ -109,12 +115,12 @@ def create_api_dependencies(
     lyrics_credit_repo = repository_factory(SqlAlchemyLyricsVersionCreditRepository)
     lyrics_relation_repo = repository_factory(SqlAlchemyLyricsVersionRelationRepository)
     recording_repo = repository_factory(SqlAlchemyRecordingRepository)
-    person_repo = repository_factory(SqlAlchemyPersonRepository)
     claim_repo = repository_factory(SqlAlchemyClaimRepository)
     listening_guide_repo = repository_factory(SqlAlchemyListeningGuideRepository)
     origin_claim_repo = repository_factory(SqlAlchemyRecordingOriginClaimRepository)
     source_repo = repository_factory(SqlAlchemySourceRepository)
 
+    people = PersonService(uow, person_repo)
     genres = GenreReadService(transaction_scope, genre_repo)
     groups = GroupReadService(transaction_scope, group_repo, assignment_repo, membership_repo, genre_repo)
     performers = PerformerReadService(transaction_scope, assignment_repo, genre_repo)
@@ -141,7 +147,6 @@ def create_api_dependencies(
         group_repo,
     )
     recording_lyrics = RecordingLyricsReadService(transaction_scope, lyrics_repo, lyrics_relation_repo)
-    people = PersonsReadService(transaction_scope, person_repo)
     song_context = SongContextReadService(transaction_scope, origin_claim_repo, source_repo)
     genre_relation_claims = GenreRelationClaimReadService(transaction_scope, claim_repo, source_repo)
     sources = SourceReadService(transaction_scope, source_repo)

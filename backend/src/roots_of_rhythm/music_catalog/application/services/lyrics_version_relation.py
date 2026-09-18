@@ -1,11 +1,11 @@
 from collections.abc import Callable
 from uuid import UUID, uuid7
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.application.errors import (
     LyricsVersionEndpointNotPublished,
     LyricsVersionRelationConflict,
     LyricsVersionRelationNotFound,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.application.ports import MusicCatalogUnitOfWork
 from roots_of_rhythm.music_catalog.domain import (

@@ -1,23 +1,20 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from litestar.testing import TestClient
 
-from roots_of_rhythm.config import Settings
-from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.seed import musical_works as work_data
 from roots_of_rhythm.seed import recording_corpus as recording_data
 from tests.support.postgres import collect_select_statements
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+    from litestar import Litestar
+    from litestar.testing import TestClient
 
 pytestmark = pytest.mark.integration
 
 
-async def test_recording_endpoints_return_seeded_corpus(seeded_engine: AsyncEngine) -> None:
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
-    with TestClient(app=create_app(Settings(database_url=database_url))) as client:
+async def test_recording_endpoints_return_seeded_corpus(seeded_client: TestClient[Litestar]) -> None:
+    with seeded_client as client:
         listing = client.get("/api/v1/recordings")
         with collect_select_statements() as selects:
             ford = client.get(f"/api/v1/recordings/{recording_data.TENNESSEE_ERNIE_FORD_RECORDING_ID}")

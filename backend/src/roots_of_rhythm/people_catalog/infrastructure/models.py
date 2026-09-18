@@ -4,14 +4,14 @@ from uuid import UUID
 from sqlalchemy import CheckConstraint, Index, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
+from roots_of_rhythm.infrastructure.models import BaseModel
 from roots_of_rhythm.infrastructure.service_columns import ServiceColumnsMixin
 from roots_of_rhythm.people_catalog.domain.enums import EditorialStatus, TemporalPrecision
 from roots_of_rhythm.utils.sql import enum_in_check
 from roots_of_rhythm.utils.text_lengths import TEXT_32, TEXT_64, TEXT_1024
 
-# Retained for migration 0005 compatibility; current metadata no longer creates this index.
 PERSON_NAME_UNIQUE_CONSTRAINT = "uq_persons_canonical_name_ci"
 EDITORIAL_STATUS_CHECK = enum_in_check("editorial_status", EditorialStatus)
 TEMPORAL_PRECISION_CHECK = (
@@ -27,8 +27,8 @@ class ExternalIdentityData(TypedDict):
     url: str | None
 
 
-class PeopleCatalogBase(DeclarativeBase):
-    pass
+class PeopleCatalogBase(BaseModel):
+    __abstract__ = True
 
 
 class PersonRecord(ServiceColumnsMixin, PeopleCatalogBase):
@@ -54,6 +54,7 @@ class PersonRecord(ServiceColumnsMixin, PeopleCatalogBase):
             name="ck_persons_birth_before_death",
         ),
     )
+    __unique_constraints__ = ("persons_pkey",)
 
     id: Mapped[UUID] = mapped_column(PostgreSQLUUID(as_uuid=True), primary_key=True)
     editorial_status: Mapped[str] = mapped_column(String(TEXT_32), nullable=False)

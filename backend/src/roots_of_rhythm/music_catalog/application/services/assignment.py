@@ -1,11 +1,11 @@
 from collections.abc import Callable
 from uuid import UUID, uuid7
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.application.transaction import Transaction, TransactionScopeFactory
 from roots_of_rhythm.music_catalog.application.errors import (
     ClassificationAssignmentConflict,
     ClassificationAssignmentNotFound,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.application.ports import ClassificationAssignmentRepository
 from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, EvidenceStatus

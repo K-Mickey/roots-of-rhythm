@@ -4,9 +4,9 @@ SHELL := /bin/sh
 	format format-check lint typecheck test-unit test-integration test-coverage test-e2e contract-check build check
 
 POSTGRES_USER ?= roots
-DATABASE_URL ?= postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm
+DATABASE_URL ?= postgresql+asyncpg://roots:roots@127.0.0.1:5432/roots_of_rhythm
 TEST_POSTGRES_DB ?= roots_of_rhythm_test
-TEST_DATABASE_URL ?= postgresql+psycopg://roots:roots@127.0.0.1:5432/$(TEST_POSTGRES_DB)
+TEST_DATABASE_URL ?= postgresql+asyncpg://roots:roots@127.0.0.1:5432/$(TEST_POSTGRES_DB)
 PNPM_VERSION := 11.24.0
 PNPM := $(shell \
 	if command -v pnpm >/dev/null 2>&1; then command -v pnpm; \

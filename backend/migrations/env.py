@@ -6,17 +6,16 @@ from sqlalchemy import Connection, pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from roots_of_rhythm.config import settings
-from roots_of_rhythm.historical_knowledge.infrastructure import HistoricalKnowledgeBase
-from roots_of_rhythm.music_catalog.infrastructure import MusicCatalogBase
-from roots_of_rhythm.people_catalog.infrastructure import PeopleCatalogBase
+from roots_of_rhythm.infrastructure.models import BaseModel
 
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
-config.set_main_option("sqlalchemy.url", settings.database_url)
-target_metadata = [MusicCatalogBase.metadata, HistoricalKnowledgeBase.metadata, PeopleCatalogBase.metadata]
+_url = config.get_main_option("sqlalchemy.url") or settings.database_url
+config.set_main_option("sqlalchemy.url", _url)
+target_metadata = [BaseModel.metadata]
 
 
 def run_migrations_offline() -> None:

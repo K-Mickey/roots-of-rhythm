@@ -1,9 +1,7 @@
 from typing import TYPE_CHECKING, Self
 
-from psycopg import errors as psycopg_errors
 from sqlalchemy.exc import IntegrityError
 
-from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.historical_knowledge.infrastructure.repositories.claim import SqlAlchemyClaimRepository
 from roots_of_rhythm.historical_knowledge.infrastructure.repositories.listening_guide import (
     SqlAlchemyListeningGuideRepository,
@@ -51,10 +49,8 @@ class SqlAlchemyHistoricalKnowledgeUnitOfWork:
     async def commit(self) -> None:
         try:
             await self._session.commit()
-        except IntegrityError as error:
+        except IntegrityError:
             await self.rollback()
-            if isinstance(error.orig, psycopg_errors.UniqueViolation):
-                raise UniqueConstraintViolation(error.orig.diag.constraint_name) from error
             raise
 
     async def rollback(self) -> None:

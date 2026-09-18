@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
     from roots_of_rhythm.music_catalog.public.performer_reader import PerformerReader
     from roots_of_rhythm.people_catalog.domain import PersonDate
-    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
+    from roots_of_rhythm.people_catalog.public.published_person import PeopleCatalog
 
 
 @runtime_checkable
@@ -26,7 +26,7 @@ class PerformerOverviewReader(Protocol):
 class PerformerOverviewQuery:
     def __init__(
         self,
-        people: PublishedPeopleReader,
+        people: PeopleCatalog,
         performer: PerformerReader,
     ) -> None:
         self._people = people

@@ -19,6 +19,10 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Iterable
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _SRC_ROOT = _PROJECT_ROOT / "src" / "roots_of_rhythm"
@@ -75,6 +79,10 @@ def _violations(contexts: frozenset[str]) -> list[str]:
     return problems
 
 
+def _is_part_of(imported: str, roots: Iterable[str]) -> bool:
+    return any(imported == root or imported.startswith(f"{root}.") for root in roots)
+
+
 def _check(
     file: Path,
     own_context: str | None,
@@ -90,8 +98,7 @@ def _check(
 
     if own_layer == "domain":
         if imported_context is None:
-            part_of_root = any(imported == root or imported.startswith(f"{root}.") for root in _DOMAIN_ALLOWED_ROOT)
-            if not part_of_root:
+            if not _is_part_of(imported, _DOMAIN_ALLOWED_ROOT):
                 return f"{location} — R3: domain imports non-context root module"
             return None
         if imported_context != own_context or layer != "domain":
@@ -112,7 +119,7 @@ def _check(
 
     if own_layer == "public":
         if imported_context is None:
-            if imported not in _SHARED_ROOT_HELPERS:
+            if not _is_part_of(imported, _SHARED_ROOT_HELPERS):
                 return f"{location} — R2: public reader imports non-shared root module"
             return None
         if imported_context != own_context:

@@ -1,92 +1,31 @@
-"""PostgreSQL fixtures that wipe the controlled corpus tables."""
-
 from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
 from os import environ
+from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-from sqlalchemy import delete, event
+import sqlalchemy as sa
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import event, literal
 from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.engine.url import URL
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import NullPool
 
-from roots_of_rhythm.historical_knowledge.infrastructure.models import (
-    ClaimEvidenceReferenceRecord,
-    GenreRelationClaimRecord,
-    ListeningGuideRecord,
-    ListeningObservationRecord,
-    RecordingOriginClaimEvidenceReferenceRecord,
-    RecordingOriginClaimRecord,
-    SourceFragmentRecord,
-    SourceRecord,
-    SourceVersionRecord,
-)
-from roots_of_rhythm.infrastructure.base import PgConfig
-from roots_of_rhythm.infrastructure.database import create_database_engine
+from roots_of_rhythm.config import PGSettings
+from roots_of_rhythm.infrastructure.base import PgConfig, build_session_makers
 from roots_of_rhythm.infrastructure.pg_accessor import PgAccessor
-from roots_of_rhythm.music_catalog.infrastructure.models import (
-    ClassificationAssignmentRecord,
-    ClassificationConceptRecord,
-    GroupMembershipRecord,
-    GroupRecord,
-    LyricsVersionCreditRecord,
-    LyricsVersionRecord,
-    LyricsVersionRelationRecord,
-    MusicalWorkRecord,
-    RecordingCreditRecord,
-    RecordingLyricsUsageRecord,
-    RecordingRecord,
-    RecordingWorkUsageRecord,
-    WorkCreditRecord,
-    WorkRelationRecord,
-)
-from roots_of_rhythm.people_catalog.infrastructure.models import PersonRecord
+from tests.support.session import _FakeSession
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Iterator
+    from collections.abc import Iterator
 
-    from sqlalchemy.ext.asyncio import AsyncEngine
-
-
-_CORPUS_TABLES = (
-    ListeningObservationRecord,
-    ListeningGuideRecord,
-    RecordingOriginClaimEvidenceReferenceRecord,
-    RecordingOriginClaimRecord,
-    ClaimEvidenceReferenceRecord,
-    GenreRelationClaimRecord,
-    SourceFragmentRecord,
-    SourceVersionRecord,
-    SourceRecord,
-    ClassificationAssignmentRecord,
-    RecordingCreditRecord,
-    RecordingLyricsUsageRecord,
-    RecordingWorkUsageRecord,
-    RecordingRecord,
-    LyricsVersionRelationRecord,
-    LyricsVersionCreditRecord,
-    LyricsVersionRecord,
-    WorkRelationRecord,
-    WorkCreditRecord,
-    GroupMembershipRecord,
-    GroupRecord,
-    MusicalWorkRecord,
-    ClassificationConceptRecord,
-    PersonRecord,
-)
+    from roots_of_rhythm.application.ports import DbAccessor
 
 logger = logging.getLogger(__name__)
-
-
-def _resolve_database_url() -> str:
-    return environ["TEST_DATABASE_URL"]
-
-
-async def _wipe_corpus(engine: AsyncEngine) -> None:
-    async with engine.begin() as connection:
-        for table in _CORPUS_TABLES:
-            await connection.execute(delete(table))
 
 
 @contextmanager
@@ -104,47 +43,49 @@ def collect_select_statements() -> Iterator[list[str]]:
         event.remove(Engine, "before_cursor_execute", _collect_statement)
 
 
-@pytest.fixture
-async def engine() -> AsyncIterator[AsyncEngine]:
-    database_engine = create_database_engine(_resolve_database_url())
-    await _wipe_corpus(database_engine)
-    yield database_engine
-    await _wipe_corpus(database_engine)
-    await database_engine.dispose()
+def run_migrations(database_url: str) -> None:
+    backend_root = Path(__file__).resolve().parents[2]  #  -> backend/
+    cfg = Config(str(backend_root / "alembic.ini"))
+    cfg.set_main_option("script_location", str(backend_root / "migrations"))
+    cfg.set_main_option("sqlalchemy.url", database_url)
+    command.upgrade(cfg, "head")
 
 
-@pytest.fixture
-async def pg(engine: AsyncEngine) -> AsyncIterator[PgAccessor]:
-    """Живой PgAccessor к тестовой БД (engine-параметр нужен для wipe-порядка)."""
-    url = make_url(environ["TEST_DATABASE_URL"])
-    config = PgConfig(
+def create_test_pg_settings() -> PGSettings:
+    raw = environ["TEST_DATABASE_URL"]
+    url = make_url(raw)
+    return PGSettings(
         database=url.database or "",
         host=url.host or "127.0.0.1",
         port=url.port or 5432,
         username=url.username,
         password=url.password,
     )
-    accessor = PgAccessor(config)
-    await accessor.connect()
-    try:
-        yield accessor
-    finally:
-        await close_leaked_pg_request_scope(accessor)
-        await accessor.disconnect()
 
 
-async def close_leaked_pg_request_scope(pg: PgAccessor) -> None:
+def create_test_pg_config() -> PgConfig:
+    url = create_test_pg_settings()
+    return PgConfig(
+        database=url.database or "",
+        host=url.host or "127.0.0.1",
+        port=url.port or 5432,
+        username=url.username,
+        password=url.password,
+    )
+
+
+async def close_leaked_pg_request_scope(db: DbAccessor) -> None:
     """Close a request scope leaked across tests under session-scoped asyncio loop.
 
     Production ``reset_request_scope()`` only clears the ContextVar and leaves the
     connection checked out (idle in transaction), which then blocks TRUNCATE/DROP.
     This test helper rolls back/closes the orphaned session so the pool can reuse it.
     """
-    scope = pg._current_scope.get()
+    scope = db._current_scope.get()  # type: ignore[attr-defined]
     if scope is None:
         return
 
-    pg.reset_request_scope()
+    db.reset_request_scope()
     scope._closed = True
 
     try:
@@ -158,3 +99,27 @@ async def close_leaked_pg_request_scope(pg: PgAccessor) -> None:
         logger.exception("failed to close leaked test pg session")
 
     await scope.close_children()
+
+
+async def connect_test_db(db: DbAccessor) -> None:
+    url = URL.create(
+        drivername="postgresql+asyncpg",
+        host=db.config.host,
+        port=db.config.port,
+        username=db.config.username,
+        password=db.config.password,
+        database=db.config.database,
+    )
+
+    db._engine = create_async_engine(url, poolclass=NullPool)  # type: ignore[attr-defined]
+    db._ro_engine = db._engine  # type: ignore[attr-defined]
+    db._session_maker, db._ro_session_maker = build_session_makers(db._engine, db._ro_engine, db.config)  # type: ignore[attr-defined]
+
+    await db.scalar(sa.select(literal(1)))
+
+
+def create_stub_accessor() -> DbAccessor:
+    db = PgAccessor(PgConfig(database="stub"))
+    db._session_maker = _FakeSession  # type: ignore[assignment]  # noqa: SLF001
+    db._ro_session_maker = _FakeSession  # type: ignore[assignment]  # noqa: SLF001
+    return db

@@ -6,7 +6,6 @@ from uuid import uuid7
 import pytest
 
 from roots_of_rhythm.people_catalog.domain import (
-    EditorialStatus,
     ExternalIdentity,
     PeopleCatalogDomainError,
     Person,
@@ -93,6 +92,6 @@ def test_person_publication_requires_only_canonical_name_and_preserves_content()
     assert published.birth_date == content.birth_date
     assert published.death_date == content.death_date
     assert published.external_identities == content.external_identities
-    assert published.editorial_status is EditorialStatus.PUBLISHED
-    assert archived.editorial_status is EditorialStatus.ARCHIVED
+    assert published.is_published
+    assert archived.is_archived
     assert published.id == archived.id == person.id

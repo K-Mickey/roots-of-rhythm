@@ -35,6 +35,8 @@ from roots_of_rhythm.seed import CorpusSeedRunner
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
+    from roots_of_rhythm.application.ports import DbAccessor, UnitOfWork
+
 pytestmark = pytest.mark.integration
 
 
@@ -93,9 +95,9 @@ async def _counts(
 
 
 @pytest.mark.asyncio
-async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine) -> None:
+async def test_corpus_seed_is_idempotent_and_exact(engine: AsyncEngine, database: DbAccessor, uow: UnitOfWork) -> None:
     session_factory = create_session_factory(engine)
-    runner = CorpusSeedRunner(session_factory)
+    runner = CorpusSeedRunner(session_factory, database, uow)
 
     await runner.run()
     first = await _counts(engine)

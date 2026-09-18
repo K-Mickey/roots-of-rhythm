@@ -1,23 +1,22 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from litestar.testing import TestClient
 
-from roots_of_rhythm.config import Settings
-from roots_of_rhythm.entrypoints.api import create_app
 from roots_of_rhythm.seed import genre_knowledge as genre_data
 from tests.support.postgres import collect_select_statements
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+    from litestar import Litestar
+    from litestar.testing import TestClient
 
 pytestmark = pytest.mark.integration
 
 
-async def test_genre_overview_integration_returns_seeded_swing_in_one_select(seeded_engine: AsyncEngine) -> None:
-    database_url = seeded_engine.url.render_as_string(hide_password=False)
+async def test_genre_overview_integration_returns_seeded_swing_in_one_select(
+    seeded_client: TestClient[Litestar],
+) -> None:
     with (
-        TestClient(app=create_app(Settings(database_url=database_url))) as client,
+        seeded_client as client,
         collect_select_statements() as selects,
     ):
         response = client.get(f"/api/v1/genres/{genre_data.SWING_ID}")

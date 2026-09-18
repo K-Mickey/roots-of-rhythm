@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from uuid import UUID, uuid7
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.application.errors import (
-    UniqueConstraintViolation,
     WorkCreditConflict,
     WorkCreditNotFound,
 )
@@ -33,8 +33,11 @@ class WorkCreditService:
                 role,
                 content,
             )
-            await uow.work_credits.add(credit)
-            await self._commit(uow)
+            try:
+                await uow.work_credits.add(credit)
+            except UniqueConstraintViolation as error:
+                raise WorkCreditConflict from error
+            await uow.commit()
             return credit
 
     async def replace_content(self, credit_id: UUID, content: WorkCreditContent) -> WorkCredit:
@@ -43,9 +46,11 @@ class WorkCreditService:
             updated = credit.replace_content(content)
             try:
                 await uow.work_credits.save(updated)
+            except UniqueConstraintViolation as error:
+                raise WorkCreditConflict from error
             except LookupError as error:
                 raise WorkCreditNotFound(str(credit_id)) from error
-            await self._commit(uow)
+            await uow.commit()
             return updated
 
     async def publish(self, credit_id: UUID) -> WorkCredit:
@@ -64,9 +69,11 @@ class WorkCreditService:
             updated = transition(credit)
             try:
                 await uow.work_credits.save(updated)
+            except UniqueConstraintViolation as error:
+                raise WorkCreditConflict from error
             except LookupError as error:
                 raise WorkCreditNotFound(str(credit_id)) from error
-            await self._commit(uow)
+            await uow.commit()
             return updated
 
     @staticmethod
@@ -80,10 +87,3 @@ class WorkCreditService:
         if credit is None:
             raise WorkCreditNotFound(str(credit_id))
         return credit
-
-    @staticmethod
-    async def _commit(uow: MusicCatalogUnitOfWork) -> None:
-        try:
-            await uow.commit()
-        except UniqueConstraintViolation as error:
-            raise WorkCreditConflict from error

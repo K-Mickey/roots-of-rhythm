@@ -22,8 +22,8 @@ from roots_of_rhythm.people_catalog.domain import (
     PersonDate,
     TemporalPrecision,
 )
-from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReadData
-from tests.discovery.readers_stubs import StubPerformerReader, StubPublishedPeopleReader
+from tests.discovery.readers_stubs import StubPerformerReader
+from tests.people_catalog.support.fake_service import FakePersonService
 
 
 @pytest.mark.asyncio
@@ -56,7 +56,7 @@ async def test_performer_overview_query_projects_person_and_published_genres() -
         )
     }
     query = PerformerOverviewQuery(
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=(person,))),
+        FakePersonService((person,)),
         StubPerformerReader(
             PerformerData(
                 assignments=tuple(assignments.values()),
@@ -88,7 +88,7 @@ async def test_performer_overview_query_projects_person_and_published_genres() -
 @pytest.mark.asyncio
 async def test_performer_overview_query_hides_missing_person() -> None:
     query = PerformerOverviewQuery(
-        StubPublishedPeopleReader(PublishedPeopleReadData(persons=())),
+        FakePersonService(),
         StubPerformerReader(PerformerData(assignments=(), genres={})),
     )
 

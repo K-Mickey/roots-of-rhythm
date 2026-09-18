@@ -1,11 +1,10 @@
 from typing import TYPE_CHECKING
 
-from psycopg import errors as psycopg_errors
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.infrastructure.database import apply_write_lock
-from roots_of_rhythm.music_catalog.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.domain import ClassificationAssignment, ClassificationTargetKind, EditorialStatus
 from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     assignment_from_record,
@@ -16,6 +15,7 @@ from roots_of_rhythm.music_catalog.infrastructure.models import (
     CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT,
     ClassificationAssignmentRecord,
 )
+from roots_of_rhythm.utils.sql import is_unique_violation
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -116,9 +116,6 @@ class SqlAlchemyClassificationAssignmentRepository:
         try:
             await self._session.flush()
         except IntegrityError as error:
-            if (
-                isinstance(error.orig, psycopg_errors.UniqueViolation)
-                and error.orig.diag.constraint_name == CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT
-            ):
+            if is_unique_violation(error, CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT):
                 raise UniqueConstraintViolation(CLASSIFICATION_ASSIGNMENT_UNIQUE_CONSTRAINT) from error
             raise

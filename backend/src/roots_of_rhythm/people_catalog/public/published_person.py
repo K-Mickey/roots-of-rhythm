@@ -1,0 +1,23 @@
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from collections.abc import Collection
+    from uuid import UUID
+
+    from roots_of_rhythm.people_catalog.domain import Person, PersonContent
+
+
+class PeopleCatalog(Protocol):
+    async def get_published_by_ids(self, person_ids: Collection[UUID]) -> tuple[Person, ...]: ...
+
+    async def get_published(self, person_id: UUID) -> Person | None: ...
+
+    async def list_published(self) -> tuple[Person, ...]: ...
+
+    async def create(self, content: PersonContent, *, person_id: UUID | None = None) -> Person: ...
+
+    async def replace_content(self, person_id: UUID, content: PersonContent) -> Person: ...
+
+    async def publish(self, person_id: UUID) -> Person: ...
+
+    async def archive(self, person_id: UUID) -> Person: ...

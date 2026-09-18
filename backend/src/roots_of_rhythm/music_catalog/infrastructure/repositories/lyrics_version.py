@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import case, select
+from sqlalchemy.exc import IntegrityError
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.infrastructure.database import apply_write_lock
 from roots_of_rhythm.music_catalog.domain import EditorialStatus, LyricsUsageKind, LyricsVersion
 from roots_of_rhythm.music_catalog.infrastructure.mapping import (
@@ -9,7 +11,8 @@ from roots_of_rhythm.music_catalog.infrastructure.mapping import (
     record_from_lyrics_version,
     update_lyrics_version_record,
 )
-from roots_of_rhythm.music_catalog.infrastructure.models import LyricsVersionRecord
+from roots_of_rhythm.music_catalog.infrastructure.models import LYRICS_VERSION_UNIQUE_CONSTRAINT, LyricsVersionRecord
+from roots_of_rhythm.utils.sql import is_unique_violation
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -24,6 +27,7 @@ class SqlAlchemyLyricsVersionRepository:
 
     async def add(self, version: LyricsVersion) -> None:
         self._session.add(record_from_lyrics_version(version))
+        await self._flush_unique_constraint()
 
     async def get(self, version_id: UUID, *, for_update: bool = False) -> LyricsVersion | None:
         return await self._get(version_id, for_update=for_update)
@@ -87,6 +91,7 @@ class SqlAlchemyLyricsVersionRepository:
         if record is None:
             raise LookupError(str(version.id))
         update_lyrics_version_record(record, version)
+        await self._flush_unique_constraint()
 
     async def mark_deleted(self, version_id: UUID) -> None:
         record = await self._get_record(version_id, for_update=True)
@@ -120,3 +125,11 @@ class SqlAlchemyLyricsVersionRepository:
         statement = apply_write_lock(statement, for_update=for_update)
         result = await self._session.execute(statement)
         return result.scalar_one_or_none()
+
+    async def _flush_unique_constraint(self) -> None:
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            if is_unique_violation(error, LYRICS_VERSION_UNIQUE_CONSTRAINT):
+                raise UniqueConstraintViolation(LYRICS_VERSION_UNIQUE_CONSTRAINT) from error
+            raise

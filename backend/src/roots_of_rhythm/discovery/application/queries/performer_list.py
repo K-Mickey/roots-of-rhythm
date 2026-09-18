@@ -4,7 +4,7 @@ from roots_of_rhythm.discovery.application.dto.common import PerformerSummary
 from roots_of_rhythm.discovery.application.dto.performers import PerformerListResponse
 
 if TYPE_CHECKING:
-    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
+    from roots_of_rhythm.people_catalog.public.published_person import PeopleCatalog
 
 
 @runtime_checkable
@@ -13,7 +13,7 @@ class PerformerListReader(Protocol):
 
 
 class PerformerListQuery:
-    def __init__(self, people: PublishedPeopleReader) -> None:
+    def __init__(self, people: PeopleCatalog) -> None:
         self._people = people
 
     async def list(self) -> PerformerListResponse:

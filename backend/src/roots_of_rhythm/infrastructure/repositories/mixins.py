@@ -10,14 +10,14 @@ if TYPE_CHECKING:
     from sqlalchemy.sql import Select
     from sqlalchemy.sql.selectable import TypedReturnsRows
 
-    from roots_of_rhythm.infrastructure.pg_accessor import PgAccessor
+    from roots_of_rhythm.application.ports import DbAccessor
 
 _R = TypeVar("_R", bound=tuple[Any, ...])
 
 
 class PaginationMixin:
     if TYPE_CHECKING:
-        _pg: PgAccessor
+        _db: DbAccessor
 
     async def paginate(
         self,
@@ -32,8 +32,8 @@ class PaginationMixin:
         query = query.offset(offset).limit(limit)
 
         if scalars:
-            return await self._pg.scalars(query, session=session)
-        return await self._pg.all(query, session=session)
+            return await self._db.scalars(query, session=session)
+        return await self._db.all(query, session=session)
 
     async def count_and_page(
         self,
@@ -42,11 +42,11 @@ class PaginationMixin:
         session: "AsyncSession | None" = None,
     ) -> "tuple[int, Sequence[Row[_R]]]":
         if session is not None:
-            total_row = await self._pg.first(count_query, session=session)
-            rows = await self._pg.all(rows_query, session=session)
+            total_row = await self._db.first(count_query, session=session)
+            rows = await self._db.all(rows_query, session=session)
         else:
             total_row, rows = await asyncio.gather(
-                self._pg.first(count_query),
-                self._pg.all(rows_query),
+                self._db.first(count_query),
+                self._db.all(rows_query),
             )
         return (total_row[0] if total_row else 0), rows

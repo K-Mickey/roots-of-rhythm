@@ -10,14 +10,18 @@ from roots_of_rhythm.seed.recording_corpus import RecordingCorpusSeed
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from roots_of_rhythm.application.ports import DbAccessor, UnitOfWork
+
 
 class CorpusSeedRunner:
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self, session_factory: async_sessionmaker[AsyncSession], database: DbAccessor, uow: UnitOfWork
+    ) -> None:
         self._sections = (
             GenreKnowledgeSeed(session_factory),
-            PeopleAndGroupsSeed(session_factory),
+            PeopleAndGroupsSeed(session_factory, database, uow),
             MusicalWorksSeed(session_factory),
-            RecordingCorpusSeed(session_factory),
+            RecordingCorpusSeed(session_factory, database, uow),
         )
 
     async def run(self) -> None:

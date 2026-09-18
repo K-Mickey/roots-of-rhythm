@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING
 
-from psycopg import errors as psycopg_errors
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 
-from roots_of_rhythm.historical_knowledge.application.errors import UniqueConstraintViolation
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.historical_knowledge.domain import EditorialStatus, EvidenceStatus
 from roots_of_rhythm.historical_knowledge.infrastructure.mapping import (
     evidence_records_from_recording_origin_claim,
@@ -18,6 +17,7 @@ from roots_of_rhythm.historical_knowledge.infrastructure.models import (
     RecordingOriginClaimRecord,
 )
 from roots_of_rhythm.infrastructure.database import apply_write_lock
+from roots_of_rhythm.utils.sql import is_unique_violation
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -38,10 +38,7 @@ class SqlAlchemyRecordingOriginClaimRepository:
         try:
             await self._session.flush()
         except IntegrityError as error:
-            if (
-                isinstance(error.orig, psycopg_errors.UniqueViolation)
-                and error.orig.diag.constraint_name == RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX
-            ):
+            if is_unique_violation(error, RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX):
                 raise UniqueConstraintViolation(RECORDING_ORIGIN_ENDPOINTS_UNIQUE_INDEX) from error
             raise
 

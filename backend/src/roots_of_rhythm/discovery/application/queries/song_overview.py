@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     )
     from roots_of_rhythm.music_catalog.public.song_overview_reader import SongMusicReader
     from roots_of_rhythm.people_catalog.domain import Person
-    from roots_of_rhythm.people_catalog.public.published_person_reader import PublishedPeopleReader
+    from roots_of_rhythm.people_catalog.public.published_person import PeopleCatalog
 
 
 @runtime_checkable
@@ -54,7 +54,7 @@ class SongOverviewQuery:
     def __init__(
         self,
         music: SongMusicReader,
-        people: PublishedPeopleReader,
+        people: PeopleCatalog,
         knowledge: SongHistoricalKnowledgeReader,
     ) -> None:
         self._music = music
@@ -103,7 +103,7 @@ class SongOverviewQuery:
                 tuple(recording.id for recording in music.recordings),
             ),
         )
-        persons = {person.id: person for person in people.persons}
+        persons = {person.id: person for person in people}
         source_access_by_version = dict(knowledge.source_access_by_version)
         body_disclosures = [
             project_lyrics_version_body(version, source_access_by_version.get(version.source_version_id))

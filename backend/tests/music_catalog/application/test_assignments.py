@@ -6,9 +6,10 @@ import pytest
 from tests.music_catalog.fakes.assignments import FakeClassificationAssignmentRepository
 from tests.music_catalog.fakes.genres import FakeGenreRepository
 from tests.music_catalog.fakes.groups import FakeGroupRepository
-from tests.people_catalog.fakes.persons import FakePersonRepository
+from tests.people_catalog.support.fake_repository import FakePersonRepository
 from tests.support.scopes import counting_transaction_scope
 
+from roots_of_rhythm.application.errors import UniqueConstraintViolation
 from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentConflict,
     ClassificationAssignmentGenreNotPublished,
@@ -18,7 +19,6 @@ from roots_of_rhythm.music_catalog.application import (
     ClassificationAssignmentService,
     ClassificationAssignmentTargetUnsupported,
     PublishClassificationAssignment,
-    UniqueConstraintViolation,
 )
 from roots_of_rhythm.music_catalog.domain import (
     ClassificationAssignment,
@@ -30,6 +30,7 @@ from roots_of_rhythm.music_catalog.domain import (
     Group,
     GroupContent,
 )
+from roots_of_rhythm.people_catalog.application import PersonRepository
 from roots_of_rhythm.people_catalog.domain import EditorialStatus as PersonEditorialStatus
 from roots_of_rhythm.people_catalog.domain import Person, PersonContent
 
@@ -98,7 +99,7 @@ def _operations(
         lambda _transaction: music.assignments,
         lambda _transaction: music.genres,
         lambda _transaction: music.groups,
-        lambda _transaction: people.persons,
+        people.persons,
     )
     return service, publish, music, people
 
@@ -303,7 +304,7 @@ async def test_publish_assignment_locks_person_and_genre_but_not_group() -> None
     assignment_repository.save = AsyncMock()
     genre_repository = Mock()
     genre_repository.get_published = AsyncMock(return_value=object())
-    person_repository = Mock()
+    person_repository = Mock(spec=PersonRepository)
     person_repository.get_published = AsyncMock(return_value=object())
     group_repository_factory = Mock()
     publish = PublishClassificationAssignment(
@@ -311,7 +312,7 @@ async def test_publish_assignment_locks_person_and_genre_but_not_group() -> None
         lambda _transaction: assignment_repository,
         lambda _transaction: genre_repository,
         group_repository_factory,
-        lambda _transaction: person_repository,
+        person_repository,
     )
 
     await publish.execute(assignment.id)

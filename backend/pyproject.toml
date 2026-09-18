@@ -50,7 +50,7 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 markers = ["integration: requires a running PostgreSQL database"]
 env = [
-    "D:TEST_DATABASE_URL=postgresql+psycopg://roots:roots@127.0.0.1:5432/roots_of_rhythm_test",
+    "D:TEST_DATABASE_URL=postgresql+asyncpg://roots:roots@127.0.0.1:5432/roots_of_rhythm_test",
 ]
 
 [tool.coverage.run]
@@ -80,3 +80,4 @@ runtime-evaluated-base-classes = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
+"src/roots_of_rhythm/discovery/presentation/*" = ["TC001", "TC002"]
